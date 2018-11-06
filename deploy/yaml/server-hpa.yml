@@ -1,0 +1,12 @@
+kind: HorizontalPodAutoscaler
+apiVersion: autoscaling/v1
+metadata:
+  name: orion-server
+spec:
+  minReplicas: ${SERVER_MIN}
+  maxReplicas: ${SERVER_MAX}
+  scaleTargetRef:
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    name: orion-server
+  targetCPUUtilizationPercentage: 80

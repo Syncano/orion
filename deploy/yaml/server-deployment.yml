@@ -1,0 +1,52 @@
+kind: Deployment
+apiVersion: apps/v1beta1
+metadata:
+  name: orion-server
+  labels:
+    app: orion
+    type: server
+spec:
+  replicas: ${REPLICAS}
+  selector:
+    matchLabels:
+      app: orion
+      type: server
+
+  template:
+    metadata:
+      labels:
+        buildtime: ${BUILDTIME}
+        app: orion
+        type: server
+    spec:
+      terminationGracePeriodSeconds: 360
+      imagePullSecrets:
+        - name: syncano-k8s-pull-secret
+      containers:
+        - name: orion-server
+          image: ${DOCKERIMAGE}:${VERSION}
+          command:
+            - "orion"
+            - "server"
+          resources:
+            requests:
+              memory: "1000Mi"
+              cpu: 1.0
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: http-metrics
+              containerPort: 9080
+          env:
+            - name: SERVICE_NAME
+              value: orion-server
+          envFrom:
+            - configMapRef:
+                name: orion
+            - secretRef:
+                name: orion
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 9080
+            initialDelaySeconds: 5

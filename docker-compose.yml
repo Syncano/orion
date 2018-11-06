@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  app:
+    privileged: true
+    build: .
+    image: orion_app
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - .:/go/src/github.com/Syncano/orion
+      - /go/src/github.com/Syncano/orion/vendor
+      - /tmp/storage:/home/orion/storage

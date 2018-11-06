@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+  server:
+    command: orion --debug server
+    image: quay.io/syncano/orion
+    build: .
+    ports:
+      - "80:80"
+    environment:
+      - SERVICE_NAME=orion-server
+      - ZIPKIN_ADDR
+      - REDIS_ADDR
+
+  worker:
+    command: orion --debug worker
+    user: root
+    image: quay.io/syncano/orion
+    build: .
+    environment:
+      - SERVICE_NAME=orion-worker
+      - ZIPKIN_ADDR
+      - REDIS_ADDR

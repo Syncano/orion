@@ -1,0 +1,53 @@
+FROM alpine:3.7
+
+ARG EMAIL=devops@syncano.com
+ENV ACME_VERSION=2.7.8 \
+    LE_WORKING_DIR=/acme/home \
+    LE_CONFIG_HOME=/acme/config \
+    CERT_HOME=/acme/certs
+
+RUN set -ex \
+    && addgroup -S orion \
+    && adduser -S -G orion orion \
+    && apk --no-cache add \
+        # Env zip processing
+        squashfs-tools \
+        unzip \
+        # Install openssl support
+        ca-certificates \
+        openssl \
+        curl \
+        # Install pdf packages
+        xvfb \
+        ttf-freefont \
+        fontconfig \
+        dbus \
+    \
+    # Install pdf support from edge packages
+    && apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing \
+        wkhtmltopdf \
+    \
+    # PDF support
+    && mv /usr/bin/wkhtmltopdf /usr/bin/wkhtmltopdf-origin \
+    && echo $'#!/usr/bin/env sh\n\
+Xvfb :0 -screen 0 1024x768x24 -ac +extension GLX +render -noreset & \n\
+DISPLAY=:0.0 wkhtmltopdf-origin $@ \n\
+killall Xvfb\
+' > /usr/bin/wkhtmltopdf \
+    && chmod +x /usr/bin/wkhtmltopdf \
+    \
+    # Install acme.sh
+    && wget https://github.com/Neilpang/acme.sh/archive/${ACME_VERSION}.zip \
+    && unzip ${ACME_VERSION}.zip \
+    && cd acme.sh-${ACME_VERSION} \
+    && mkdir -p ${LE_WORKING_DIR} ${LE_CONFIG_HOME} ${CERT_HOME} \
+    && ./acme.sh --install --nocron --home ${LE_WORKING_DIR} --config-home ${LE_CONFIG_HOME} --cert-home ${CERT_HOME} \
+        --accountemail "${EMAIL}" --accountkey "/acme/config/account.key" \
+    && ln -s ${LE_WORKING_DIR}/acme.sh /usr/bin/acme.sh \
+    && cd .. \
+    && rm -rf ${ACME_VERSION}.zip acme.sh-${ACME_VERSION}
+
+COPY orion-static /usr/local/bin/orion
+
+WORKDIR /home/orion
+USER orion

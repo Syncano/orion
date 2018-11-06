@@ -1,0 +1,20 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: orion-server
+  labels:
+    k8s-app: orion-server
+spec:
+  type: ClusterIP
+  selector:
+    app: orion
+    type: server
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: http
+    - name: http-metrics
+      protocol: TCP
+      port: 9080
+      targetPort: http-metrics

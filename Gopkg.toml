@@ -1,0 +1,75 @@
+[[constraint]]
+  name = "github.com/labstack/echo"
+  version = "3.3.6"
+
+[[override]]
+  name = "github.com/apache/thrift"
+  revision = "88591e32e710a0524327153c8b629d5b461e35e0"
+
+[[constraint]]
+  name = "github.com/blang/semver"
+  version = "3.5.1"
+
+[[constraint]]
+  name = "github.com/go-redis/redis"
+  version = "6.14.1"
+
+[[constraint]]
+  name = "github.com/satori/go.uuid"
+  version = "1.2.0"
+
+[[constraint]]
+  name = "github.com/stretchr/testify"
+  version = "1.2.1"
+
+[[constraint]]
+  name = "github.com/urfave/cli"
+  version = "1.20.0"
+
+[[constraint]]
+  name = "github.com/vmihailenco/msgpack"
+  version = "4.0.0"
+
+[[constraint]]
+  name = "github.com/go-pg/pg"
+  version = "6.15.0"
+
+[[constraint]]
+  name = "google.golang.org/grpc"
+  version = "1.15.0"
+
+[[constraint]]
+  name = "go.uber.org/zap"
+  version = "1.9.1"
+
+[[constraint]]
+  name = "github.com/TheZeroSlave/zapsentry"
+  version = "1.0.1"
+
+[[constraint]]
+  name = "github.com/jackc/pgx"
+  version = "3.2.0"
+
+[[constraint]]
+  name = "github.com/aws/aws-sdk-go"
+  version = "1.15.52"
+
+[[constraint]]
+  name = "github.com/caarlos0/env"
+  version = "3.4.0"
+
+[[constraint]]
+  name = "github.com/go-redis/redis_rate"
+  version = "6.5.0"
+
+[[constraint]]
+  name = "github.com/shopspring/decimal"
+  version = "1.1.0"
+
+[[constraint]]
+  name = "gopkg.in/go-playground/validator.v9"
+  version = "9.21.0"
+
+[prune]
+  go-tests = true
+  unused-packages = true

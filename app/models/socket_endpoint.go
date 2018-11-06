@@ -1,0 +1,42 @@
+package models
+
+import (
+	"fmt"
+
+	"github.com/go-pg/pg/orm"
+
+	"github.com/Syncano/orion/pkg/cache"
+)
+
+// SocketEndpoint represents socket endpoint model.
+type SocketEndpoint struct {
+	tableName struct{} `sql:"?schema.sockets_socketendpoint" pg:",discard_unknown_columns"` // nolint
+
+	ID       int
+	Name     string
+	Metadata JSON
+	SocketID int
+	Socket   *Socket
+	Calls    JSON
+}
+
+func (m *SocketEndpoint) String() string {
+	return fmt.Sprintf("SocketEndpoint<ID=%d, Name=%q>", m.ID, m.Name)
+}
+
+// VerboseName returns verbose name for model.
+func (m *SocketEndpoint) VerboseName() string {
+	return "SocketEndpoint"
+}
+
+// AfterUpdate hook.
+func (m *SocketEndpoint) AfterUpdate(db orm.DB) error {
+	cache.ModelCacheInvalidate(db, m)
+	return nil
+}
+
+// AfterDelete hook.
+func (m *SocketEndpoint) AfterDelete(db orm.DB) error {
+	cache.ModelCacheInvalidate(db, m)
+	return nil
+}
