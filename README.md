@@ -1,6 +1,8 @@
 # Orion
 
-[![CircleCI](https://circleci.com/gh/Syncano/orion.svg?style=svg&circle-token=439f828713b1869aa98396570b0aa9e07298fa31)](https://circleci.com/gh/Syncano/orion/tree/devel)
+Golang version of Syncano Platform meant to replace it and currently used as a partial v3 API support.
+
+[![CircleCI](https://circleci.com/gh/Syncano/orion.svg?style=svg)](https://circleci.com/gh/Syncano/orion)
 
 ## Dependencies
 
