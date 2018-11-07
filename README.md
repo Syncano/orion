@@ -1,6 +1,6 @@
 # Orion
 
-Golang version of Syncano Platform meant to replace it and currently used as a partial v3 API support.
+Syncano Platform written in Go. Meant to completely replace it, currently used as a partial v3 API support.
 
 [![CircleCI](https://circleci.com/gh/Syncano/orion.svg?style=svg)](https://circleci.com/gh/Syncano/orion)
 
