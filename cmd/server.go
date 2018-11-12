@@ -9,11 +9,17 @@ import (
 	"os/signal"
 	"syscall"
 
+	"google.golang.org/grpc"
+
+	"github.com/Syncano/orion/app/proto/codebox"
+	"github.com/Syncano/orion/app/proto/codebox/broker"
+
 	"github.com/urfave/cli"
 	"go.uber.org/zap"
 
 	"github.com/Syncano/orion/pkg/log"
 	"github.com/Syncano/orion/pkg/server"
+	"github.com/Syncano/orion/pkg/settings"
 	"github.com/Syncano/orion/pkg/version"
 )
 
@@ -27,6 +33,11 @@ As there is no authentication, always run it in a private network.`,
 			Name: "port", Usage: "port for web server",
 			EnvVar: "PORT", Value: 8080,
 		},
+
+		cli.StringFlag{
+			Name: "codebox-addr", Usage: "addr for codebox broker server",
+			EnvVar: "CODEBOX_ADDR", Value: "codebox-broker:9000",
+		},
 	},
 	Action: func(c *cli.Context) error {
 		logger := log.Logger()
@@ -36,6 +47,12 @@ As there is no authentication, always run it in a private network.`,
 			zap.String("gitsha", version.GitSHA),
 			zap.Time("buildtime", App.Compiled),
 		).Info("Server starting")
+
+		conn, err := grpc.Dial(c.String("codebox-addr"), settings.DefaultGRPCDialOptions...)
+		if err != nil {
+			return err
+		}
+		codebox.Runner = broker.NewScriptRunnerClient(conn)
 
 		// Create new http server.
 		lis, err := net.Listen("tcp", fmt.Sprintf(":%d", c.Int("port")))

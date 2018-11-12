@@ -10,30 +10,33 @@ import (
 )
 
 type common struct {
-	Location     string        `env:"LOCATION"`
-	Locations    []string      `env:"LOCATIONS"`
-	MainLocation bool          // computed
-	Debug        bool          `env:"DEBUG"`
-	CacheVersion int           `env:"CACHE_VERSION"`
-	CacheTimeout time.Duration `env:"CACHE_TIMEOUT"`
+	Location          string        `env:"LOCATION"`
+	Locations         []string      `env:"LOCATIONS"`
+	MainLocation      bool          // computed
+	Debug             bool          `env:"DEBUG"`
+	CacheVersion      int           `env:"CACHE_VERSION"`
+	CacheTimeout      time.Duration `env:"CACHE_TIMEOUT"`
+	LocalCacheTimeout time.Duration `env:"LOCAL_CACHE_TIMEOUT"`
+	DateFormat        string        `env:"DATE_FORMAT"`
+	DateTimeFormat    string        `env:"DATETIME_FORMAT"`
 
 	AnalyticsWriteKey string `env:"ANALYTICS_WRITE_KEY"`
-	APIDomain         string `env:"API_DOMAIN"`
-	MediaPrefix       string `env:"MEDIA_PREFIX"`
 	SecretKey         string `env:"SECRET_KEY"`
 	StripeSecretKey   string `env:"STRIPE_SECRET_KEY"`
 }
 
 // Common is a global struct with options filled by env.
 var Common = &common{
-	Location:     "stg",
-	Locations:    []string{"stg"},
-	Debug:        false,
-	CacheVersion: 1,
-	CacheTimeout: 1 * time.Hour,
+	Location:          "stg",
+	Locations:         []string{"stg"},
+	Debug:             false,
+	CacheVersion:      1,
+	CacheTimeout:      12 * time.Hour,
+	LocalCacheTimeout: 1 * time.Hour,
+	DateFormat:        "2006-01-02",
+	DateTimeFormat:    "2006-01-02T15:04:05.000000Z",
 
-	SecretKey:   "secret_key",
-	MediaPrefix: "/media/",
+	SecretKey: "secret_key",
 }
 
 type s3 struct {
@@ -107,6 +110,9 @@ var Billing = &billing{
 }
 
 type api struct {
+	Host        string `env:"API_DOMAIN"`
+	MediaPrefix string `env:"MEDIA_PREFIX"`
+
 	MaxPayloadSize int64 `env:"MAX_PAYLOAD_SIZE"`
 	MaxPageSize    int   `env:"MAX_PAGE_SIZE"`
 
@@ -121,6 +127,9 @@ type api struct {
 
 // API ...
 var API = &api{
+	Host:        "api.syncano.test",
+	MediaPrefix: "/media/",
+
 	MaxPayloadSize: 128 << 20,
 	MaxPageSize:    500,
 
@@ -133,12 +142,28 @@ var API = &api{
 	InstanceRateLimitS: 60,
 }
 
+type socket struct {
+	DefaultTimeout time.Duration
+	MaxPayloadSize int64
+	MaxResultSize  int64
+	YAML           string
+}
+
+// Socket ...
+var Socket = &socket{
+	DefaultTimeout: 30 * time.Second,
+	MaxPayloadSize: 6 << 20,
+	MaxResultSize:  6 << 20,
+	YAML:           "socket.yml",
+}
+
 func init() {
 	util.Must(env.Parse(Common))
 	util.Must(env.Parse(S3))
 	util.Must(env.Parse(Social))
 	util.Must(env.Parse(Billing))
 	util.Must(env.Parse(API))
+	util.Must(env.Parse(Socket))
 
 	Common.MainLocation = Common.Locations[0] == Common.Location
 

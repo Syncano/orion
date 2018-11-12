@@ -21,7 +21,7 @@ import (
 
 // DataObjectCreate ...
 func DataObjectCreate(c echo.Context) error {
-	// TODO: CORE-2432 validate and bind
+	// TODO: #16 Object updates
 
 	// o.Data.Set(map[string]string{ // nolint: errcheck
 	// 	"abc": "aa",
@@ -57,7 +57,7 @@ func DataObjectList(c echo.Context) error {
 	var paginator Paginator
 
 	if util.NonEmptyString(c.QueryParam(orderByQuery), "id") != "id" {
-		paginator = &PaginatorOrderedDB{Query: q, OrderFields: class.OrderFields()}
+		paginator = &PaginatorOrderedDB{PaginatorDB: &PaginatorDB{Query: q}, OrderFields: class.OrderFields()}
 	} else {
 		paginator = &PaginatorDB{Query: q}
 	}
@@ -75,7 +75,7 @@ func DataObjectList(c echo.Context) error {
 
 func detailDataObject(c echo.Context) *models.DataObject {
 	o := &models.DataObject{}
-	v, ok := api.IntParam(c, "object_id", o)
+	v, ok := api.IntParam(c, "object_id")
 	if !ok {
 		return nil
 	}
@@ -102,7 +102,7 @@ func DataObjectRetrieve(c echo.Context) error {
 
 // DataObjectUpdate ...
 func DataObjectUpdate(c echo.Context) error {
-	// TODO: CORE-2432 updates
+	// TODO: #16 Object updates
 	mgr := query.NewDataObjectManager(c)
 	o := detailDataObject(c)
 	if o == nil {

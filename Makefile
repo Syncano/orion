@@ -8,7 +8,6 @@ EXECNAME := orion
 PATH := $(PATH):$(GOBIN):$(GOPATH)/bin
 GOFILES = $(shell find . -mindepth 2 -type f -name '*.go' ! -path "./.*" ! -path "./assets/*" ! -path "./cmd/*" ! -path "./dev/*" ! -path "./vendor/*" ! -path "*/mocks/*" ! -path "*/proto/*")
 GOPACKAGES = $(shell echo $(GOFILES) | xargs -n1 dirname | sort | uniq)
-PROTOIMPORTS=$(shell find . -name \*.proto -type f ! -path "./.*" ! -path "./vendor/*" -exec dirname {} \; | sort | uniq)
 
 BUILDTIME = $(shell date +%Y-%m-%dT%H:%M)
 GITSHA = $(shell git rev-parse --short HEAD)
@@ -33,7 +32,7 @@ deps: ## Install dep and sync vendored dependencies
 
 
 testdeps: deps ## Install testing dependencies
-	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | bash -s -- -b $(GOPATH)/bin v1.10.2
+	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | bash -s -- -b $(GOPATH)/bin v1.12.2
 
 devdeps: ## Install compile, testing and development dependencies
 	if ! which protoc > /dev/null; then \

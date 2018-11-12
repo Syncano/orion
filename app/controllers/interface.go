@@ -1,14 +1,19 @@
 package controllers
 
 import (
-	"github.com/go-pg/pg/orm"
+	"reflect"
+
 	"github.com/labstack/echo"
+
+	"github.com/Syncano/orion/app/api"
+	"github.com/Syncano/orion/app/serializers"
 )
 
 // Paginator ...
 //go:generate mockery -inpkg -testonly -name Paginator
 type Paginator interface {
-	FilterObjects(cursor Cursorer) (*orm.Query, error)
+	FilterObjects(cursor Cursorer) error
+	ProcessObjects(c echo.Context, cursor Cursorer, typ reflect.Type, serializer serializers.Serializer, responseLimit *int) ([]api.RawMessage, error)
 	CreateCursor(c echo.Context, defaultOrderAsc bool) Cursorer
 }
 
@@ -16,6 +21,7 @@ type Paginator interface {
 var (
 	_ Paginator = (*PaginatorDB)(nil)
 	_ Paginator = (*PaginatorOrderedDB)(nil)
+	_ Paginator = (*PaginatorRedis)(nil)
 )
 
 // Cursorer ...

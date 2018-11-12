@@ -94,7 +94,7 @@ func dataObjectFieldResponse(f *models.DataObjectField, val string) interface{} 
 			Value string `json:"value"`
 		}{
 			Type:  f.FType,
-			Value: settings.Common.MediaPrefix + val,
+			Value: settings.API.MediaPrefix + val,
 		}
 
 	case models.FieldReferenceType:

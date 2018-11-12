@@ -28,4 +28,5 @@ func InstanceRegister(r *echo.Group, m *middlewares) {
 	ClassRegister(sub.Group("/classes"), m)
 	UserRegister(sub.Group("/users"), m)
 	UserGroupRegister(sub.Group("/groups"), m)
+	SocketEndpointRegister(sub.Group("/endpoints/sockets"), m)
 }

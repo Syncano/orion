@@ -5,13 +5,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Syncano/orion/pkg/settings"
+
 	"github.com/jackc/pgx/pgtype"
 	json "github.com/json-iterator/go"
-)
-
-const (
-	jsonDateFormat = "2006-01-02"
-	jsonTimeFormat = "2006-01-02T15:04:05.000000Z"
 )
 
 var jsonNull = []byte("null")
@@ -31,7 +28,7 @@ func NewTime(t *time.Time) Time {
 }
 
 func (t *Time) String() string {
-	return t.Time.UTC().Format(jsonTimeFormat)
+	return t.Time.UTC().Format(settings.Common.DateTimeFormat)
 }
 
 // IsNull returns true if underlying value is null.
@@ -58,7 +55,7 @@ func (d *Date) IsNull() bool {
 }
 
 func (d *Date) String() string {
-	return d.Time.UTC().Format(jsonDateFormat)
+	return d.Time.UTC().Format(settings.Common.DateTimeFormat)
 }
 
 // MarshalJSON ...
@@ -100,6 +97,13 @@ func (j *JSON) Value() (driver.Value, error) {
 		return string(b), e
 	}
 	return j.JSON.Value()
+}
+
+// Scan implements the database/sql Scanner interface.
+func (j *JSON) Scan(src interface{}) error {
+	err := j.JSON.Scan(src)
+	j.Data = nil
+	return err
 }
 
 // IsNull returns true if underlying value is null.
