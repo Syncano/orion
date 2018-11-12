@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/go-pg/pg/orm"
@@ -68,6 +69,7 @@ func getLocalPath(path string) string {
 		path = path[1 : len(path)-1]
 		path = regexp.MustCompile(`[^\w\s-]`).ReplaceAllString(path, "")
 		path = regexp.MustCompile(`[-\s]+`).ReplaceAllString(path, "-")
+		path = strings.ToLower(path)
 	}
 	return path
 }
