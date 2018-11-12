@@ -17,7 +17,9 @@ type key int
 
 const (
 	// KeySchema is used in Context as a key to describe Schema.
-	KeySchema key = iota
+	KeySchema        key = iota
+	dbConnRetries        = 10
+	dbConnRetrySleep     = 250 * time.Millisecond
 )
 
 var (
@@ -30,7 +32,7 @@ func DefaultDBOptions() *pg.Options {
 	return &pg.Options{
 		Dialer: func(network, addr string) (net.Conn, error) {
 			var conn net.Conn
-			return conn, util.Retry(10, 250*time.Millisecond, func() error {
+			return conn, util.Retry(dbConnRetries, dbConnRetrySleep, func() error {
 				var err error
 				conn, err = net.DialTimeout(network, addr, 3*time.Second)
 				return err

@@ -21,7 +21,7 @@ const (
 
 func detailUserObject(c echo.Context) *models.User {
 	o := &models.User{}
-	v, ok := api.IntParam(c, "user_id", o)
+	v, ok := api.IntParam(c, "user_id")
 	if !ok {
 		return nil
 	}
@@ -60,7 +60,7 @@ func UserClassContext(next echo.HandlerFunc) echo.HandlerFunc {
 
 // UserCreate ...
 func UserCreate(c echo.Context) error {
-	// TODO: CORE-2469 create
+	// TODO: #15 Users updates/deletes
 	return api.NewPermissionDeniedError()
 }
 
@@ -85,7 +85,7 @@ func UserList(c echo.Context) error {
 	var paginator Paginator
 
 	if util.NonEmptyString(c.QueryParam(orderByQuery), "id") != "id" {
-		paginator = &PaginatorOrderedDB{Query: q, OrderFields: class.OrderFields()}
+		paginator = &PaginatorOrderedDB{PaginatorDB: &PaginatorDB{Query: q}, OrderFields: class.OrderFields()}
 	} else {
 		paginator = &PaginatorDB{Query: q}
 	}
@@ -119,7 +119,7 @@ func UserRetrieve(c echo.Context) error {
 
 // UserUpdate ...
 func UserUpdate(c echo.Context) error {
-	// TODO: CORE-2469 updates
+	// TODO: #15 Users updates/deletes
 	return api.NewPermissionDeniedError()
 }
 
@@ -149,7 +149,7 @@ func UserAuth(c echo.Context) error {
 
 // UserDelete ...
 func UserDelete(c echo.Context) error {
-	// TODO: CORE-2469 deletion
+	// TODO: #15 Users updates/deletes
 	// user := detailUserObject(c)
 	// if user == nil {
 	// 	return api.NewNotFoundError(user)
@@ -175,7 +175,7 @@ func UserSchemaRetrieve(c echo.Context) error {
 
 // UserSchemaUpdate ...
 func UserSchemaUpdate(c echo.Context) error {
-	// TODO: CORE-2433 updates
+	// TODO: #8 Class updates/deletes
 	return api.NewPermissionDeniedError()
 }
 
@@ -192,13 +192,13 @@ func UserMeRetrieve(c echo.Context) error {
 
 // UserMeUpdate ...
 func UserMeUpdate(c echo.Context) error {
-	// TODO: CORE-2469 updates
+	// TODO: #15 Users updates/deletes
 	return api.NewPermissionDeniedError()
 }
 
 // UserResetKey ...
 func UserResetKey(c echo.Context) error {
-	// TODO: CORE-2469 updates
+	// TODO: #15 Users updates/deletes
 	return api.NewPermissionDeniedError()
 }
 

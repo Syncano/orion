@@ -85,10 +85,6 @@ func ValueFromString(typ, s string) (interface{}, error) {
 	case FieldDatetimeType:
 		return time.Parse(pgTimestamptzMinuteFormat, s)
 
-	case FieldFileType:
-		// TODO: CORE-2468 files support
-		return s, nil
-
 	case FieldReferenceType:
 		return strconv.Atoi(s)
 
@@ -138,7 +134,7 @@ func ValueToString(typ string, val interface{}) (string, error) {
 		return val.(Time).Time.UTC().Format(pgTimestamptzMinuteFormat), nil
 
 	case FieldFileType:
-		// TODO: CORE-2468 file processing
+		// TODO: #16 Object updates - file support
 		return val.(string), nil
 
 	case FieldReferenceType:

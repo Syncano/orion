@@ -1,7 +1,7 @@
-FROM alpine:3.7
+FROM alpine:3.8
 
 ARG EMAIL=devops@syncano.com
-ENV ACME_VERSION=2.7.8 \
+ENV ACME_VERSION=2.7.9 \
     LE_WORKING_DIR=/acme/home \
     LE_CONFIG_HOME=/acme/config \
     CERT_HOME=/acme/certs

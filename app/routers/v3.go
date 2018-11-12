@@ -28,6 +28,7 @@ type middlewares struct {
 
 	Auth         bool
 	AuthUser     bool
+	RequireAuth  bool
 	RequireAdmin bool
 	RequireUser  bool
 
@@ -56,15 +57,17 @@ func (m *middlewares) Get() []echo.MiddlewareFunc {
 		if m.AuthUser {
 			f = append(f, controllers.AuthUser)
 		}
-		if m.RequireAdmin {
-			f = append(f, controllers.RequireAdmin)
-		} else {
-			f = append(f, controllers.RequireAPIKeyOrAdmin)
+		if m.RequireAuth {
+			if m.RequireAdmin {
+				f = append(f, controllers.RequireAdmin)
+			} else {
+				f = append(f, controllers.RequireAPIKeyOrAdmin)
+			}
+			if m.RequireUser {
+				f = append(f, controllers.RequireUser)
+			}
+			f = append(f, m.authChain...)
 		}
-		if m.RequireUser {
-			f = append(f, controllers.RequireUser)
-		}
-		f = append(f, m.authChain...)
 	}
 
 	f = append(f, api.RateLimit(m.limiter, m.RateLimitKey, m.RateLimitDuration, m.AnonRateLimit))
@@ -98,6 +101,7 @@ func standardMiddlewares(e *echo.Echo) *middlewares {
 
 		Auth:         true,
 		AuthUser:     true,
+		RequireAuth:  true,
 		RequireAdmin: true,
 
 		RateLimitDuration: time.Second,

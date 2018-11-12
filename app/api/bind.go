@@ -116,8 +116,7 @@ func setWithProperType(c echo.Context, valueKind reflect.Kind, val string, struc
 
 	switch valueKind {
 	case reflect.Ptr:
-		switch structField.Interface().(type) {
-		case *multipart.FileHeader:
+		if _, ok := structField.Interface().(*multipart.FileHeader); ok {
 			return setFileheaderField(c, val, structField)
 		}
 		return setWithProperType(c, structField.Elem().Kind(), val, structField.Elem())

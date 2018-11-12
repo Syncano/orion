@@ -24,22 +24,14 @@ func Init(cli rediser) {
 	codec = &cache.Codec{
 		Redis: cli,
 
-		Marshal: func(v interface{}) ([]byte, error) {
-			return msgpack.Marshal(v)
-		},
-		Unmarshal: func(b []byte, v interface{}) error {
-			return msgpack.Unmarshal(b, v)
-		},
+		Marshal:   msgpack.Marshal,
+		Unmarshal: msgpack.Unmarshal,
 	}
 	codecLocal = &cache.Codec{
-		Marshal: func(v interface{}) ([]byte, error) {
-			return msgpack.Marshal(v)
-		},
-		Unmarshal: func(b []byte, v interface{}) error {
-			return msgpack.Unmarshal(b, v)
-		},
+		Marshal:   msgpack.Marshal,
+		Unmarshal: msgpack.Unmarshal,
 	}
-	codecLocal.UseLocalCache(50000, settings.Common.CacheTimeout)
+	codecLocal.UseLocalCache(50000, settings.Common.LocalCacheTimeout)
 }
 
 // Codec returns cache client.
@@ -92,7 +84,7 @@ func VersionedCache(cacheKey string, lookup string, val interface{},
 			return codecLocal.Set(&cache.Item{
 				Key:        cacheKey,
 				Object:     item,
-				Expiration: expiration,
+				Expiration: settings.Common.LocalCacheTimeout,
 			})
 		}
 	}
@@ -122,7 +114,7 @@ func VersionedCache(cacheKey string, lookup string, val interface{},
 	codecLocal.Set(&cache.Item{ // nolint: errcheck
 		Key:        cacheKey,
 		Object:     item,
-		Expiration: expiration,
+		Expiration: settings.Common.LocalCacheTimeout,
 	})
 	return codec.Set(&cache.Item{
 		Key:        cacheKey,

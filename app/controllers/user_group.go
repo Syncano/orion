@@ -16,7 +16,7 @@ const contextUserGroupKey = "user_group"
 
 func detailUserGroup(c echo.Context) *models.UserGroup {
 	o := &models.UserGroup{}
-	v, ok := api.IntParam(c, "group_id", o)
+	v, ok := api.IntParam(c, "group_id")
 	if !ok {
 		return nil
 	}
@@ -42,7 +42,7 @@ func UserGroupContext(next echo.HandlerFunc) echo.HandlerFunc {
 
 // UserGroupCreate ...
 func UserGroupCreate(c echo.Context) error {
-	// TODO: CORE-2469 create
+	// TODO: #15 Users updates/deletes
 	return api.NewPermissionDeniedError()
 }
 
@@ -77,13 +77,13 @@ func UserGroupRetrieve(c echo.Context) error {
 
 // UserGroupUpdate ...
 func UserGroupUpdate(c echo.Context) error {
-	// TODO: CORE-2469 updates
+	// TODO: #15 Users updates/deletes
 	return api.NewPermissionDeniedError()
 }
 
 // UserGroupDelete ...
 func UserGroupDelete(c echo.Context) error {
-	// TODO: CORE-2469 deletion
+	// TODO: #15 Users updates/deletes
 	// user := detailUserObject(c)
 	// if user == nil {
 	// 	return api.NewNotFoundError(user)

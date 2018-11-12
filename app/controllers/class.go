@@ -29,7 +29,7 @@ func ClassContext(next echo.HandlerFunc) echo.HandlerFunc {
 
 // ClassCreate ...
 func ClassCreate(c echo.Context) error {
-	// TODO: CORE-2482 create
+	// TODO: #13 Class create
 	return api.NewPermissionDeniedError()
 }
 
@@ -64,7 +64,7 @@ func ClassRetrieve(c echo.Context) error {
 
 // ClassUpdate ...
 func ClassUpdate(c echo.Context) error {
-	// TODO: CORE-2433 updates
+	// TODO: #8 Class updates/deletes
 	mgr := query.NewClassManager(c)
 	o := detailClass(c)
 
@@ -81,7 +81,9 @@ func ClassUpdate(c echo.Context) error {
 
 // ClassDelete ...
 func ClassDelete(c echo.Context) error {
-	// TODO: CORE-2433 index cleanup, DO cascade!
+	// TODO: #8 Class updates/deletes
+	// index cleanup, DO cascade!
+
 	// user := detailUserObject(c)
 	// if user == nil {
 	// 	return api.NewNotFoundError(user)

@@ -41,15 +41,18 @@ func (s *State) Snapshot(m interface{}, virt map[string]StateField) {
 	)
 
 	// Rolling snapshot.
-	if s.before == nil {
+	switch {
+	case s.before == nil:
 		s.before = newSnapshot()
 		s.virtual = make(map[string]struct{})
 		s.sqlNames = make(map[string]string)
 		snap = s.before
-	} else if s.after == nil {
+
+	case s.after == nil:
 		s.after = newSnapshot()
 		snap = s.after
-	} else {
+
+	default:
 		s.before = s.after
 		s.after = newSnapshot()
 		snap = s.after

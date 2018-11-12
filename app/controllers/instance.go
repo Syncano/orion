@@ -59,7 +59,7 @@ func InstanceAuth(next echo.HandlerFunc) echo.HandlerFunc {
 
 // InstanceCreate ...
 func InstanceCreate(c echo.Context) error {
-	// TODO: CORE-2481 create
+	// TODO: #12 Instance create
 	return api.NewPermissionDeniedError()
 }
 
@@ -93,7 +93,7 @@ func InstanceRetrieve(c echo.Context) error {
 
 // InstanceUpdate ...
 func InstanceUpdate(c echo.Context) error {
-	// TODO: CORE-2434 updates
+	// TODO: #9 Instance updates/deletes
 	mgr := query.NewInstanceManager(c)
 	o := detailInstance(c)
 
@@ -110,7 +110,7 @@ func InstanceUpdate(c echo.Context) error {
 
 // InstanceDelete ...
 func InstanceDelete(c echo.Context) error {
-	// TODO: CORE-2434 schema del, files del
+	// TODO: #9 Instance updates/deletes
 	// user := detailUserObject(c)
 	// if user == nil {
 	// 	return api.NewNotFoundError(user)

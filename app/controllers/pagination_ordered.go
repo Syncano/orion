@@ -9,8 +9,6 @@ import (
 
 	"github.com/Syncano/orion/app/api"
 	"github.com/Syncano/orion/app/models"
-
-	"github.com/go-pg/pg/orm"
 )
 
 const orderByQuery = "order_by"
@@ -69,12 +67,12 @@ func (c *keysetcursor) PrevURL(path string) string {
 
 // PaginatorOrderedDB ...
 type PaginatorOrderedDB struct {
-	Query       *orm.Query
+	*PaginatorDB
 	OrderFields map[string]models.OrderField
 }
 
 // FilterObjects ...
-func (p *PaginatorOrderedDB) FilterObjects(cursor Cursorer) (*orm.Query, error) {
+func (p *PaginatorOrderedDB) FilterObjects(cursor Cursorer) error {
 	q := p.Query
 	isOrderAsc := cursor.IsOrderAsc()
 	limit := cursor.Limit()
@@ -82,7 +80,7 @@ func (p *PaginatorOrderedDB) FilterObjects(cursor Cursorer) (*orm.Query, error) 
 	cur := cursor.(*keysetcursor)
 
 	if cur.field == nil {
-		return nil, api.NewBadRequestError(`Missing or unindexed field used as "order_by".`)
+		return api.NewBadRequestError(`Missing or unindexed field used as "order_by".`)
 	}
 
 	sqlName := cur.field.SQLName()
@@ -116,7 +114,8 @@ func (p *PaginatorOrderedDB) FilterObjects(cursor Cursorer) (*orm.Query, error) 
 	}
 
 	order := orderingMap[isOrderAsc]
-	return q.OrderExpr(fmt.Sprintf("%s %s, ?TableAlias.id %s", sqlName, order, order)).Limit(limit), nil
+	p.Query = q.OrderExpr(fmt.Sprintf("%s %s, ?TableAlias.id %s", sqlName, order, order)).Limit(limit)
+	return nil
 }
 
 // CreateCursor ...

@@ -15,6 +15,7 @@ import (
 
 	"github.com/Syncano/orion/app/api"
 	"github.com/Syncano/orion/pkg/log"
+	"github.com/Syncano/orion/pkg/settings"
 )
 
 // Server defines a Web server wrapper.
@@ -50,6 +51,11 @@ func (s *Server) setupRouter() *echo.Echo {
 	// go tool pprof http://.../debug/pprof/heap
 	if s.debug {
 		e.GET("/debug/pprof/*", echo.WrapHandler(http.DefaultServeMux))
+	}
+
+	// If MediaPrefix is set to local files - serve them.
+	if settings.API.MediaPrefix[0] == '/' {
+		e.Static(settings.API.MediaPrefix[:len(settings.API.MediaPrefix)-1], "media")
 	}
 
 	e.HTTPErrorHandler = api.HTTPErrorHandler

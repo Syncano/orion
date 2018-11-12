@@ -20,7 +20,7 @@ type Subscription struct {
 	AdminID int
 	Admin   *Admin `msgpack:"-"`
 	PlanID  int
-	Plan    *PricingPlan `msgpack:"-"`
+	Plan    *PricingPlan
 }
 
 func (m *Subscription) String() string {

@@ -1,0 +1,25 @@
+syntax = "proto3";
+package lb;
+option go_package = "github.com/Syncano/orion/app/proto/codebox/lb";
+
+import "app/proto/codebox/script/script.proto";
+
+service ScriptRunner {
+  // Run runs script in secure environment of worker.
+  rpc Run (stream RunRequest) returns (stream script.RunResponse);
+}
+
+// RunRequest represents either a Meta message or a Chunk message. 
+// It should always consist of exactly 1 Meta and optionally repeated Chunk messages.
+message RunRequest {
+  // Meta message specifies fields to describe what is being run. 
+  message MetaMessage {
+    string concurrencyKey = 1; // Key on which concurrency limiting will take place.
+    int32 concurrencyLimit = 2; // Max concurrency allowed for key.
+  }
+
+  oneof value {
+    MetaMessage meta = 1;
+    script.RunRequest request = 2;
+  }
+}
