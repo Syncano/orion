@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/delicb/gstring"
 	"github.com/go-pg/pg/orm"
 	"github.com/labstack/echo"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/Syncano/orion/app/models"
 	"github.com/Syncano/orion/app/query"
 	"github.com/Syncano/orion/app/serializers"
+	"github.com/Syncano/orion/pkg/redisdb"
 	"github.com/Syncano/orion/pkg/settings"
 	"github.com/Syncano/orion/pkg/storage"
 	"github.com/Syncano/orion/pkg/util"
@@ -21,6 +23,7 @@ import (
 const (
 	contextSocketEndpointKey     = "socket_endpoint"
 	contextSocketEndpointCallKey = "socket_endpoint_call"
+	contextChannelRoomKey        = "channel_room"
 	invalidateURISuffix          = "/invalidate"
 	invalidateURISuffixLen       = len(invalidateURISuffix)
 )
@@ -103,6 +106,7 @@ func SocketEndpointMap(c echo.Context) error {
 		return echo.ErrMethodNotAllowed
 	}
 
+	// Add socket endpoint to context.
 	name := fmt.Sprintf("%s/%s", c.Param("socket_name"), p)
 	o := &models.SocketEndpoint{
 		Name: name,
@@ -112,10 +116,13 @@ func SocketEndpointMap(c echo.Context) error {
 	}
 	c.Set(contextSocketEndpointKey, o)
 
+	// Add call to context.
+	call := o.MatchCall(c.Request().Method)
+	c.Set(contextSocketEndpointCallKey, call)
+
 	// Process Socket Endpoint runner.
 	if h == nil {
 		requireAuth = false
-		call := o.MatchCall(c.Request().Method)
 
 		// Check auth when private flag is true.
 		private := call["private"]
@@ -126,12 +133,15 @@ func SocketEndpointMap(c echo.Context) error {
 		}
 
 		// Set handler based on call type.
+		h = SocketEndpointCodeboxRun
 		if call["type"] == "channel" {
 			h = SocketEndpointChannelRun
-		} else {
-			h = SocketEndpointCodeboxRun
 		}
-		c.Set(contextSocketEndpointCallKey, call)
+	}
+
+	// Add common channel wrapper.
+	if call["type"] == "channel" {
+		h = socketEndpointChannel(h)
 	}
 
 	if requireAuth {
@@ -140,15 +150,37 @@ func SocketEndpointMap(c echo.Context) error {
 	return h(c)
 }
 
+func socketEndpointChannel(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		// Add channel to context for channel socket endpoint type.
+		ch := &models.Channel{Name: models.ChannelDefaultName}
+		if query.NewChannelManager(c).OneByName(ch) != nil {
+			return api.NewNotFoundError(ch)
+		}
+		c.Set(contextChannelKey, ch)
+
+		room, err := createChannelRoom(c)
+		if err != nil {
+			return err
+		}
+		c.Set(contextChannelRoomKey, room)
+
+		return next(c)
+	}
+}
+
+func createSocketTraceDBCtx(c echo.Context, o interface{}) *redisdb.DBCtx {
+	return storage.RedisDB().Model(o, map[string]interface{}{
+		"instance":        c.Get(settings.ContextInstanceKey).(*models.Instance),
+		"socket_endpoint": c.Get(contextSocketEndpointKey).(*models.SocketEndpoint),
+	})
+}
+
 // SocketEndpointTraceList ...
 func SocketEndpointTraceList(c echo.Context) error {
 	var o []*models.SocketTrace
-	q := storage.RedisDB().Model(&o, map[string]interface{}{
-		"instance_id":        c.Get(settings.ContextInstanceKey).(*models.Instance).ID,
-		"socket_endpoint_id": c.Get(contextSocketEndpointKey).(*models.SocketEndpoint).ID,
-	})
 
-	paginator := &PaginatorRedis{DBCtx: q, SkippedFields: []string{"result", "args"}}
+	paginator := &PaginatorRedis{DBCtx: createSocketTraceDBCtx(c, &o), SkippedFields: []string{"result", "args"}}
 	cursor := paginator.CreateCursor(c, false)
 
 	r, err := Paginate(c, cursor, (*models.SocketTrace)(nil), serializers.SocketTraceListSerializer{}, paginator)
@@ -166,10 +198,7 @@ func SocketEndpointTraceRetrieve(c echo.Context) error {
 		return api.NewNotFoundError(o)
 	}
 
-	if storage.RedisDB().Model(o, map[string]interface{}{
-		"instance_id":        c.Get(settings.ContextInstanceKey).(*models.Instance).ID,
-		"socket_endpoint_id": c.Get(contextSocketEndpointKey).(*models.SocketEndpoint).ID,
-	}).Find(v) != nil {
+	if createSocketTraceDBCtx(c, o).Find(v) != nil {
 		return api.NewNotFoundError(o)
 	}
 
@@ -193,23 +222,47 @@ func SocketEndpointInvalidate(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
+func createChannelRoom(c echo.Context) (string, error) {
+	format := c.Get(contextSocketEndpointCallKey).(map[string]interface{})["channel"].(string)
+	// Prepare context for room formatting.
+	ctx := make(map[string]interface{})
+	for q, v := range c.QueryParams() {
+		ctx[q] = v[0]
+	}
+	delete(ctx, "user")
+	if k := c.Get(settings.ContextUserKey); k != nil {
+		ctx["user"] = k.(*models.User).Username
+	}
+
+	room := gstring.Sprintm(format, ctx)
+	if strings.Contains(room, "%MISSING") {
+		if _, ok := ctx["user"]; !ok && strings.Contains(format, "{user}") {
+			return "", api.NewPermissionDeniedError()
+		}
+		return "", api.NewGenericError(http.StatusForbidden, "Channel format not satisfied.")
+	}
+	return room, nil
+}
+
 // SocketEndpointChannelRun ...
 func SocketEndpointChannelRun(c echo.Context) error {
-	return api.Render(c, http.StatusOK, map[string]string{
-		"channel": "cba",
-	})
+	room := c.Get(contextChannelRoomKey).(string)
+	return changeSubscribe(c, &room)
 }
 
 // SocketEndpointHistoryList ...
 func SocketEndpointHistoryList(c echo.Context) error {
-	return api.Render(c, http.StatusOK, map[string]string{
-		"history": "cba",
-	})
+	return changeList(c, c.Get(contextChannelRoomKey).(string))
 }
 
 // SocketEndpointHistoryRetrieve ...
 func SocketEndpointHistoryRetrieve(c echo.Context) error {
-	return api.Render(c, http.StatusOK, map[string]string{
-		"history": "retrieve",
-	})
+	o := &models.Change{}
+	v, ok := api.IntGet(c, "change_id")
+	if !ok {
+		return api.NewNotFoundError(o)
+	}
+	o.ID = v
+
+	return changeRetrieve(c, c.Get(contextChannelRoomKey).(string), o)
 }
