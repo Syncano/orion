@@ -120,6 +120,9 @@ type api struct {
 	DataObjectNestedQueryLimit  int `env:"DATA_OBJECT_NESTED_QUERY_LIMIT"`
 	DataObjectNestedQueriesMax  int `env:"DATA_OBJECT_NESTED_QUERIES_MAX"`
 
+	ChannelWebSocketLimit   int
+	ChannelSubscribeTimeout time.Duration
+
 	AnonRateLimitS     int64
 	AdminRateLimitS    int64
 	InstanceRateLimitS int64
@@ -136,6 +139,9 @@ var API = &api{
 	DataObjectEstimateThreshold: 1000,
 	DataObjectNestedQueriesMax:  4,
 	DataObjectNestedQueryLimit:  1000,
+
+	ChannelWebSocketLimit:   100,
+	ChannelSubscribeTimeout: 5 * time.Minute,
 
 	AnonRateLimitS:     7,
 	AdminRateLimitS:    15,

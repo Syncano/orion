@@ -91,7 +91,7 @@ func (c *DBCtx) listKeys(minPK, maxPK, limit int, isOrderAsc bool) ([]string, er
 		min = strconv.Itoa(minPK)
 	}
 
-	l := c.model.ListMaxSize()
+	l := c.model.ListMaxSize(c.args)
 	listKey := c.getListKey()
 	if limit > l {
 		limit = l
@@ -224,7 +224,7 @@ func (c *DBCtx) List(minPK, maxPK, limit int, isOrderAsc bool, skippedFields []s
 }
 
 func (c *DBCtx) trimList(cmds []redis.Cmder) error {
-	trimmedTTL := c.model.TrimmedTTL()
+	trimmedTTL := c.model.TrimmedTTL(c.args)
 	if trimmedTTL <= 0 {
 		return nil
 	}
@@ -272,7 +272,7 @@ func (c *DBCtx) saveObject(pipe redis.Pipeliner, pk int, objectKey string, field
 			pipe.Expire(listKey, ttl)
 		}
 
-		listMaxSize := c.model.ListMaxSize()
+		listMaxSize := c.model.ListMaxSize(c.args)
 		if listMaxSize > 0 && pk > listMaxSize {
 			trimming = true
 			trim := int64(-1 * (listMaxSize + 1))
@@ -288,7 +288,7 @@ func (c *DBCtx) Save(updateFields []string) error {
 	if c.value.Kind() != reflect.Struct {
 		panic("redis: model is not a struct")
 	}
-	ttl := c.model.TTL()
+	ttl := c.model.TTL(c.args)
 	pk := c.table.PK(c.value)
 	saved := pk != 0
 
@@ -389,7 +389,7 @@ func (c *DBCtx) Update(pk int, updated, expected map[string]interface{}) error {
 						pipe.HDel(objectKey, f)
 					}
 				}
-				ttl := c.model.TTL()
+				ttl := c.model.TTL(c.args)
 				if ttl > 0 {
 					pipe.Expire(objectKey, ttl)
 				}

@@ -120,6 +120,14 @@
   version = "v1.1.1"
 
 [[projects]]
+  digest = "1:00a3a4c652868b90e63b958bf36f58e46b9e696f7862db7d9825f3b6bc2b0f6a"
+  name = "github.com/delicb/gstring"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "77637d5e476b8e22d81f6a7bc5311a836dceb1c2"
+  version = "v1.0.0"
+
+[[projects]]
   digest = "1:76dc72490af7174349349838f2fe118996381b31ea83243812a97e5a0fd5ed55"
   name = "github.com/dgrijalva/jwt-go"
   packages = ["."]
@@ -276,6 +284,14 @@
   packages = ["js"]
   pruneopts = "UT"
   revision = "d547d1d9531ed93dbdebcbff7f83e7c876a1e0ee"
+
+[[projects]]
+  digest = "1:7b5c6e2eeaa9ae5907c391a91c132abfd5c9e8a784a341b5625e750c67e6825d"
+  name = "github.com/gorilla/websocket"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "66b9c49e59c6c48f0ffce28c2d8b8a5678502c6d"
+  version = "v1.4.0"
 
 [[projects]]
   digest = "1:cbeb5c30b75203b493b8b07b69b4d1859f2a3665746d1ee411f81d8a9c92ef80"
@@ -868,6 +884,7 @@
     "github.com/aws/aws-sdk-go/service/s3/s3manager",
     "github.com/blang/semver",
     "github.com/caarlos0/env",
+    "github.com/delicb/gstring",
     "github.com/getsentry/raven-go",
     "github.com/go-pg/pg",
     "github.com/go-pg/pg/orm",
@@ -877,6 +894,7 @@
     "github.com/go-redis/redis",
     "github.com/go-redis/redis_rate",
     "github.com/golang/protobuf/proto",
+    "github.com/gorilla/websocket",
     "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing",
     "github.com/hnakamur/zap-ltsv",
     "github.com/jackc/pgx/pgtype",

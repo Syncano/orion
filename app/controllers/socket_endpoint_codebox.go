@@ -27,7 +27,6 @@ import (
 	"github.com/Syncano/orion/app/serializers"
 	"github.com/Syncano/orion/pkg/cache"
 	"github.com/Syncano/orion/pkg/settings"
-	"github.com/Syncano/orion/pkg/storage"
 	"github.com/Syncano/orion/pkg/util"
 )
 
@@ -225,11 +224,7 @@ func sendCodeboxRequest(ctx context.Context, c echo.Context, inst *models.Instan
 	// Prepare trace.
 	trace.Meta = meta["request"].(map[string]interface{})
 	trace.Args = payload
-	dbCtx := storage.RedisDB().Model(trace, map[string]interface{}{
-		"instance_id":        c.Get(settings.ContextInstanceKey).(*models.Instance).ID,
-		"socket_endpoint_id": c.Get(contextSocketEndpointKey).(*models.SocketEndpoint).ID,
-	})
-	if e := dbCtx.Save(nil); e != nil {
+	if e := createSocketTraceDBCtx(c, trace).Save(nil); e != nil {
 		return nil, e
 	}
 

@@ -39,25 +39,25 @@ func (m *SocketTrace) VerboseName() string {
 
 // Key ...
 func (m *SocketTrace) Key(args map[string]interface{}) string {
-	return fmt.Sprintf("%v:rdb:SocketEndpointTrace", args["instance_id"])
+	return fmt.Sprintf("%d:rdb:SocketEndpointTrace", args["instance"].(*Instance).ID)
 }
 
 // ListArgs ...
 func (m *SocketTrace) ListArgs(args map[string]interface{}) string {
-	return fmt.Sprintf("%v", args["socket_endpoint_id"])
+	return fmt.Sprintf("%d", args["socket_endpoint"].(*SocketEndpoint).ID)
 }
 
 // ListMaxSize ...
-func (m *SocketTrace) ListMaxSize() int {
+func (m *SocketTrace) ListMaxSize(args map[string]interface{}) int {
 	return codeboxListMaxSize
 }
 
 // TTL ...
-func (m *SocketTrace) TTL() time.Duration {
+func (m *SocketTrace) TTL(args map[string]interface{}) time.Duration {
 	return codeboxTTL
 }
 
 // TrimmedTTL ...
-func (m *SocketTrace) TrimmedTTL() time.Duration {
+func (m *SocketTrace) TrimmedTTL(args map[string]interface{}) time.Duration {
 	return codeboxTrimmedTTL
 }
