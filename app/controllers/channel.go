@@ -62,7 +62,7 @@ func channelAddRoomKey(s string, room *string) string {
 	}
 	return s
 }
-func channelPublishLockKey(inst *models.Instance, ch *models.Channel, room *string) string { // nolint: deadcode
+func channelPublishLockKey(inst *models.Instance, ch *models.Channel, room *string) string { // nolint - ignore that it is unused for now
 	return channelAddRoomKey(fmt.Sprintf("channel:publish_lock:%d:%d", inst.ID, ch.ID), room)
 }
 func channelStreamKey(inst *models.Instance, ch *models.Channel, room *string) string {
