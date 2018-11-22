@@ -174,7 +174,7 @@ func init() {
 		storage.InitDB(dbOptions, dbInstancesOptions, c.Bool("debug"))
 
 		// Initialize s3 client.
-		storage.InitS3()
+		storage.InitData()
 
 		// Initialize redis client.
 		storage.InitRedis(&redisOptions)

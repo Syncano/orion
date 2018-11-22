@@ -18,9 +18,9 @@ type Profile struct {
 	Admin            *Admin
 	CustomerID       string
 	SoftLimit        decimal.Decimal
-	SoftLimitReached Date
+	SoftLimitReached *Date
 	HardLimit        decimal.Decimal
-	HardLimitReached Date
+	HardLimitReached *Date
 
 	CompanyName    string
 	FirstName      string

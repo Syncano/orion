@@ -1,7 +1,6 @@
 package serializers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo"
@@ -36,8 +35,7 @@ func (s SocketTraceListSerializer) Response(i interface{}) interface{} {
 	o := i.(*models.SocketTrace)
 	var t *models.Time
 	if !o.ExecutedAt.IsZero() {
-		nt := models.NewTime(&o.ExecutedAt)
-		t = &nt
+		t = models.NewTime(&o.ExecutedAt)
 	}
 
 	var dur *int
@@ -97,15 +95,13 @@ func (s SocketTraceSerializer) Render(c echo.Context, i interface{}) error {
 				h.Set(k, v)
 			}
 		}
-		fmt.Println(res["content_type"].(string))
 		return c.Blob(res["status"].(int), res["content_type"].(string), res["content"].([]byte))
 	}
 
 	// Process Trace Response.
 	var t *models.Time
 	if !trace.ExecutedAt.IsZero() {
-		nt := models.NewTime(&trace.ExecutedAt)
-		t = &nt
+		t = models.NewTime(&trace.ExecutedAt)
 	}
 
 	var dur *int

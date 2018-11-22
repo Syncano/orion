@@ -19,12 +19,12 @@ type Time struct {
 }
 
 // NewTime ...
-func NewTime(t *time.Time) Time {
+func NewTime(t *time.Time) *Time {
 	if t == nil {
 		now := time.Now()
 		t = &now
 	}
-	return Time{Timestamptz: pgtype.Timestamptz{Time: t.UTC(), Status: pgtype.Present}}
+	return &Time{Timestamptz: pgtype.Timestamptz{Time: t.UTC(), Status: pgtype.Present}}
 }
 
 func (t *Time) String() string {
@@ -33,7 +33,7 @@ func (t *Time) String() string {
 
 // IsNull returns true if underlying value is null.
 func (t *Time) IsNull() bool {
-	return t.Status == pgtype.Null
+	return t == nil || t.Status == pgtype.Null
 }
 
 // MarshalJSON ...
@@ -51,7 +51,7 @@ type Date struct {
 
 // IsNull returns true if underlying value is null.
 func (d *Date) IsNull() bool {
-	return d.Status == pgtype.Null
+	return d == nil || d.Status == pgtype.Null
 }
 
 func (d *Date) String() string {
@@ -73,7 +73,7 @@ type Daterange struct {
 
 // IsNull returns true if underlying value is null.
 func (r *Daterange) IsNull() bool {
-	return r.Status == pgtype.Null
+	return r == nil || r.Status == pgtype.Null
 }
 
 // JSON ...
@@ -108,7 +108,7 @@ func (j *JSON) Scan(src interface{}) error {
 
 // IsNull returns true if underlying value is null.
 func (j *JSON) IsNull() bool {
-	return j.Data == nil && j.JSON.Status == pgtype.Null
+	return j == nil || j.JSON.Status == pgtype.Null
 }
 
 // MarshalJSON ...
@@ -125,11 +125,11 @@ type Hstore struct {
 }
 
 // NewHstore ...
-func NewHstore() Hstore {
-	return Hstore{Hstore: pgtype.Hstore{Map: make(map[string]pgtype.Text), Status: pgtype.Present}}
+func NewHstore() *Hstore {
+	return &Hstore{Hstore: pgtype.Hstore{Map: make(map[string]pgtype.Text), Status: pgtype.Present}}
 }
 
 // IsNull returns true if underlying value is null.
 func (h *Hstore) IsNull() bool {
-	return h.Status == pgtype.Null
+	return h == nil || h.Status == pgtype.Null
 }

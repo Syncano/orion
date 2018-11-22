@@ -21,9 +21,9 @@ type Trigger struct {
 	ID          int
 	Description string
 	Label       string
-	CreatedAt   Time
-	UpdatedAt   Time
-	Event       Hstore
+	CreatedAt   *Time
+	UpdatedAt   *Time
+	Event       *Hstore
 	Signals     []string
 
 	CodeboxID int

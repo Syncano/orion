@@ -1,10 +1,12 @@
 package serializers
 
 import (
+	"github.com/labstack/echo"
+
 	"github.com/Syncano/orion/app/models"
 )
 
-var httpAllMethods = []string{"POST", "PUT", "PATCH", "GET", "DELETE"}
+var httpAllMethods = []string{echo.POST, echo.PUT, echo.PATCH, echo.GET, echo.DELETE}
 
 // SocketEndpointResponse ...
 type SocketEndpointResponse struct {
@@ -34,6 +36,6 @@ func (s SocketEndpointSerializer) Response(i interface{}) interface{} {
 	return &SocketEndpointResponse{
 		Name:           o.Name,
 		AllowedMethods: allowedMethods,
-		Metadata:       &o.Metadata,
+		Metadata:       o.Metadata,
 	}
 }

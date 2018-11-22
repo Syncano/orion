@@ -38,8 +38,8 @@ type Channel struct {
 	Type        int
 	Description string
 
-	CreatedAt Time
-	UpdatedAt Time
+	CreatedAt *Time
+	UpdatedAt *Time
 }
 
 func (m *Channel) String() string {

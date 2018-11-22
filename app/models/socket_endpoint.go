@@ -14,10 +14,10 @@ type SocketEndpoint struct {
 
 	ID       int
 	Name     string
-	Metadata JSON
+	Metadata *JSON
 	SocketID int
 	Socket   *Socket
-	Calls    JSON
+	Calls    *JSON
 }
 
 func (m *SocketEndpoint) String() string {

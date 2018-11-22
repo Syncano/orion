@@ -13,9 +13,9 @@ type Event struct {
 	ExternalID string
 	Type       string
 	Livemode   bool
-	Message    JSON
+	Message    *JSON
 	Valid      sql.NullBool
-	CreatedAt  Time
+	CreatedAt  *Time
 }
 
 func (m *Event) String() string {

@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/go-pg/pg"
 	"github.com/labstack/echo"
@@ -25,7 +26,30 @@ func InstanceContext(next echo.HandlerFunc) echo.HandlerFunc {
 			return api.NewBadRequestError("Instance was created in different location. Use relevant API endpoint.")
 		}
 
+		// Get Instance owner and check last access time.
+		var owner *models.Admin
+		if a := c.Get(settings.ContextAdminKey); a != nil {
+			adm := a.(*models.Admin)
+			if adm.ID == o.OwnerID {
+				owner = adm
+			}
+		}
+		adminMgr := query.NewAdminManager(c)
+		if owner == nil {
+			owner = &models.Admin{ID: o.OwnerID}
+			if adminMgr.OneByID(owner) != nil {
+				return api.NewNotFoundError(o)
+			}
+		}
+
+		if true || owner.LastAccess.IsNull() || time.Since(owner.LastAccess.Time) > 12*time.Hour {
+			owner.LastAccess.Set(time.Now())                    // nolint: errcheck
+			owner.NoticedAt.Set(nil)                            // nolint: errcheck
+			adminMgr.Update(owner, "last_access", "noticed_at") // nolint: errcheck
+		}
+
 		c.Set(settings.ContextInstanceKey, o)
+		c.Set(settings.ContextInstanceOwnerKey, owner)
 		c.Set(query.ContextSchemaKey, o.SchemaName)
 		return next(c)
 	}
@@ -41,7 +65,7 @@ func InstanceAuth(next echo.HandlerFunc) echo.HandlerFunc {
 			adm := a.(*models.Admin)
 			air := &models.AdminInstanceRole{InstanceID: o.ID, AdminID: adm.ID}
 
-			if adm.IsStaff || query.NewAdminInstanceRoleManager(c).OneByInstanceAndAdmin(air) == nil {
+			if adm.ID == o.OwnerID || adm.IsStaff || query.NewAdminInstanceRoleManager(c).OneByInstanceAndAdmin(air) == nil {
 				perm = true
 			}
 

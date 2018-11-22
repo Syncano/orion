@@ -26,13 +26,13 @@ func (s ClassSerializer) Response(i interface{}) interface{} {
 	cls := &ClassResponse{
 		Name:         o.Name,
 		Description:  o.Description,
-		Schema:       &o.Schema,
+		Schema:       o.Schema,
 		Status:       o.GetStatus(),
-		CreatedAt:    &o.CreatedAt,
-		UpdatedAt:    &o.UpdatedAt,
+		CreatedAt:    o.CreatedAt,
+		UpdatedAt:    o.UpdatedAt,
 		ObjectsCount: o.ObjectsCount,
 		Revision:     o.Revision,
-		Metadata:     &o.Metadata,
+		Metadata:     o.Metadata,
 	}
 	return cls
 }

@@ -39,18 +39,22 @@ var Common = &common{
 	SecretKey: "secret_key",
 }
 
-type s3 struct {
+type storage struct {
+	Type          string `env:"STORAGE_TYPE"`
+	Bucket        string `env:"STORAGE_BUCKET"`
+	HostingBucket string `env:"STORAGE_HOSTING_BUCKET"`
+
 	AccessKeyID     string `env:"S3_ACCESS_KEY_ID"`
 	SecretAccessKey string `env:"S3_SECRET_ACCESS_KEY"`
 	Region          string `env:"S3_REGION"`
 	Endpoint        string `env:"S3_ENDPOINT"`
-	StorageBucket   string `env:"S3_STORAGE_BUCKET"`
-	HostingBucket   string `env:"S3_HOSTING_BUCKET"`
 }
 
-// S3 ...
+// Storage ...
 var (
-	S3 = &s3{}
+	Storage = &storage{
+		Type: "s3",
+	}
 )
 
 type social struct {
@@ -165,7 +169,7 @@ var Socket = &socket{
 
 func init() {
 	util.Must(env.Parse(Common))
-	util.Must(env.Parse(S3))
+	util.Must(env.Parse(Storage))
 	util.Must(env.Parse(Social))
 	util.Must(env.Parse(Billing))
 	util.Must(env.Parse(API))
