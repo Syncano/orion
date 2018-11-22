@@ -63,10 +63,10 @@ func channelAddRoomKey(s string, room *string) string {
 	return s
 }
 func channelPublishLockKey(inst *models.Instance, ch *models.Channel, room *string) string { // nolint - ignore that it is unused for now
-	return channelAddRoomKey(fmt.Sprintf("channel:publish_lock:%d:%d", inst.ID, ch.ID), room)
+	return channelAddRoomKey(fmt.Sprintf("lock:channel:publish:%d:%d", inst.ID, ch.ID), room)
 }
 func channelStreamKey(inst *models.Instance, ch *models.Channel, room *string) string {
-	return channelAddRoomKey(fmt.Sprintf("channel:stream:%d:%d", inst.ID, ch.ID), room)
+	return channelAddRoomKey(fmt.Sprintf("stream:channel:%d:%d", inst.ID, ch.ID), room)
 }
 
 func changeSubscribe(c echo.Context, room *string) error {

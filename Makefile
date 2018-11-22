@@ -130,12 +130,12 @@ build-in-docker: require-docker-compose ## Build static version in docker enviro
 docker: require-docker ## Builds docker image for application (requires static version to be built first)
 	docker build -t $(DOCKERIMAGE) build
 
-deploy-staging: ## Deploy application to staging
+deploy-staging: require-kubectl ## Deploy application to staging
 	echo "=== deploying staging ==="
 	kubectl config use-context k8s.syncano.rocks
 	./deploy.sh staging stg-$(GITSHA) $(ARGS)
 
-deploy-production: ## Deploy application to production
+deploy-production: require-kubectl ## Deploy application to production
 	echo "=== deploying us1 ==="
 	kubectl config use-context k8s.syncano.io
 	./deploy.sh us1 prd-$(GITSHA) $(ARGS)

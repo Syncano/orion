@@ -21,8 +21,8 @@ type PricingPlan struct {
 	ID               int
 	Name             string
 	Available        bool
-	Pricing          JSON
-	Options          JSON
+	Pricing          *JSON
+	Options          *JSON
 	AdjustableLimits bool
 	PaidPlan         bool
 }

@@ -23,8 +23,7 @@ func (s ChangeSerializer) Response(i interface{}) interface{} {
 
 	var t *models.Time
 	if !o.CreatedAt.IsZero() {
-		nt := models.NewTime(&o.CreatedAt)
-		t = &nt
+		t = models.NewTime(&o.CreatedAt)
 	}
 
 	return &ChangeResponse{

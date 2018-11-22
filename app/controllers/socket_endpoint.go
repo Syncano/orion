@@ -26,6 +26,8 @@ const (
 	contextChannelRoomKey        = "channel_room"
 	invalidateURISuffix          = "/invalidate"
 	invalidateURISuffixLen       = len(invalidateURISuffix)
+	socketCallChannel            = "channel"
+	socketCallScript             = "script"
 )
 
 var (
@@ -58,7 +60,6 @@ func SocketEndpointList(c echo.Context) error {
 		return err
 	}
 	return api.Render(c, http.StatusOK, serializers.CreatePage(c, r, nil))
-
 }
 
 func matchRegex(c echo.Context, regex *regexp.Regexp, path, detailParam string, list echo.HandlerFunc, retrieve echo.HandlerFunc) (echo.HandlerFunc, string) {
@@ -77,7 +78,45 @@ func matchRegex(c echo.Context, regex *regexp.Regexp, path, detailParam string, 
 	return nil, path
 }
 
-// SocketEndpointMap ...
+func socketEndpointHandler(h echo.HandlerFunc, requireAuth bool, call map[string]interface{}) echo.HandlerFunc {
+	// Check auth when private flag is true.
+	private := call["private"]
+	if private != nil {
+		requireAuth = requireAuth || private.(bool)
+	}
+
+	if h == nil {
+		// Set default handler based on call type.
+		switch call["type"] {
+		case socketCallChannel:
+			h = SocketEndpointChannelRun
+		case socketCallScript:
+			h = SocketEndpointCodeboxRun
+		default:
+			panic("unknown call type")
+		}
+	}
+
+	// Add common channel wrapper.
+	if call["type"] == socketCallChannel {
+		h = socketEndpointChannel(h)
+	}
+
+	if requireAuth {
+		return InstanceAuth(RequireAdmin(h))
+	}
+	return h
+}
+
+// SocketEndpointMap maps socket endpoints to handlers.
+// for call == "script":
+//   /x/            -> require auth if private, SocketEndpointCodeboxRun
+//   /x/invalidate/ -> require auth if private, SocketEndpointInvalidate
+//   /x/traces/     -> require auth, SocketEndpointTraceList / SocketEndpointTraceRetrieve
+//
+// for call == "channel":
+//   /x/            -> require auth if private, SocketEndpointChannelRun
+//   /x/history/    -> require auth if private, SocketEndpointHistoryList / SocketEndpointHistoryRetrieve
 func SocketEndpointMap(c echo.Context) error {
 	p := c.Param("*")
 	if !strings.HasSuffix(p, "/") {
@@ -86,22 +125,34 @@ func SocketEndpointMap(c echo.Context) error {
 	p = p[:len(p)-1]
 
 	var (
-		h      echo.HandlerFunc
-		method string
+		h           echo.HandlerFunc
+		method      string
+		requireAuth bool
 	)
-	requireAuth := true
+	callType := socketCallScript
+
 	// Match invalidate, history and traces endpoints first.
 	if strings.HasSuffix(p, invalidateURISuffix) {
+		// /invalidate/ allows method=POST, requires auth if private.
+		method = echo.POST
+		requireAuth = false
 		h = SocketEndpointInvalidate
 		p = p[:len(p)-invalidateURISuffixLen]
-		method = "POST"
 	} else {
+		// /traces/ allows method=GET, always requires auth.
+		// /history/ allows method=GET, requires auth if private.
+		method = echo.GET
 		h, p = matchRegex(c, socketEndpointTraceURIRegex, p, "trace_id", SocketEndpointTraceList, SocketEndpointTraceRetrieve)
-		if h == nil {
+		if h != nil {
+			requireAuth = true
+		} else {
 			h, p = matchRegex(c, socketEndpointHistoryURIRegex, p, "change_id", SocketEndpointHistoryList, SocketEndpointHistoryRetrieve)
+			callType = socketCallChannel
+			requireAuth = false
 		}
-		method = "GET"
 	}
+
+	// Check request method.
 	if h != nil && c.Request().Method != method {
 		return echo.ErrMethodNotAllowed
 	}
@@ -116,38 +167,19 @@ func SocketEndpointMap(c echo.Context) error {
 	}
 	c.Set(contextSocketEndpointKey, o)
 
-	// Add call to context.
+	// Add call to context and check expected call type.
 	call := o.MatchCall(c.Request().Method)
 	c.Set(contextSocketEndpointCallKey, call)
 
-	// Process Socket Endpoint runner.
-	if h == nil {
-		requireAuth = false
-
-		// Check auth when private flag is true.
-		private := call["private"]
-		if private != nil && private.(bool) {
-			if c.Get(settings.ContextAdminKey) == nil {
-				return api.NewPermissionDeniedError()
-			}
-		}
-
-		// Set handler based on call type.
-		h = SocketEndpointCodeboxRun
-		if call["type"] == "channel" {
-			h = SocketEndpointChannelRun
-		}
+	if call == nil {
+		return echo.ErrMethodNotAllowed
+	}
+	if h != nil && callType != call["type"] {
+		return echo.ErrNotFound
 	}
 
-	// Add common channel wrapper.
-	if call["type"] == "channel" {
-		h = socketEndpointChannel(h)
-	}
-
-	if requireAuth {
-		return InstanceAuth(RequireAdmin(h))(c)
-	}
-	return h(c)
+	// Process Socket Endpoint handler.
+	return socketEndpointHandler(h, requireAuth, call)(c)
 }
 
 func socketEndpointChannel(next echo.HandlerFunc) echo.HandlerFunc {

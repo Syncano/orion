@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"fmt"
 	"mime/multipart"
 	"net/http"
@@ -156,7 +157,7 @@ func dataObjectDeleteHook(c storage.DBContext, db orm.DB, i interface{}) error {
 	for k, v := range o.Files.Map {
 		fname := o.Data.Map[k]
 		util.Must(
-			storage.DeleteS3File(storage.S3(), settings.S3.StorageBucket, fname.String),
+			storage.Data().Delete(context.Background(), settings.Storage.Bucket, fname.String),
 		)
 
 		if d, e := models.ValueFromString(models.FieldIntegerType, v.String); e == nil {
@@ -180,5 +181,10 @@ func uploadDataObjectFile(db orm.DB, instance *models.Instance, class *models.Cl
 		util.GenerateHexKey(),
 		util.Truncate(filepath.Ext(fh.Filename), 16),
 	)
-	return storage.SafeUploadFileheaderToS3(storage.S3(), db, settings.S3.StorageBucket, key, fh)
+	f, err := fh.Open()
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return storage.Data().SafeUpload(context.Background(), db, settings.Storage.Bucket, key, f)
 }

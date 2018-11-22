@@ -28,6 +28,6 @@ func (s AdminSerializer) Response(i interface{}) interface{} {
 		LastName:    o.LastName,
 		IsActive:    o.IsActive,
 		HasPassword: o.IsPasswordUsable(),
-		Metadata:    &o.Metadata,
+		Metadata:    o.Metadata,
 	}
 }

@@ -31,12 +31,12 @@ type SocketEnvironment struct {
 
 	ID          int
 	Name        string
-	Metadata    JSON
+	Metadata    *JSON
 	Description string
 	Status      int
 	StatusInfo  string
-	CreatedAt   Time
-	UpdatedAt   Time
+	CreatedAt   *Time
+	UpdatedAt   *Time
 	Checksum    string
 
 	ZipFile string

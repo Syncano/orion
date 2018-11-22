@@ -15,9 +15,9 @@ type Transaction struct {
 	InstanceName string
 	Source       string
 	Quantity     int
-	Period       Time
+	Period       *Time
 	Aggregated   bool
-	CreatedAt    Time
+	CreatedAt    *Time
 }
 
 func (m *Transaction) String() string {

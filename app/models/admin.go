@@ -26,11 +26,11 @@ type Admin struct {
 	IsStaff   bool
 	IsActive  bool
 
-	CreatedAt  Time
-	LastLogin  Time
-	LastAccess Time
-	NoticedAt  Time
-	Metadata   JSON
+	CreatedAt  *Time
+	LastLogin  *Time
+	LastAccess *Time
+	NoticedAt  *Time
+	Metadata   *JSON
 }
 
 func (m *Admin) String() string {

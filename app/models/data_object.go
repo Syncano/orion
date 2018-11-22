@@ -16,11 +16,11 @@ type DataObject struct {
 	IsLive bool `sql:"_is_live"`
 
 	ID        int
-	Data      Hstore `sql:"_data" state:"virtual"`
-	Files     Hstore `sql:"_files"`
+	Data      *Hstore `sql:"_data" state:"virtual"`
+	Files     *Hstore `sql:"_files"`
 	Revision  int
-	CreatedAt Time
-	UpdatedAt Time
+	CreatedAt *Time
+	UpdatedAt *Time
 
 	OwnerID int
 	Owner   *User

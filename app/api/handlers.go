@@ -134,11 +134,11 @@ func RateLimit(limiter *redis_rate.Limiter, rateKey string, rateDur time.Duratio
 }
 
 var validMethods = map[string]empty{
-	"GET":    {},
-	"POST":   {},
-	"PUT":    {},
-	"PATCH":  {},
-	"DELETE": {},
+	echo.GET:    {},
+	echo.POST:   {},
+	echo.PUT:    {},
+	echo.PATCH:  {},
+	echo.DELETE: {},
 }
 
 // MethodOverride is a middleware that based on POST _method changes request's method.

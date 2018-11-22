@@ -14,7 +14,7 @@ type UserGroup struct {
 	Name        string
 	Label       string
 	Description string
-	CreatedAt   Time
+	CreatedAt   *Time
 
 	Users []*User `pg:"many2many:?schema.users_membership,joinFK:group_id"`
 }

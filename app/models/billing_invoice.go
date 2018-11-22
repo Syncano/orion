@@ -42,12 +42,12 @@ type Invoice struct {
 	Status        int
 	PlanFee       decimal.Decimal
 	OverageAmount decimal.Decimal
-	Period        Date
+	Period        *Date
 	IsProrated    bool
-	DueDate       Date
+	DueDate       *Date
 	ExternalID    string
-	CreatedAt     Time
-	UpdatedAt     Time
+	CreatedAt     *Time
+	UpdatedAt     *Time
 	Reference     string
 	StatusSent    bool
 }
@@ -99,8 +99,8 @@ type InvoiceItem struct {
 	Source    string
 	Quantity  int
 	Price     decimal.Decimal
-	CreatedAt Time
-	UpdatedAt Time
+	CreatedAt *Time
+	UpdatedAt *Time
 }
 
 func (m *InvoiceItem) String() string {
