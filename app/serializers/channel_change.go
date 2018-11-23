@@ -8,7 +8,7 @@ import (
 type ChangeResponse struct {
 	ID        int                    `json:"id"`
 	Action    string                 `json:"status"`
-	CreatedAt *models.Time           `json:"created_at"`
+	CreatedAt models.Time            `json:"created_at"`
 	Author    map[string]interface{} `json:"author"`
 	Metadata  map[string]interface{} `json:"metadata"`
 	Payload   map[string]interface{} `json:"payload"`
@@ -21,15 +21,10 @@ type ChangeSerializer struct{}
 func (s ChangeSerializer) Response(i interface{}) interface{} {
 	o := i.(*models.Change)
 
-	var t *models.Time
-	if !o.CreatedAt.IsZero() {
-		t = models.NewTime(&o.CreatedAt)
-	}
-
 	return &ChangeResponse{
 		ID:        o.ID,
 		Action:    o.ActionString(),
-		CreatedAt: t,
+		CreatedAt: models.NewTime(&o.CreatedAt),
 		Author:    o.Author,
 		Metadata:  o.Metadata,
 		Payload:   o.Payload,

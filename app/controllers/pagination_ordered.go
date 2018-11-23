@@ -157,3 +157,8 @@ func (p *PaginatorOrderedDB) CreateCursor(c echo.Context, defaultOrderAsc bool) 
 	}
 	return cur
 }
+
+func isValidOrderedPagination(s string) bool {
+	// "id" and "-id" should be processed in standard pagination as they don't require a keyset.
+	return s != "" && s != "id" && s != "-id"
+}

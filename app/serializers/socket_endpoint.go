@@ -10,9 +10,9 @@ var httpAllMethods = []string{echo.POST, echo.PUT, echo.PATCH, echo.GET, echo.DE
 
 // SocketEndpointResponse ...
 type SocketEndpointResponse struct {
-	Name           string       `json:"name"`
-	AllowedMethods []string     `json:"allowed_methods"`
-	Metadata       *models.JSON `json:"metadata"`
+	Name           string      `json:"name"`
+	AllowedMethods []string    `json:"allowed_methods"`
+	Metadata       models.JSON `json:"metadata"`
 }
 
 // SocketEndpointSerializer ...

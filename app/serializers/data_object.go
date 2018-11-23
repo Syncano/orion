@@ -79,8 +79,8 @@ func dataObjectFieldResponse(f *models.DataObjectField, val string) interface{} 
 			t := v.(time.Time)
 
 			return struct {
-				Type  string       `json:"type"`
-				Value *models.Time `json:"value"`
+				Type  string      `json:"type"`
+				Value models.Time `json:"value"`
 			}{
 				Type:  f.FType,
 				Value: models.NewTime(&t),

@@ -24,15 +24,15 @@ type Class struct {
 	ID              int
 	Name            string
 	Revision        int
-	Schema          *JSON
-	Mapping         *Hstore
-	ExistingIndexes *JSON
-	IndexChanges    *JSON
-	Refs            *JSON
+	Schema          JSON
+	Mapping         Hstore
+	ExistingIndexes JSON
+	IndexChanges    JSON
+	Refs            JSON
 	Visible         bool
-	CreatedAt       *Time
-	UpdatedAt       *Time
-	Metadata        *JSON
+	CreatedAt       Time
+	UpdatedAt       Time
+	Metadata        JSON
 	Description     string
 
 	computedSchema map[string]*DataObjectField

@@ -19,12 +19,19 @@ type Time struct {
 }
 
 // NewTime ...
-func NewTime(t *time.Time) *Time {
+func NewTime(t *time.Time) Time {
 	if t == nil {
 		now := time.Now()
 		t = &now
+	} else if t.IsZero() {
+		return Time{Timestamptz: pgtype.Timestamptz{Status: pgtype.Null}}
 	}
-	return &Time{Timestamptz: pgtype.Timestamptz{Time: t.UTC(), Status: pgtype.Present}}
+	return Time{Timestamptz: pgtype.Timestamptz{Time: t.UTC(), Status: pgtype.Present}}
+}
+
+// Value is used on value in go-pg, pass it to pointer version.
+func (t Time) Value() (driver.Value, error) {
+	return t.Timestamptz.Value()
 }
 
 func (t *Time) String() string {
@@ -33,7 +40,7 @@ func (t *Time) String() string {
 
 // IsNull returns true if underlying value is null.
 func (t *Time) IsNull() bool {
-	return t == nil || t.Status == pgtype.Null
+	return t.Status == pgtype.Null
 }
 
 // MarshalJSON ...
@@ -49,9 +56,14 @@ type Date struct {
 	pgtype.Date
 }
 
+// Value is used on value in go-pg, pass it to pointer version.
+func (d Date) Value() (driver.Value, error) {
+	return d.Date.Value()
+}
+
 // IsNull returns true if underlying value is null.
 func (d *Date) IsNull() bool {
-	return d == nil || d.Status == pgtype.Null
+	return d.Status == pgtype.Null
 }
 
 func (d *Date) String() string {
@@ -73,7 +85,7 @@ type Daterange struct {
 
 // IsNull returns true if underlying value is null.
 func (r *Daterange) IsNull() bool {
-	return r == nil || r.Status == pgtype.Null
+	return r.Status == pgtype.Null
 }
 
 // JSON ...
@@ -82,21 +94,21 @@ type JSON struct {
 	Data interface{}
 }
 
+// Value implements the database/sql/driver Valuer interface.
+func (j JSON) Value() (driver.Value, error) {
+	if j.Data != nil {
+		b, e := json.Marshal(j.Data)
+		return string(b), e
+	}
+	return j.JSON.Value()
+}
+
 // Get ...
 func (j *JSON) Get() interface{} {
 	if j.Data == nil {
 		j.Data = j.JSON.Get()
 	}
 	return j.Data
-}
-
-// Value implements the database/sql/driver Valuer interface.
-func (j *JSON) Value() (driver.Value, error) {
-	if j.Data != nil {
-		b, e := json.Marshal(j.Data)
-		return string(b), e
-	}
-	return j.JSON.Value()
 }
 
 // Scan implements the database/sql Scanner interface.
@@ -108,7 +120,7 @@ func (j *JSON) Scan(src interface{}) error {
 
 // IsNull returns true if underlying value is null.
 func (j *JSON) IsNull() bool {
-	return j == nil || j.JSON.Status == pgtype.Null
+	return j.JSON.Status == pgtype.Null
 }
 
 // MarshalJSON ...
@@ -125,11 +137,16 @@ type Hstore struct {
 }
 
 // NewHstore ...
-func NewHstore() *Hstore {
-	return &Hstore{Hstore: pgtype.Hstore{Map: make(map[string]pgtype.Text), Status: pgtype.Present}}
+func NewHstore() Hstore {
+	return Hstore{Hstore: pgtype.Hstore{Map: make(map[string]pgtype.Text), Status: pgtype.Present}}
+}
+
+// Value is used on value in go-pg, pass it to pointer version.
+func (h Hstore) Value() (driver.Value, error) {
+	return h.Hstore.Value()
 }
 
 // IsNull returns true if underlying value is null.
 func (h *Hstore) IsNull() bool {
-	return h == nil || h.Status == pgtype.Null
+	return h.Status == pgtype.Null
 }
