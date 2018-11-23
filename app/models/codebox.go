@@ -21,9 +21,9 @@ type Codebox struct {
 	RuntimeName string
 	Checksum    string
 	Path        string
-	Config      *JSON
-	CreatedAt   *Time
-	UpdatedAt   *Time
+	Config      JSON
+	CreatedAt   Time
+	UpdatedAt   Time
 
 	SocketID int
 	Socket   *Socket

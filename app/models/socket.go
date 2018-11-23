@@ -38,23 +38,23 @@ type Socket struct {
 
 	ID          int
 	Name        string
-	Metadata    *JSON
+	Metadata    JSON
 	Description string
 	Status      int
 	StatusInfo  string
-	CreatedAt   *Time
-	UpdatedAt   *Time
+	CreatedAt   Time
+	UpdatedAt   Time
 	Key         string
 	Checksum    string
 
-	Config        *JSON
-	InstallConfig *JSON
+	Config        JSON
+	InstallConfig JSON
 	ZipFile       string
-	ZipFileList   *JSON
+	ZipFileList   JSON
 	Version       string
 	Size          int
-	Installed     *JSON
-	FileList      *JSON
+	Installed     JSON
+	FileList      JSON
 
 	EnvironmentID int
 	Environment   *SocketEnvironment

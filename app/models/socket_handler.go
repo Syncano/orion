@@ -9,7 +9,7 @@ type SocketHandler struct {
 	tableName struct{} `sql:"?schema.sockets_sockethandler" pg:",discard_unknown_columns"` // nolint
 
 	ID          int
-	Metadata    *JSON
+	Metadata    JSON
 	SocketID    int
 	Socket      *Socket
 	HandlerName string

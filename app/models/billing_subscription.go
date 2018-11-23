@@ -13,9 +13,9 @@ type Subscription struct {
 	tableName struct{} `sql:"billing_subscription" pg:",discard_unknown_columns"` // nolint
 
 	ID           int
-	Commitment   *JSON
-	ChargedUntil *Date
-	Range        *Daterange
+	Commitment   JSON
+	ChargedUntil Date
+	Range        Daterange
 
 	AdminID int
 	Admin   *Admin `msgpack:"-"`

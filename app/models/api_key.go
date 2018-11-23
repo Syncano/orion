@@ -19,8 +19,8 @@ type APIKey struct {
 	Key         string
 	InstanceID  int
 	Instance    *Instance
-	Options     *Hstore
-	CreatedAt   *Time
+	Options     Hstore
+	CreatedAt   Time
 	Description string
 }
 

@@ -63,6 +63,8 @@ func newCursor(c echo.Context, defaultOrderAsc bool) *cursor {
 	orderAsc := defaultOrderAsc
 	if ordering := c.QueryParam("ordering"); ordering != "" {
 		orderAsc = strings.ToLower(ordering) == "asc"
+	} else if orderBy := c.QueryParam("order_by"); orderBy != "" {
+		orderAsc = orderBy[0] != '-'
 	}
 	if !forward {
 		orderAsc = !orderAsc

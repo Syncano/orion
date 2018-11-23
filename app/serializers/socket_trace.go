@@ -22,7 +22,7 @@ var (
 type SocketTraceListResponse struct {
 	ID         int                    `json:"id"`
 	Status     string                 `json:"status"`
-	ExecutedAt *models.Time           `json:"executed_at"`
+	ExecutedAt models.Time            `json:"executed_at"`
 	Duration   *int                   `json:"duration"`
 	Meta       map[string]interface{} `json:"meta"`
 }
@@ -33,10 +33,6 @@ type SocketTraceListSerializer struct{}
 // Response ...
 func (s SocketTraceListSerializer) Response(i interface{}) interface{} {
 	o := i.(*models.SocketTrace)
-	var t *models.Time
-	if !o.ExecutedAt.IsZero() {
-		t = models.NewTime(&o.ExecutedAt)
-	}
 
 	var dur *int
 	if o.Duration > 0 {
@@ -45,7 +41,7 @@ func (s SocketTraceListSerializer) Response(i interface{}) interface{} {
 	return &SocketTraceListResponse{
 		ID:         o.ID,
 		Status:     o.Status,
-		ExecutedAt: t,
+		ExecutedAt: models.NewTime(&o.ExecutedAt),
 		Duration:   dur,
 		Meta:       o.Meta,
 	}
@@ -76,7 +72,7 @@ func (s SocketTraceSerializer) Response(i interface{}) interface{} {
 type SocketTraceRenderResponse struct {
 	ID         int                    `json:"id"`
 	Status     string                 `json:"status"`
-	ExecutedAt *models.Time           `json:"executed_at"`
+	ExecutedAt models.Time            `json:"executed_at"`
 	Duration   *int                   `json:"duration"`
 	Result     map[string]interface{} `json:"result"`
 }
@@ -98,12 +94,6 @@ func (s SocketTraceSerializer) Render(c echo.Context, i interface{}) error {
 		return c.Blob(res["status"].(int), res["content_type"].(string), res["content"].([]byte))
 	}
 
-	// Process Trace Response.
-	var t *models.Time
-	if !trace.ExecutedAt.IsZero() {
-		t = models.NewTime(&trace.ExecutedAt)
-	}
-
 	var dur *int
 	if trace.Duration > 0 {
 		dur = &trace.Duration
@@ -112,7 +102,7 @@ func (s SocketTraceSerializer) Render(c echo.Context, i interface{}) error {
 	return api.Render(c, statusToHTTPCode[trace.Status], &SocketTraceRenderResponse{
 		ID:         trace.ID,
 		Status:     trace.Status,
-		ExecutedAt: t,
+		ExecutedAt: models.NewTime(&trace.ExecutedAt),
 		Duration:   dur,
 		Result:     trace.Result,
 	})

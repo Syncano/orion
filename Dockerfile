@@ -18,6 +18,7 @@ RUN set -ex \
         fontconfig \
         dbus \
     && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+    \
     # PDF support
     && mv /usr/bin/wkhtmltopdf /usr/bin/wkhtmltopdf-origin \
     && echo $'#!/usr/bin/env sh\n\
@@ -40,9 +41,4 @@ killall Xvfb\
 
 COPY ./Gopkg.* ./Makefile /go/src/github.com/Syncano/orion/
 WORKDIR /go/src/github.com/Syncano/orion
-
-# Dev specific
-RUN set -ex \
-    && curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh \
-    && make testdeps
-COPY . /go/src/github.com/Syncano/orion
+RUN make testdeps

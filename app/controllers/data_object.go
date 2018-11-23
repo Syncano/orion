@@ -57,7 +57,7 @@ func DataObjectList(c echo.Context) error {
 	// Prepare pagination.
 	var paginator Paginator
 
-	if util.NonEmptyString(c.QueryParam(orderByQuery), "id") != "id" {
+	if isValidOrderedPagination(c.QueryParam(orderByQuery)) {
 		paginator = &PaginatorOrderedDB{PaginatorDB: &PaginatorDB{Query: q}, OrderFields: class.OrderFields()}
 	} else {
 		paginator = &PaginatorDB{Query: q}

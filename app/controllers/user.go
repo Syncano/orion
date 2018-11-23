@@ -11,7 +11,6 @@ import (
 	"github.com/Syncano/orion/app/serializers"
 	"github.com/Syncano/orion/app/validators"
 	"github.com/Syncano/orion/pkg/settings"
-	"github.com/Syncano/orion/pkg/util"
 )
 
 const (
@@ -84,7 +83,7 @@ func UserList(c echo.Context) error {
 	// Prepare pagination.
 	var paginator Paginator
 
-	if util.NonEmptyString(c.QueryParam(orderByQuery), "id") != "id" {
+	if isValidOrderedPagination(c.QueryParam(orderByQuery)) {
 		paginator = &PaginatorOrderedDB{PaginatorDB: &PaginatorDB{Query: q}, OrderFields: class.OrderFields()}
 	} else {
 		paginator = &PaginatorDB{Query: q}

@@ -23,12 +23,12 @@ type Instance struct {
 	Version    int
 	Location   string
 
-	CreatedAt     *Time
-	UpdatedAt     *Time
+	CreatedAt     Time
+	UpdatedAt     Time
 	StoragePrefix string
-	Config        *JSON
+	Config        JSON
 	Description   string
-	Metadata      *JSON
+	Metadata      JSON
 	Domains       []string `pg:",array"`
 }
 

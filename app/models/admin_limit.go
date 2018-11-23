@@ -17,7 +17,7 @@ type AdminLimit struct {
 
 	AdminID int `sql:",pk"`
 	Admin   *Admin
-	Limits  *Hstore
+	Limits  Hstore
 }
 
 func (m *AdminLimit) String() string {
