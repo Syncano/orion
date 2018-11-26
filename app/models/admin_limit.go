@@ -9,6 +9,8 @@ import (
 	"github.com/Syncano/orion/pkg/settings"
 )
 
+const freePlanName = "free"
+
 // AdminLimit represents admin limit model.
 type AdminLimit struct {
 	tableName struct{} `sql:"billing_adminlimit" pg:",discard_unknown_columns"` // nolint
@@ -39,7 +41,7 @@ func (m *AdminLimit) getLimit(sub *Subscription, key string, limit settings.Plan
 	if sub == nil || sub.Plan == nil {
 		return limit.Default
 	}
-	if sub.Plan.PaidPlan {
+	if sub.Plan.PaidPlan || sub.Plan.Name == freePlanName {
 		return limit.Paid
 	}
 	return limit.Builder

@@ -8,7 +8,6 @@ EXECNAME := orion
 PATH := $(PATH):$(GOBIN):$(GOPATH)/bin
 GOFILES = $(shell find . -mindepth 2 -type f -name '*.go' ! -path "./.*" ! -path "./assets/*" ! -path "./cmd/*" ! -path "./dev/*" ! -path "./vendor/*" ! -path "*/mocks/*" ! -path "*/proto/*")
 GOPACKAGES = $(shell echo $(GOFILES) | xargs -n1 dirname | sort | uniq)
-PROTOIMPORTS=$(shell find . -name \*.proto -type f ! -path "./.*" ! -path "./vendor/*" -exec dirname {} \; | sort | uniq)
 
 BUILDTIME = $(shell date +%Y-%m-%dT%H:%M)
 GITSHA = $(shell git rev-parse --short HEAD)
@@ -33,7 +32,7 @@ deps: ## Install dep and sync vendored dependencies
 
 
 testdeps: deps ## Install testing dependencies
-	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | bash -s -- -b $(GOPATH)/bin v1.10.2
+	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | bash -s -- -b $(GOPATH)/bin v1.12.2
 
 devdeps: ## Install compile, testing and development dependencies
 	if ! which protoc > /dev/null; then \
@@ -131,12 +130,12 @@ build-in-docker: require-docker-compose ## Build static version in docker enviro
 docker: require-docker ## Builds docker image for application (requires static version to be built first)
 	docker build -t $(DOCKERIMAGE) build
 
-deploy-staging: ## Deploy application to staging
+deploy-staging: require-kubectl ## Deploy application to staging
 	echo "=== deploying staging ==="
 	kubectl config use-context k8s.syncano.rocks
 	./deploy.sh staging stg-$(GITSHA) $(ARGS)
 
-deploy-production: ## Deploy application to production
+deploy-production: require-kubectl ## Deploy application to production
 	echo "=== deploying us1 ==="
 	kubectl config use-context k8s.syncano.io
 	./deploy.sh us1 prd-$(GITSHA) $(ARGS)

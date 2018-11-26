@@ -3,6 +3,7 @@ package util
 import (
 	"hash/fnv"
 	"math/rand"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -193,4 +194,16 @@ func Truncate(a string, i int) string {
 		return a[:i]
 	}
 	return a
+}
+
+// RegexNamedGroups returns regex groups for specified regex and matches list.
+func RegexNamedGroups(regex *regexp.Regexp, matches []string) map[string]string {
+	m, n := matches[1:], regex.SubexpNames()[1:]
+	r := make(map[string]string, len(m))
+	for i := range n {
+		if n[i] != "" {
+			r[n[i]] = m[i]
+		}
+	}
+	return r
 }

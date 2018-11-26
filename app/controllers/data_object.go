@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"fmt"
 	"mime/multipart"
 	"net/http"
@@ -21,7 +22,7 @@ import (
 
 // DataObjectCreate ...
 func DataObjectCreate(c echo.Context) error {
-	// TODO: CORE-2432 validate and bind
+	// TODO: #16 Object updates
 
 	// o.Data.Set(map[string]string{ // nolint: errcheck
 	// 	"abc": "aa",
@@ -56,8 +57,8 @@ func DataObjectList(c echo.Context) error {
 	// Prepare pagination.
 	var paginator Paginator
 
-	if util.NonEmptyString(c.QueryParam(orderByQuery), "id") != "id" {
-		paginator = &PaginatorOrderedDB{Query: q, OrderFields: class.OrderFields()}
+	if isValidOrderedPagination(c.QueryParam(orderByQuery)) {
+		paginator = &PaginatorOrderedDB{PaginatorDB: &PaginatorDB{Query: q}, OrderFields: class.OrderFields()}
 	} else {
 		paginator = &PaginatorDB{Query: q}
 	}
@@ -75,7 +76,7 @@ func DataObjectList(c echo.Context) error {
 
 func detailDataObject(c echo.Context) *models.DataObject {
 	o := &models.DataObject{}
-	v, ok := api.IntParam(c, "object_id", o)
+	v, ok := api.IntParam(c, "object_id")
 	if !ok {
 		return nil
 	}
@@ -102,7 +103,7 @@ func DataObjectRetrieve(c echo.Context) error {
 
 // DataObjectUpdate ...
 func DataObjectUpdate(c echo.Context) error {
-	// TODO: CORE-2432 updates
+	// TODO: #16 Object updates
 	mgr := query.NewDataObjectManager(c)
 	o := detailDataObject(c)
 	if o == nil {
@@ -156,7 +157,7 @@ func dataObjectDeleteHook(c storage.DBContext, db orm.DB, i interface{}) error {
 	for k, v := range o.Files.Map {
 		fname := o.Data.Map[k]
 		util.Must(
-			storage.DeleteS3File(storage.S3(), settings.S3.StorageBucket, fname.String),
+			storage.Data().Delete(context.Background(), settings.Storage.Bucket, fname.String),
 		)
 
 		if d, e := models.ValueFromString(models.FieldIntegerType, v.String); e == nil {
@@ -180,5 +181,10 @@ func uploadDataObjectFile(db orm.DB, instance *models.Instance, class *models.Cl
 		util.GenerateHexKey(),
 		util.Truncate(filepath.Ext(fh.Filename), 16),
 	)
-	return storage.SafeUploadFileheaderToS3(storage.S3(), db, settings.S3.StorageBucket, key, fh)
+	f, err := fh.Open()
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return storage.Data().SafeUpload(context.Background(), db, settings.Storage.Bucket, key, f)
 }

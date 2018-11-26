@@ -36,3 +36,5 @@ linters:
     - lll
     - maligned
     - prealloc
+    - gochecknoglobals
+    - gochecknoinits

@@ -68,9 +68,7 @@ func Auth(next echo.HandlerFunc) echo.HandlerFunc {
 // RequireAPIKeyOrAdmin ...
 func RequireAPIKeyOrAdmin(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		e1 := c.Get(settings.ContextAPIKeyKey) == nil
-		e2 := c.Get(settings.ContextAdminKey) == nil
-		if !e1 && !e2 {
+		if c.Get(settings.ContextAPIKeyKey) == nil && c.Get(settings.ContextAdminKey) == nil {
 			return api.NewPermissionDeniedError()
 		}
 		return next(c)
@@ -80,7 +78,7 @@ func RequireAPIKeyOrAdmin(next echo.HandlerFunc) echo.HandlerFunc {
 // RequireAdmin ...
 func RequireAdmin(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		if e := c.Get(settings.ContextAdminKey); e == nil {
+		if c.Get(settings.ContextAdminKey) == nil {
 			return api.NewPermissionDeniedError()
 		}
 		return next(c)
@@ -107,14 +105,14 @@ func AuthUser(next echo.HandlerFunc) echo.HandlerFunc {
 // RequireUser ...
 func RequireUser(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		if e := c.Get(settings.ContextUserKey); e == nil {
+		if c.Get(settings.ContextUserKey) == nil {
 			return api.NewPermissionDeniedError()
 		}
 		return next(c)
 	}
 }
 
-func createAuthToken(o *models.Instance, expiration time.Duration) string { // nolint - ignore that it is unused for now
+func createAuthToken(o *models.Instance, expiration time.Duration) string {
 	instanceID := base62.Encode(int64(o.ID))
 	epoch := base62.Encode(time.Now().Unix() + int64(expiration.Seconds()))
 	key := fmt.Sprintf("%s:%s:%s", instanceID, epoch, settings.Common.SecretKey)

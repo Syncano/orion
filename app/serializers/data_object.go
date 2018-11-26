@@ -77,14 +77,13 @@ func dataObjectFieldResponse(f *models.DataObjectField, val string) interface{} 
 	case models.FieldDatetimeType:
 		if v, err := f.FromString(val); err == nil {
 			t := v.(time.Time)
-			mT := models.NewTime(&t)
 
 			return struct {
-				Type  string       `json:"type"`
-				Value *models.Time `json:"value"`
+				Type  string      `json:"type"`
+				Value models.Time `json:"value"`
 			}{
 				Type:  f.FType,
-				Value: &mT,
+				Value: models.NewTime(&t),
 			}
 		}
 
@@ -94,7 +93,7 @@ func dataObjectFieldResponse(f *models.DataObjectField, val string) interface{} 
 			Value string `json:"value"`
 		}{
 			Type:  f.FType,
-			Value: settings.Common.MediaPrefix + val,
+			Value: settings.API.MediaPrefix + val,
 		}
 
 	case models.FieldReferenceType:

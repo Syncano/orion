@@ -3,5 +3,6 @@ vendor/
 coverage*.out
 dev/
 debug*
+media
 *.swagger.json
 *.unenc

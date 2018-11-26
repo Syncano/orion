@@ -56,9 +56,9 @@ func (m *Manager) Insert(model interface{}) error {
 }
 
 // Update updates object.
-func (m *Manager) Update(model interface{}) error {
+func (m *Manager) Update(model interface{}, fields ...string) error {
 	db := m.DB()
-	if err := db.Update(model); err != nil {
+	if _, err := db.Model(model).Column(fields...).WherePK().Update(); err != nil {
 		return err
 	}
 	return storage.ProcessModelSaveHook(m.Context, db, false, model)

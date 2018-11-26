@@ -63,6 +63,8 @@ func newCursor(c echo.Context, defaultOrderAsc bool) *cursor {
 	orderAsc := defaultOrderAsc
 	if ordering := c.QueryParam("ordering"); ordering != "" {
 		orderAsc = strings.ToLower(ordering) == "asc"
+	} else if orderBy := c.QueryParam("order_by"); orderBy != "" {
+		orderAsc = orderBy[0] != '-'
 	}
 	if !forward {
 		orderAsc = !orderAsc
@@ -139,7 +141,7 @@ type PaginatorDB struct {
 }
 
 // FilterObjects ...
-func (p *PaginatorDB) FilterObjects(cursor Cursorer) (*orm.Query, error) {
+func (p *PaginatorDB) FilterObjects(cursor Cursorer) error {
 	// Filter by ID.
 	q := p.Query
 	lastPk := cursor.LastPK()
@@ -154,36 +156,14 @@ func (p *PaginatorDB) FilterObjects(cursor Cursorer) (*orm.Query, error) {
 		}
 	}
 
-	return q.OrderExpr("?TableAlias.id " + orderingMap[isOrderAsc]).Limit(limit), nil
+	p.Query = q.OrderExpr("?TableAlias.id " + orderingMap[isOrderAsc]).Limit(limit)
+	return nil
 }
 
-// CreateCursor ...
-func (p *PaginatorDB) CreateCursor(c echo.Context, defaultOrderAsc bool) Cursorer {
-	return newCursor(c, defaultOrderAsc)
-}
-
-// Paginate ...
-// nolint: gocyclo
-func Paginate(c echo.Context, cursor Cursorer, typ interface{}, serializer serializers.Serializer, paginator Paginator) ([]api.RawMessage, error) {
+// ProcessObjects ...
+func (p *PaginatorDB) ProcessObjects(c echo.Context, cursor Cursorer, typ reflect.Type, serializer serializers.Serializer, responseLimit *int) ([]api.RawMessage, error) {
 	var ret []api.RawMessage
-	if cursor.Limit() == 0 {
-		return ret, nil
-	}
-
-	// Use pointer to int so that it is modified in loop instead of being copied.
-	var responseLimit *int
-
-	if v := c.Get(contextResponseLimitKey); v != nil {
-		responseLimit = v.(*int)
-	} else {
-		m := maxResponseLimit
-		responseLimit = &m
-	}
-
-	q, err := paginator.FilterObjects(cursor)
-	if err != nil {
-		return nil, err
-	}
+	q := p.Query
 
 	// Create foreach function using reflection.
 	var (
@@ -191,7 +171,7 @@ func Paginate(c echo.Context, cursor Cursorer, typ interface{}, serializer seria
 		e         error
 		obj, last interface{}
 	)
-	foreach := reflect.MakeFunc(reflect.FuncOf([]reflect.Type{reflect.TypeOf(typ)}, []reflect.Type{errorType}, false),
+	foreach := reflect.MakeFunc(reflect.FuncOf([]reflect.Type{typ}, []reflect.Type{errorType}, false),
 		func(args []reflect.Value) (results []reflect.Value) {
 			if *responseLimit <= 0 {
 				return []reflect.Value{reflect.ValueOf(&errStopIteration).Elem()}
@@ -219,6 +199,39 @@ func Paginate(c echo.Context, cursor Cursorer, typ interface{}, serializer seria
 	}
 	if last != nil {
 		cursor.SetLast(last)
+	}
+
+	return ret, nil
+}
+
+// CreateCursor ...
+func (p *PaginatorDB) CreateCursor(c echo.Context, defaultOrderAsc bool) Cursorer {
+	return newCursor(c, defaultOrderAsc)
+}
+
+// Paginate ...
+// nolint: gocyclo
+func Paginate(c echo.Context, cursor Cursorer, typ interface{}, serializer serializers.Serializer, paginator Paginator) ([]api.RawMessage, error) {
+	if cursor.Limit() == 0 {
+		return []api.RawMessage{}, nil
+	}
+
+	// Use pointer to int so that it is modified in loop instead of being copied.
+	var responseLimit *int
+
+	if v := c.Get(contextResponseLimitKey); v != nil {
+		responseLimit = v.(*int)
+	} else {
+		m := maxResponseLimit
+		responseLimit = &m
+	}
+
+	if err := paginator.FilterObjects(cursor); err != nil {
+		return nil, err
+	}
+	ret, err := paginator.ProcessObjects(c, cursor, reflect.TypeOf(typ), serializer, responseLimit)
+	if err != nil {
+		return nil, err
 	}
 
 	// Reverse required if direction is not forward.

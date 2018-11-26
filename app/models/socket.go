@@ -2,11 +2,14 @@ package models
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/go-pg/pg/orm"
 
 	"github.com/Syncano/orion/pkg/cache"
+	"github.com/Syncano/orion/pkg/settings"
 )
 
 // SocketStatus enum.
@@ -59,6 +62,42 @@ type Socket struct {
 
 func (m *Socket) String() string {
 	return fmt.Sprintf("Socket<ID=%d, Name=%q>", m.ID, m.Name)
+}
+
+func getLocalPath(path string) string {
+	if path[0] == '<' {
+		path = path[1 : len(path)-1]
+		path = regexp.MustCompile(`[^\w\s-]`).ReplaceAllString(path, "")
+		path = regexp.MustCompile(`[-\s]+`).ReplaceAllString(path, "-")
+		path = strings.ToLower(path)
+	}
+	return path
+}
+
+func buildAbsoluteURL(path string) string {
+	url := settings.API.MediaPrefix + path
+	if url[0] == '/' {
+		return fmt.Sprintf("http://%s%s", settings.API.Host, url)
+	}
+	return url
+}
+
+// Files ...
+func (m *Socket) Files() map[string]string {
+	f := make(map[string]string)
+	for path, data := range m.FileList.Get().(map[string]interface{}) {
+		if path == settings.Socket.YAML {
+			continue
+		}
+		url := data.(map[string]interface{})["file"].(string)
+		f[buildAbsoluteURL(url)] = getLocalPath(path)
+	}
+	return f
+}
+
+// Hash ...
+func (m *Socket) Hash() string {
+	return fmt.Sprintf("S:%s", m.Checksum)
 }
 
 // VerboseName returns verbose name for model.

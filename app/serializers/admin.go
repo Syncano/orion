@@ -6,13 +6,13 @@ import (
 
 // AdminResponse ...
 type AdminResponse struct {
-	ID          int          `json:"id"`
-	Email       string       `json:"email"`
-	FirstName   string       `json:"first_name"`
-	LastName    string       `json:"last_name"`
-	IsActive    bool         `json:"is_active"`
-	HasPassword bool         `json:"has_password"`
-	Metadata    *models.JSON `json:"metadata"`
+	ID          int         `json:"id"`
+	Email       string      `json:"email"`
+	FirstName   string      `json:"first_name"`
+	LastName    string      `json:"last_name"`
+	IsActive    bool        `json:"is_active"`
+	HasPassword bool        `json:"has_password"`
+	Metadata    models.JSON `json:"metadata"`
 }
 
 // AdminSerializer ...
@@ -28,6 +28,6 @@ func (s AdminSerializer) Response(i interface{}) interface{} {
 		LastName:    o.LastName,
 		IsActive:    o.IsActive,
 		HasPassword: o.IsPasswordUsable(),
-		Metadata:    &o.Metadata,
+		Metadata:    o.Metadata,
 	}
 }

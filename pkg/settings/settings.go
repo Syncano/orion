@@ -10,44 +10,51 @@ import (
 )
 
 type common struct {
-	Location     string        `env:"LOCATION"`
-	Locations    []string      `env:"LOCATIONS"`
-	MainLocation bool          // computed
-	Debug        bool          `env:"DEBUG"`
-	CacheVersion int           `env:"CACHE_VERSION"`
-	CacheTimeout time.Duration `env:"CACHE_TIMEOUT"`
+	Location          string        `env:"LOCATION"`
+	Locations         []string      `env:"LOCATIONS"`
+	MainLocation      bool          // computed
+	Debug             bool          `env:"DEBUG"`
+	CacheVersion      int           `env:"CACHE_VERSION"`
+	CacheTimeout      time.Duration `env:"CACHE_TIMEOUT"`
+	LocalCacheTimeout time.Duration `env:"LOCAL_CACHE_TIMEOUT"`
+	DateFormat        string        `env:"DATE_FORMAT"`
+	DateTimeFormat    string        `env:"DATETIME_FORMAT"`
 
 	AnalyticsWriteKey string `env:"ANALYTICS_WRITE_KEY"`
-	APIDomain         string `env:"API_DOMAIN"`
-	MediaPrefix       string `env:"MEDIA_PREFIX"`
 	SecretKey         string `env:"SECRET_KEY"`
 	StripeSecretKey   string `env:"STRIPE_SECRET_KEY"`
 }
 
 // Common is a global struct with options filled by env.
 var Common = &common{
-	Location:     "stg",
-	Locations:    []string{"stg"},
-	Debug:        false,
-	CacheVersion: 1,
-	CacheTimeout: 1 * time.Hour,
+	Location:          "stg",
+	Locations:         []string{"stg"},
+	Debug:             false,
+	CacheVersion:      1,
+	CacheTimeout:      12 * time.Hour,
+	LocalCacheTimeout: 1 * time.Hour,
+	DateFormat:        "2006-01-02",
+	DateTimeFormat:    "2006-01-02T15:04:05.000000Z",
 
-	SecretKey:   "secret_key",
-	MediaPrefix: "/media/",
+	SecretKey: "secret_key",
 }
 
-type s3 struct {
+type storage struct {
+	Type          string `env:"STORAGE_TYPE"`
+	Bucket        string `env:"STORAGE_BUCKET"`
+	HostingBucket string `env:"STORAGE_HOSTING_BUCKET"`
+
 	AccessKeyID     string `env:"S3_ACCESS_KEY_ID"`
 	SecretAccessKey string `env:"S3_SECRET_ACCESS_KEY"`
 	Region          string `env:"S3_REGION"`
 	Endpoint        string `env:"S3_ENDPOINT"`
-	StorageBucket   string `env:"S3_STORAGE_BUCKET"`
-	HostingBucket   string `env:"S3_HOSTING_BUCKET"`
 }
 
-// S3 ...
+// Storage ...
 var (
-	S3 = &s3{}
+	Storage = &storage{
+		Type: "s3",
+	}
 )
 
 type social struct {
@@ -107,12 +114,18 @@ var Billing = &billing{
 }
 
 type api struct {
+	Host        string `env:"API_DOMAIN"`
+	MediaPrefix string `env:"MEDIA_PREFIX"`
+
 	MaxPayloadSize int64 `env:"MAX_PAYLOAD_SIZE"`
 	MaxPageSize    int   `env:"MAX_PAGE_SIZE"`
 
 	DataObjectEstimateThreshold int `env:"DATA_OBJECT_ESTIMATE_THRESHOLD"`
 	DataObjectNestedQueryLimit  int `env:"DATA_OBJECT_NESTED_QUERY_LIMIT"`
 	DataObjectNestedQueriesMax  int `env:"DATA_OBJECT_NESTED_QUERIES_MAX"`
+
+	ChannelWebSocketLimit   int
+	ChannelSubscribeTimeout time.Duration
 
 	AnonRateLimitS     int64
 	AdminRateLimitS    int64
@@ -121,6 +134,9 @@ type api struct {
 
 // API ...
 var API = &api{
+	Host:        "api.syncano.test",
+	MediaPrefix: "/media/",
+
 	MaxPayloadSize: 128 << 20,
 	MaxPageSize:    500,
 
@@ -128,17 +144,36 @@ var API = &api{
 	DataObjectNestedQueriesMax:  4,
 	DataObjectNestedQueryLimit:  1000,
 
+	ChannelWebSocketLimit:   100,
+	ChannelSubscribeTimeout: 5 * time.Minute,
+
 	AnonRateLimitS:     7,
 	AdminRateLimitS:    15,
 	InstanceRateLimitS: 60,
 }
 
+type socket struct {
+	DefaultTimeout time.Duration
+	MaxPayloadSize int64
+	MaxResultSize  int64
+	YAML           string
+}
+
+// Socket ...
+var Socket = &socket{
+	DefaultTimeout: 30 * time.Second,
+	MaxPayloadSize: 6 << 20,
+	MaxResultSize:  6 << 20,
+	YAML:           "socket.yml",
+}
+
 func init() {
 	util.Must(env.Parse(Common))
-	util.Must(env.Parse(S3))
+	util.Must(env.Parse(Storage))
 	util.Must(env.Parse(Social))
 	util.Must(env.Parse(Billing))
 	util.Must(env.Parse(API))
+	util.Must(env.Parse(Socket))
 
 	Common.MainLocation = Common.Locations[0] == Common.Location
 
