@@ -189,7 +189,7 @@ func sendCodeboxRequest(ctx context.Context, c echo.Context, inst *models.Instan
 	var environmentHash string
 	var environmentURL string
 	if sock.EnvironmentID != 0 {
-		var environment *models.SocketEnvironment
+		environment := &models.SocketEnvironment{ID: sock.EnvironmentID}
 		if query.NewSocketEnvironmentManager(c).OneByID(environment) != nil {
 			return nil, api.NewNotFoundError(environment)
 		}
