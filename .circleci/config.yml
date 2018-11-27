@@ -39,6 +39,10 @@ jobs:
             make build-in-docker docker
 
       - run:
+          name: Install jinja2-cli
+          command: |
+            pip install jinja2-cli[yaml]
+      - run:
           name: Install kops
           command: |
             sudo curl -L -o /usr/local/bin/kops https://github.com/kubernetes/kops/releases/download/1.10.0/kops-linux-amd64

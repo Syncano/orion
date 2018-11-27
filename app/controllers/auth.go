@@ -88,14 +88,16 @@ func RequireAdmin(next echo.HandlerFunc) echo.HandlerFunc {
 // AuthUser handles authenticates user key.
 func AuthUser(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		form := &validators.UserKeyForm{}
-		if api.BindAndValidate(c, form) != nil {
-			form.UserKey = util.NonEmptyString(c.QueryParam("user_key"), c.Request().Header.Get("X-User-Key"))
-		}
+		if c.Get(settings.ContextInstanceKey) != nil {
+			form := &validators.UserKeyForm{}
+			if api.BindAndValidate(c, form) != nil {
+				form.UserKey = util.NonEmptyString(c.QueryParam("user_key"), c.Request().Header.Get("X-User-Key"))
+			}
 
-		o := &models.User{Key: form.UserKey}
-		if keyRegex.MatchString(form.UserKey) && query.NewUserManager(c).OneByKey(o) == nil {
-			c.Set(settings.ContextUserKey, o)
+			o := &models.User{Key: form.UserKey}
+			if keyRegex.MatchString(form.UserKey) && query.NewUserManager(c).OneByKey(o) == nil {
+				c.Set(settings.ContextUserKey, o)
+			}
 		}
 
 		return next(c)

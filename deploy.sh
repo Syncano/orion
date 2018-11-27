@@ -20,7 +20,6 @@ if [[ ! -f "deploy/env/${TARGET}.env" ]]; then
     echo "! environment ${TARGET} does not exist in deploy/env/"; exit 1
 fi
 
-
 # Parse arguments.
 PUSH=true
 for PARAM in ${@:3}; do
@@ -34,12 +33,19 @@ for PARAM in ${@:3}; do
     esac
 done
 
+envsubst() {
+    for var in $(compgen -e); do
+        echo "$var: \"${!var//\"/\\\"}\""
+    done | jinja2 $1
+}
+
+
+echo "* Starting deployment for $TARGET at $VERSION."
 
 # Setup environment variables.
 export $(cat deploy/env/${TARGET}.env | xargs)
 export BUILDTIME=$(date +%Y-%m-%dt%H%M)
 
-echo "* Starting deployment for $TARGET at $VERSION."
 
 # Push docker image.
 if $PUSH; then
@@ -70,13 +76,14 @@ do
 done < deploy/env/${TARGET}.secrets.unenc
 echo -e $SECRETS | kubectl apply -f -
 
+
 # Deploy server
 export REPLICAS=$(kubectl get deployment/orion-server -o jsonpath='{.spec.replicas}' 2>/dev/null || echo ${SERVER_MIN})
 echo "* Deploying Server replicas=${REPLICAS}."
-envsubst < deploy/yaml/server-deployment.yml | kubectl apply -f -
-envsubst < deploy/yaml/server-hpa.yml | kubectl apply -f -
+envsubst deploy/yaml/server-deployment.yml.j2 | kubectl apply -f -
+envsubst deploy/yaml/server-hpa.yml.j2 | kubectl apply -f -
 
 echo "* Deploying Server Service."
-envsubst < deploy/yaml/server-service.yml | kubectl apply -f -
+envsubst deploy/yaml/server-service.yml.j2 | kubectl apply -f -
 
 kubectl rollout status deployment/orion-server
