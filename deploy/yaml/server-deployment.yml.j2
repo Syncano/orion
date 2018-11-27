@@ -6,7 +6,7 @@ metadata:
     app: orion
     type: server
 spec:
-  replicas: ${REPLICAS}
+  replicas: {{ REPLICAS }}
   selector:
     matchLabels:
       app: orion
@@ -15,7 +15,7 @@ spec:
   template:
     metadata:
       labels:
-        buildtime: ${BUILDTIME}
+        buildtime: {{ BUILDTIME }}
         app: orion
         type: server
     spec:
@@ -24,7 +24,7 @@ spec:
         - name: syncano-k8s-pull-secret
       containers:
         - name: orion-server
-          image: ${DOCKERIMAGE}:${VERSION}
+          image: {{ DOCKERIMAGE }}:{{ VERSION }}
           command:
             - "orion"
             - "server"
@@ -50,3 +50,13 @@ spec:
               path: /health
               port: 9080
             initialDelaySeconds: 5
+{%- if STORAGE_TYPE == "gcloud" %}
+          volumeMounts:
+            - name: storage-credentials
+              mountPath: /secrets/storage
+              readOnly: true
+      volumes:
+        - name: storage-credentials
+          secret:
+            secretName: storage-credentials
+{%- endif %}
