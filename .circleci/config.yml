@@ -41,7 +41,7 @@ jobs:
       - run:
           name: Install jinja2-cli
           command: |
-            pip3 install jinja2-cli
+            pip install jinja2-cli
       - run:
           name: Install kops
           command: |
