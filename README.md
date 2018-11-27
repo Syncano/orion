@@ -27,5 +27,5 @@ Syncano Platform written in Go. Meant to completely replace it, currently used a
 ## Deployment
 
 - You need to first build a static version and a docker image. See first two steps of **Starting locally** section.
-- Make sure you have a working `kubectl` installed and configured. During deployment you may also require `gpg` (gnupg) and `jinja2-cli` (<https://github.com/mattrobenolt/jinja2-cli>).
+- Make sure you have a working `kubectl` installed and configured. During deployment you may also require `gpg` (gnupg) and `jinja2-cli` (`pip install jinja2-cli[yaml]`).
 - Run `make deploy-staging` to deploy on staging or `make deploy-production` to deploy on production.
