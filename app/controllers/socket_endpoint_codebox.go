@@ -91,12 +91,13 @@ func prepareSocketEndpointPayload(c echo.Context) (map[string]interface{}, map[s
 	} else if strings.HasPrefix(ctype, echo.MIMEApplicationJSON) {
 
 		jsonMap := make(map[string]interface{})
-		if json.NewDecoder(req.Body).Decode(&jsonMap) != nil {
+		err := json.NewDecoder(req.Body).Decode(&jsonMap)
+		if err == nil {
+			for k, vals := range jsonMap {
+				payload[k] = vals
+			}
+		} else if err != io.EOF {
 			return nil, nil, api.NewBadRequestError("Parsing payload failure: invalid JSON.")
-		}
-
-		for k, vals := range jsonMap {
-			payload[k] = vals
 		}
 
 		// Form.
