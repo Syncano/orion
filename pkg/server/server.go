@@ -44,6 +44,7 @@ func (s *Server) setupRouter() *echo.Echo {
 		Recovery(),
 		Logger(),
 		middleware.CORSWithConfig(middleware.CORSConfig{MaxAge: 86400}),
+		OpenTracing(),
 	)
 
 	// Register profiling if debug is on.
@@ -61,13 +62,6 @@ func (s *Server) setupRouter() *echo.Echo {
 	e.HTTPErrorHandler = api.HTTPErrorHandler
 	e.Binder = &api.Binder{}
 	e.Validator = validators.NewValidator()
-
-	// trace := opentracing.GlobalTracer()
-
-	// // Tracing example
-	// abc := r.Group("/a/:param3",
-	// 	tracing.NewSpan(trace, "forward to service 1"),
-	// 	tracing.InjectToHeaders(trace, true))
 
 	routers.Register(e)
 	return e

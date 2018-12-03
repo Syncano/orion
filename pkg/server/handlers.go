@@ -8,6 +8,7 @@ import (
 
 	raven "github.com/getsentry/raven-go"
 	"github.com/labstack/echo"
+	opentracing "github.com/opentracing/opentracing-go"
 	"go.uber.org/zap"
 
 	"github.com/Syncano/orion/app/api"
@@ -99,6 +100,44 @@ func Logger() echo.MiddlewareFunc {
 				l = logger.With(zap.Error(err))
 			}
 			logg(c, start, path, l)
+			return nil
+		}
+	}
+}
+
+// OpenTracing middleware.
+func OpenTracing() echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			var span opentracing.Span
+			req := c.Request()
+			tracer := opentracing.GlobalTracer()
+			opName := fmt.Sprintf("%s %s", req.Method, req.URL.Path)
+
+			wireContext, err := tracer.Extract(
+				opentracing.TextMap,
+				opentracing.HTTPHeadersCarrier(req.Header))
+
+			if err != nil {
+				span = opentracing.StartSpan(opName)
+			} else {
+				span = opentracing.StartSpan(opName, opentracing.ChildOf(wireContext))
+			}
+
+			defer span.Finish()
+
+			span.SetTag("http.url", req.Host+req.RequestURI)
+			span.SetTag("http.method", req.Method)
+
+			if err := next(c); err != nil {
+				span.SetTag("error", true)
+				c.Error(err)
+			}
+
+			span.SetTag("error", false)
+			span.SetTag("http.status_code", c.Response().Status)
+
+			c.SetRequest(req.WithContext(opentracing.ContextWithSpan(req.Context(), span)))
 			return nil
 		}
 	}

@@ -368,7 +368,7 @@ func SocketEndpointCodeboxRun(c echo.Context) error {
 	}
 
 	// Process request.
-	ctx, cancel := context.WithTimeout(context.Background(), codebox.Timeout)
+	ctx, cancel := context.WithTimeout(c.Request().Context(), codebox.Timeout)
 	defer cancel()
 
 	stream, err := sendCodeboxRequest(ctx, c, instance, socket, endpoint, trace)
