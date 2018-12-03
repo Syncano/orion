@@ -9,6 +9,7 @@ import (
 	raven "github.com/getsentry/raven-go"
 	"github.com/labstack/echo"
 	opentracing "github.com/opentracing/opentracing-go"
+	zipkin "github.com/openzipkin/zipkin-go-opentracing"
 	"go.uber.org/zap"
 
 	"github.com/Syncano/orion/app/api"
@@ -122,6 +123,11 @@ func OpenTracing() echo.MiddlewareFunc {
 				span = opentracing.StartSpan(opName)
 			} else {
 				span = opentracing.StartSpan(opName, opentracing.ChildOf(wireContext))
+			}
+
+			// If we're not in a sampled context, return.
+			if !span.Context().(zipkin.SpanContext).Sampled {
+				return next(c)
 			}
 
 			defer span.Finish()

@@ -13,8 +13,7 @@ import (
 func FilterFunc(ctx context.Context, fullMethodName string) bool {
 	spanCtx := opentracing.SpanFromContext(ctx)
 	if spanCtx != nil {
-		zipkinCtx, _ := spanCtx.Context().(zipkin.SpanContext)
-		return zipkinCtx.Sampled
+		return spanCtx.Context().(zipkin.SpanContext).Sampled
 	}
 
 	md, _ := metadata.FromIncomingContext(ctx)
