@@ -83,7 +83,8 @@ func ValueFromString(typ, s string) (interface{}, error) {
 		return util.IsTrue(s), nil
 
 	case FieldDatetimeType:
-		return time.Parse(pgTimestamptzMinuteFormat, s)
+		t, err := time.Parse(pgTimestamptzMinuteFormat, s)
+		return NewTime(&t), err
 
 	case FieldReferenceType:
 		return strconv.Atoi(s)
