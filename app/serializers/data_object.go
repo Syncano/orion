@@ -2,7 +2,6 @@ package serializers
 
 import (
 	"strconv"
-	"time"
 
 	"github.com/jackc/pgx/pgtype"
 	geom "github.com/twpayne/go-geom"
@@ -76,14 +75,12 @@ func dataObjectFieldResponse(f *models.DataObjectField, val string) interface{} 
 
 	case models.FieldDatetimeType:
 		if v, err := f.FromString(val); err == nil {
-			t := v.(time.Time)
-
 			return struct {
 				Type  string      `json:"type"`
 				Value models.Time `json:"value"`
 			}{
 				Type:  f.FType,
-				Value: models.NewTime(&t),
+				Value: v.(models.Time),
 			}
 		}
 

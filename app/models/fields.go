@@ -20,10 +20,7 @@ type Time struct {
 
 // NewTime ...
 func NewTime(t *time.Time) Time {
-	if t == nil {
-		now := time.Now()
-		t = &now
-	} else if t.IsZero() {
+	if t == nil || t.IsZero() {
 		return Time{Timestamptz: pgtype.Timestamptz{Status: pgtype.Null}}
 	}
 	return Time{Timestamptz: pgtype.Timestamptz{Time: t.UTC(), Status: pgtype.Present}}
