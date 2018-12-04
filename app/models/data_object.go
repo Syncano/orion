@@ -30,6 +30,7 @@ type DataObject struct {
 
 // NewDataObject ...
 func NewDataObject(class *Class) *DataObject {
+	now := time.Now()
 	return &DataObject{
 		IsLive:    true,
 		Class:     class,
@@ -37,8 +38,8 @@ func NewDataObject(class *Class) *DataObject {
 		Data:      NewHstore(),
 		Files:     NewHstore(),
 		Revision:  1,
-		CreatedAt: NewTime(nil),
-		UpdatedAt: NewTime(nil),
+		CreatedAt: NewTime(&now),
+		UpdatedAt: NewTime(&now),
 	}
 }
 
