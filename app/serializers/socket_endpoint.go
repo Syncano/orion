@@ -1,12 +1,12 @@
 package serializers
 
 import (
-	"github.com/labstack/echo"
+	"net/http"
 
 	"github.com/Syncano/orion/app/models"
 )
 
-var httpAllMethods = []string{echo.POST, echo.PUT, echo.PATCH, echo.GET, echo.DELETE}
+var httpAllMethods = []string{http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodGet, http.MethodDelete}
 
 // SocketEndpointResponse ...
 type SocketEndpointResponse struct {

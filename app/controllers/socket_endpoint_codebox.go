@@ -66,8 +66,6 @@ func createCodeboxTraceKey(typ string, inst *models.Instance, sock *models.Socke
 func prepareSocketEndpointPayload(c echo.Context) (map[string]interface{}, map[string]*socketEndpointFile, error) {
 	payload := make(map[string]interface{})
 	files := make(map[string]*socketEndpointFile)
-	req := c.Request()
-	ctype := req.Header.Get("Content-Type")
 
 	// FormData.
 	if f, err := c.MultipartForm(); err == nil {
@@ -88,12 +86,9 @@ func prepareSocketEndpointPayload(c echo.Context) (map[string]interface{}, map[s
 		}
 
 		// JSON.
-	} else if strings.HasPrefix(ctype, echo.MIMEApplicationJSON) {
-
-		jsonMap := make(map[string]interface{})
-		err := json.NewDecoder(req.Body).Decode(&jsonMap)
+	} else if data, err := api.ParsedData(c); err != echo.ErrUnsupportedMediaType {
 		if err == nil {
-			for k, vals := range jsonMap {
+			for k, vals := range data {
 				payload[k] = vals
 			}
 		} else if err != io.EOF {
