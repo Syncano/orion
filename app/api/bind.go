@@ -9,17 +9,21 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/mitchellh/mapstructure"
+
 	"github.com/labstack/echo"
 )
 
 // Binder ...
 type Binder struct{}
 
-// Bind implements the `Binder#Bind` function.
+const contextParsedDataKey = "parsed_data"
+
+// Bind implements the `Binder#Bind` function. Like original binder but with customized errors.
 func (b *Binder) Bind(i interface{}, c echo.Context) error {
 	req := c.Request()
 	if req.ContentLength == 0 {
-		if req.Method == echo.GET || req.Method == echo.DELETE {
+		if req.Method == http.MethodGet || req.Method == http.MethodDelete {
 			return nil
 		}
 		return echo.NewHTTPError(http.StatusBadRequest, "Request body can't be empty")
@@ -29,20 +33,57 @@ func (b *Binder) Bind(i interface{}, c echo.Context) error {
 	case strings.HasPrefix(ctype, echo.MIMEApplicationForm), strings.HasPrefix(ctype, echo.MIMEMultipartForm):
 		params, err := c.FormParams()
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, "Error parsing form")
+			return echo.NewHTTPError(http.StatusBadRequest, "Error parsing data").SetInternal(err)
 		}
 		if err = b.bindData(c, i, params, "form"); err != nil {
 			if _, ok := err.(*Error); ok {
 				return err
 			}
-			e := echo.NewHTTPError(http.StatusBadRequest, "Error parsing form")
-			e.Internal = err
-			return e
+			return echo.NewHTTPError(http.StatusBadRequest, "Error parsing data").SetInternal(err)
 		}
 	default:
-		return echo.ErrUnsupportedMediaType
+		data, err := ParsedData(c)
+		if err == echo.ErrUnsupportedMediaType {
+			return err
+		} else if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, "Error parsing data").SetInternal(err)
+		}
+
+		dec, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{TagName: "form", Result: i})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, "Error parsing data").SetInternal(err)
+		}
+		if err := dec.Decode(data); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, "Error parsing data").SetInternal(err)
+		}
 	}
 	return nil
+}
+
+// ParsedData returns parsed map[string]interface from body.
+// Currently only parses JSON payload.
+func ParsedData(c echo.Context) (map[string]interface{}, error) {
+	data := c.Get(contextParsedDataKey)
+	if data != nil {
+		return data.(map[string]interface{}), nil
+	}
+
+	req := c.Request()
+	ctype := req.Header.Get(echo.HeaderContentType)
+	dataMap := make(map[string]interface{})
+
+	switch {
+	case strings.HasPrefix(ctype, echo.MIMEApplicationJSON):
+		if err := jsonConfig().NewDecoder(req.Body).Decode(&dataMap); err != nil {
+			return nil, err
+		}
+
+	default:
+		return nil, echo.ErrUnsupportedMediaType
+	}
+
+	c.Set(contextParsedDataKey, dataMap)
+	return dataMap, nil
 }
 
 func (b *Binder) bindData(c echo.Context, ptr interface{}, data map[string][]string, tag string) error { // nolint: gocyclo
