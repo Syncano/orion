@@ -1,3 +1,4 @@
+FROM madnight/docker-alpine-wkhtmltopdf:alpine-3.8
 FROM alpine:3.8
 
 ARG EMAIL=devops@syncano.com
@@ -17,24 +18,8 @@ RUN set -ex \
         ca-certificates \
         openssl \
         curl \
-        # Install pdf packages
-        xvfb \
-        ttf-freefont \
-        fontconfig \
-        dbus \
-    \
-    # Install pdf support from edge packages
-    && apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing \
-        wkhtmltopdf \
-    \
-    # PDF support
-    && mv /usr/bin/wkhtmltopdf /usr/bin/wkhtmltopdf-origin \
-    && echo $'#!/usr/bin/env sh\n\
-Xvfb :0 -screen 0 1024x768x24 -ac +extension GLX +render -noreset & \n\
-DISPLAY=:0.0 wkhtmltopdf-origin $@ \n\
-killall Xvfb\
-' > /usr/bin/wkhtmltopdf \
-    && chmod +x /usr/bin/wkhtmltopdf \
+        # Install wkhtmltopdf dependencies
+        ttf-freefont libgcc libstdc++ libx11 glib libxrender libxext libintl \
     \
     # Install acme.sh
     && wget https://github.com/Neilpang/acme.sh/archive/${ACME_VERSION}.zip \
@@ -47,6 +32,7 @@ killall Xvfb\
     && cd .. \
     && rm -rf ${ACME_VERSION}.zip acme.sh-${ACME_VERSION}
 
+COPY --from=0 /bin/wkhtmltopdf /usr/bin/wkhtmltopdf
 COPY orion-static /usr/local/bin/orion
 
 WORKDIR /home/orion
