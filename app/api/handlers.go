@@ -114,7 +114,7 @@ func RateLimit(limiter *redis_rate.Limiter, rateKey string, rateDur time.Duratio
 			} else {
 				// If we are in instance scope - check against instance limits.
 				var rate int64
-				if rateKey != "" {
+				if rateKey == "" {
 					rateKey = ContextRateLimitKey
 				}
 				if v := c.Get(rateKey); v != nil {
@@ -134,18 +134,18 @@ func RateLimit(limiter *redis_rate.Limiter, rateKey string, rateDur time.Duratio
 }
 
 var validMethods = map[string]empty{
-	echo.GET:    {},
-	echo.POST:   {},
-	echo.PUT:    {},
-	echo.PATCH:  {},
-	echo.DELETE: {},
+	http.MethodGet:    {},
+	http.MethodPost:   {},
+	http.MethodPut:    {},
+	http.MethodPatch:  {},
+	http.MethodDelete: {},
 }
 
 // MethodOverride is a middleware that based on POST _method changes request's method.
 func MethodOverride(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := c.Request()
-		if req.Method == echo.POST {
+		if req.Method == http.MethodPost {
 			m := c.FormValue("_method")
 			if _, ok := validMethods[m]; ok {
 				delete(req.Form, "_method")

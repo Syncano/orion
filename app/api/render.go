@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	jsonConfig     jsoniter.API
+	jsonConfigAPI  jsoniter.API
 	jsonConfigOnce sync.Once
 )
 
@@ -37,14 +37,18 @@ func Render(e echo.Context, code int, obj interface{}) error {
 	return e.JSONBlob(code, bytes)
 }
 
-// Marshal serializes object depending on content negotiation.
-// Currently supports only JSON but it's easy to extend.
-func Marshal(c echo.Context, obj interface{}) ([]byte, error) {
+func jsonConfig() jsoniter.API {
 	jsonConfigOnce.Do(func() {
-		jsonConfig = jsoniter.Config{
+		jsonConfigAPI = jsoniter.Config{
 			ObjectFieldMustBeSimpleString: true,                  // do not unescape object field
 			SortMapKeys:                   settings.Common.Debug, // sort map keys if debug mode is on
 		}.Froze()
 	})
-	return jsonConfig.Marshal(obj)
+	return jsonConfigAPI
+}
+
+// Marshal serializes object depending on content negotiation.
+// Currently supports only JSON but it's easy to extend.
+func Marshal(c echo.Context, obj interface{}) ([]byte, error) {
+	return jsonConfig().Marshal(obj)
 }

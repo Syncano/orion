@@ -134,14 +134,14 @@ func SocketEndpointMap(c echo.Context) error {
 	// Match invalidate, history and traces endpoints first.
 	if strings.HasSuffix(p, invalidateURISuffix) {
 		// /invalidate/ allows method=POST, requires auth if private.
-		method = echo.POST
+		method = http.MethodPost
 		requireAuth = false
 		h = SocketEndpointInvalidate
 		p = p[:len(p)-invalidateURISuffixLen]
 	} else {
 		// /traces/ allows method=GET, always requires auth.
 		// /history/ allows method=GET, requires auth if private.
-		method = echo.GET
+		method = http.MethodGet
 		h, p = matchRegex(c, socketEndpointTraceURIRegex, p, "trace_id", SocketEndpointTraceList, SocketEndpointTraceRetrieve)
 		if h != nil {
 			requireAuth = true
