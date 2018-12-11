@@ -114,7 +114,7 @@ func RateLimit(limiter *redis_rate.Limiter, rateKey string, rateDur time.Duratio
 			} else {
 				// If we are in instance scope - check against instance limits.
 				var rate int64
-				if rateKey != "" {
+				if rateKey == "" {
 					rateKey = ContextRateLimitKey
 				}
 				if v := c.Get(rateKey); v != nil {
