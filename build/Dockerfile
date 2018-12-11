@@ -18,8 +18,21 @@ RUN set -ex \
         ca-certificates \
         openssl \
         curl \
-        # Install wkhtmltopdf dependencies
-        ttf-freefont libgcc libstdc++ libx11 glib libxrender libxext libintl \
+        # Install pdf packages
+        xvfb \
+        ttf-freefont \
+        fontconfig \
+        dbus \
+        # Install dependencies of wkhtmltopdf
+        libgcc libstdc++ libx11 glib libxrender libxext libintl \
+    \
+    # PDF support
+    && echo $'#!/usr/bin/env sh\n\
+Xvfb :0 -screen 0 1024x768x24 -ac +extension GLX +render -noreset & \n\
+DISPLAY=:0.0 wkhtmltopdf-origin $@ \n\
+killall Xvfb\
+' > /usr/bin/wkhtmltopdf \
+    && chmod +x /usr/bin/wkhtmltopdf \
     \
     # Install acme.sh
     && wget https://github.com/Neilpang/acme.sh/archive/${ACME_VERSION}.zip \
@@ -32,7 +45,7 @@ RUN set -ex \
     && cd .. \
     && rm -rf ${ACME_VERSION}.zip acme.sh-${ACME_VERSION}
 
-COPY --from=0 /bin/wkhtmltopdf /usr/bin/wkhtmltopdf
+COPY --from=0 /bin/wkhtmltopdf /usr/bin/wkhtmltopdf-origin
 COPY orion-static /usr/local/bin/orion
 
 WORKDIR /home/orion
