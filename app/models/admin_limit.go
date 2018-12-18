@@ -50,47 +50,39 @@ func (m *AdminLimit) getLimit(sub *Subscription, key string, limit settings.Plan
 // StorageLimit ...
 func (m *AdminLimit) StorageLimit(sub *Subscription) int {
 	return m.getLimit(sub, "storage", settings.Billing.StorageLimit)
-
 }
 
 // RateLimit ...
 func (m *AdminLimit) RateLimit(sub *Subscription) int {
 	return m.getLimit(sub, "rate", settings.Billing.RateLimit)
-
 }
 
 // PollRateLimit ...
 func (m *AdminLimit) PollRateLimit(sub *Subscription) int {
 	return m.getLimit(sub, "poll_rate", settings.Billing.PollRateLimit)
-
 }
 
 // CodeboxConcurrency ...
 func (m *AdminLimit) CodeboxConcurrency(sub *Subscription) int {
 	return m.getLimit(sub, "codebox_concurrency", settings.Billing.CodeboxConcurrency)
-
 }
 
 // ClassesCount ...
 func (m *AdminLimit) ClassesCount(sub *Subscription) int {
 	return m.getLimit(sub, "classes_count", settings.Billing.ClassesCount)
-
 }
 
 // SocketsCount ...
 func (m *AdminLimit) SocketsCount(sub *Subscription) int {
 	return m.getLimit(sub, "sockets_count", settings.Billing.SocketsCount)
-
 }
 
 // SchedulesCount ...
 func (m *AdminLimit) SchedulesCount(sub *Subscription) int {
 	return m.getLimit(sub, "schedules_count", settings.Billing.SchedulesCount)
-
 }
 
 // InstancesCount ...
 func (m *AdminLimit) InstancesCount(sub *Subscription) int {
 	return m.getLimit(sub, "instances_count", settings.Billing.InstancesCount)
-
 }
