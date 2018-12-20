@@ -161,7 +161,7 @@ type socket struct {
 
 // Socket ...
 var Socket = &socket{
-	DefaultTimeout: 30 * time.Second,
+	DefaultTimeout: 30 * time.Second / 1e6,
 	MaxPayloadSize: 6 << 20,
 	MaxResultSize:  6 << 20,
 	YAML:           "socket.yml",
