@@ -44,7 +44,7 @@ func Init(dsn string, debug bool) error {
 	sentryLogger, err = addSentryLogger(logger, dsn)
 
 	// Set grpc logger.
-	grpclog.SetLogger(zapgrpc.NewLogger(logger)) // nolint
+	grpclog.SetLogger(zapgrpc.NewLogger(logger, zapgrpc.WithDebug())) // nolint
 	return err
 }
 
