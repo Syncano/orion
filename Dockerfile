@@ -8,10 +8,10 @@ ENV ACME_VERSION=2.7.8 \
 
 RUN set -ex \
     && apt-get update && apt-get install --no-install-recommends -y \
-        # Env zip processing
+        # env zip processing
         squashfs-tools \
         unzip \
-        # Install pdf packages
+        # pdf packages
         wkhtmltopdf \
         xvfb \
         ttf-freefont \

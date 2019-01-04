@@ -11,19 +11,19 @@ RUN set -ex \
     && addgroup -S orion \
     && adduser -S -G orion orion \
     && apk --no-cache add \
-        # Env zip processing
+        # env zip processing
         squashfs-tools \
         unzip \
-        # Install openssl support
+        # openssl support
         ca-certificates \
         openssl \
         curl \
-        # Install pdf packages
+        # pdf packages
         xvfb \
         ttf-freefont \
         fontconfig \
         dbus \
-        # Install dependencies of wkhtmltopdf
+        # dependencies of wkhtmltopdf
         libgcc libstdc++ libx11 glib libxrender libxext libintl \
     \
     # PDF support
