@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-set -euo pipefail
-
 export APP=orion
 export VERSION="$2"
 
@@ -11,6 +9,8 @@ LB_TOTAL_NUM=1
 usage() { echo "* Usage: $0 <environment> <version> [--skip-push]" >&2; exit 1; }
 [[ ! -z $TARGET ]] || usage
 [[ ! -z $VERSION ]] || usage
+
+set -euo pipefail
 
 if ! which kubectl > /dev/null; then 
     echo "! kubectl not installed" >&2; exit 1

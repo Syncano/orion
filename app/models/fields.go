@@ -102,7 +102,7 @@ func (j JSON) Value() (driver.Value, error) {
 
 // Get ...
 func (j *JSON) Get() interface{} {
-	if j.Data == nil {
+	if j.Data == nil && !j.IsNull() {
 		j.Data = j.JSON.Get()
 	}
 	return j.Data

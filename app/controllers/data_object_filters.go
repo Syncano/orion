@@ -314,21 +314,31 @@ func init() {
 
 			classMgr := query.NewClassManager(c)
 			dof := f.(*models.DataObjectField)
-			target := strings.ToLower(dof.Target)
+			cls := &models.Class{Name: dof.Target}
 
 			// Users and Data Object are merged objects, use owner_id as id if targeting as user.
 			col := "id"
-			if dof.Target == "user" {
+			switch dof.Target {
+			case "user":
 				col = "owner_id"
+			case "self":
+				cls = c.Get(contextClassKey).(*models.Class)
 			}
-			cls := &models.Class{Name: target}
-			if classMgr.OneByName(cls) != nil {
-				return nil, newQueryError("Referenced class " + target + " does not exist.")
+			if cls.ID == 0 && classMgr.OneByName(cls) != nil {
+				return nil, newQueryError("Referenced class " + cls.Name + " does not exist.")
 			}
 
 			// Process subquery.
-			objMgr := query.NewDataObjectManager(c)
-			q := objMgr.ForClassQ(cls, (*models.DataObject)(nil)).Column(col)
+			var q *orm.Query
+			switch cls.Name {
+			case models.UserClassName:
+				q = query.NewUserManager(c).Query((*models.User)(nil)).
+					Join(`JOIN ?schema.data_dataobject AS "profile" ON "profile"."owner_id" = "user"."id"`).
+					Where("profile._klass_id = ?", cls.ID).Column(col)
+			default:
+				q = query.NewDataObjectManager(c).ForClassQ(cls, (*models.DataObject)(nil)).Column(col)
+			}
+
 			doq := NewDataObjectQuery(cls.FilterFields())
 			if err := doq.Validate(m, false); err != nil {
 				return nil, err
@@ -337,6 +347,7 @@ func init() {
 			if err != nil {
 				return nil, err
 			}
+
 			return q.Limit(settings.API.DataObjectNestedQueryLimit), nil
 		},
 
