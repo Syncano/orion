@@ -20,6 +20,7 @@ message RunRequest {
       string entryPoint = 1; // If empty, uses default entrypoint for specified runtime.
       uint32 outputLimit = 2; // If 0, will not hijack any output.
       int64 timeout = 3; // Timeout is meant to be in milliseconds. If 0 takes a default 30s value.
+      uint32 mCPU = 7; // MCPU is CPU constaints in milliseconds. If 0 takes a default 250 value.
 
       // Empty args, config, meta are acceptable.
       bytes args = 4;
@@ -58,4 +59,5 @@ message RunResponse {
   int64 took = 5;
   bool cached = 6;
   int64 time = 7;
+  uint32 weight = 8;
 }
