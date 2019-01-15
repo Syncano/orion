@@ -27,6 +27,7 @@ type SocketTrace struct {
 	Status     string `default:"pending"`
 	ExecutedAt time.Time
 	Duration   int
+	Weight     int                    `default:"1"`
 	Result     map[string]interface{} `default:"{}"`
 	Meta       map[string]interface{} `default:"{}"`
 	Args       map[string]interface{} `default:"{}"`

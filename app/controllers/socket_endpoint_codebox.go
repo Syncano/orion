@@ -226,7 +226,7 @@ func sendCodeboxRequest(ctx context.Context, c echo.Context, inst *models.Instan
 
 	timeout := int64(settings.Socket.DefaultTimeout)
 	if t, ok := endpoint.Metadata.Get().(map[string]interface{})["timeout"]; ok {
-		timeout = int64(t.(float64))
+		timeout = int64(t.(float64) * 1000)
 	}
 
 	// Prepare request.
