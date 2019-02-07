@@ -11,7 +11,7 @@ import (
 	"time"
 
 	redis_cache "github.com/go-redis/cache"
-	"github.com/json-iterator/go"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/labstack/echo"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -103,9 +103,7 @@ func prepareSocketEndpointPayload(c echo.Context) (map[string]interface{}, map[s
 	}
 
 	for _, k := range socketEndpointProtectedKeys {
-		if _, ok := payload[k]; ok {
-			delete(payload, k)
-		}
+		delete(payload, k)
 	}
 	return payload, files, nil
 }
