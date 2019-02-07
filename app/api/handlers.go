@@ -9,7 +9,7 @@ import (
 
 	"github.com/go-redis/redis_rate"
 	"github.com/labstack/echo"
-	"gopkg.in/go-playground/validator.v9"
+	validator "gopkg.in/go-playground/validator.v9"
 
 	"github.com/Syncano/orion/app/models"
 	"github.com/Syncano/orion/app/validators"
