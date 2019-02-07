@@ -32,7 +32,7 @@ deps: ## Install dep and sync vendored dependencies
 
 
 testdeps: deps ## Install testing dependencies
-	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | bash -s -- -b $(GOPATH)/bin v1.12.2
+	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | bash -s -- -b $(GOPATH)/bin v1.12.5
 
 devdeps: ## Install compile, testing and development dependencies
 	if ! which protoc > /dev/null; then \

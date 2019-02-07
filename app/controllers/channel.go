@@ -25,7 +25,10 @@ const (
 
 var (
 	changeIDRegex = regexp.MustCompile(`"id":\s*(\d+)`)
-	upgrader      = websocket.Upgrader{}
+	upgrader      = websocket.Upgrader{
+		CheckOrigin: func(*http.Request) bool { return true },
+		Error:       func(w http.ResponseWriter, r *http.Request, status int, reason error) {},
+	}
 )
 
 func createChangeDBCtx(c echo.Context, room string, o interface{}) *redisdb.DBCtx {
@@ -95,6 +98,7 @@ func changeSubscribe(c echo.Context, room *string) error {
 		}
 		return nil
 	}
+	fmt.Println("")
 
 	o := <-ch
 	if o != nil {

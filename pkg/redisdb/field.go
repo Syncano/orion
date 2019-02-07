@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/json-iterator/go"
+	jsoniter "github.com/json-iterator/go"
 
 	"github.com/Syncano/orion/pkg/settings"
 )
