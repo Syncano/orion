@@ -16,7 +16,7 @@ LDFLAGS = -X github.com/Syncano/orion/pkg/version.GitSHA=$(GITSHA) \
 	-X github.com/Syncano/orion/pkg/version.buildtimeStr=$(BUILDTIME)
 
 
-.PHONY: help deps testdeps devdeps clean lint flint fmt test stest cov goconvey lint-in-docker test-in-docker generate-assets generate proto build build-static build-in-docker docker deploy-staging deploy-production encrypt decrypt start devserver run-server
+.PHONY: help deps testdeps devdeps clean lint flint fmt test stest cov goconvey lint-in-docker test-in-docker proto build build-static build-in-docker docker deploy-staging deploy-production encrypt decrypt start devserver run-server
 .DEFAULT_GOAL := help
 $(VERBOSE).SILENT:
 
@@ -32,7 +32,7 @@ deps: ## Install dep and sync vendored dependencies
 
 
 testdeps: deps ## Install testing dependencies
-	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | bash -s -- -b $(GOPATH)/bin v1.12.5
+	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | bash -s -- -b $(GOPATH)/bin v1.15w.0
 
 devdeps: ## Install compile, testing and development dependencies
 	if ! which protoc > /dev/null; then \
@@ -97,12 +97,6 @@ lint-in-docker: require-docker-compose ## Run full lint in docker environment
 
 test-in-docker: require-docker-compose ## Run full test suite in docker environment
 	docker-compose run --rm app make build test
-
-generate-assets: ## Generate assets with go-bindata
-	go-bindata -nocompress -nometadata -nomemcopy -prefix assets -o assets/assets.go -pkg assets -ignore assets\.go assets/*
-	
-generate: generate-assets require-mockery ## Run go generate
-	go generate $(GOPACKAGES)
 
 proto: ## Run protobuf compiler on all .proto files
 	for dir in $$(find . -name \*.proto -type f ! -path "./.*" ! -path "./vendor/*" -exec dirname {} \; | sort | uniq); do \

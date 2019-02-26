@@ -21,6 +21,7 @@ message RunRequest {
       uint32 outputLimit = 2; // If 0, will not hijack any output.
       int64 timeout = 3; // Timeout is meant to be in milliseconds. If 0 takes a default 30s value.
       uint32 mCPU = 7; // MCPU is CPU constaints in milliseconds. If 0 takes a default 250 value.
+      uint32 async = 8; // Async defines if async connections should be used. Disabled by default.
 
       // Empty args, config, meta are acceptable.
       bytes args = 4;
@@ -52,6 +53,7 @@ message HTTPResponseMessage {
 }
 
 message RunResponse {
+  string containerID = 9;
   int32 code = 1;
   bytes stdout = 2;
   bytes stderr = 3;
