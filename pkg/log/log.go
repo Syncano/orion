@@ -48,11 +48,11 @@ func Init(dsn string, debug bool) error {
 	return err
 }
 
-func addSentryLogger(log *zap.Logger, DSN string) (*zap.Logger, error) {
+func addSentryLogger(log *zap.Logger, dsn string) (*zap.Logger, error) {
 	cfg := zapsentry.Configuration{
 		Level: zapcore.ErrorLevel,
 	}
-	core, err := zapsentry.NewCore(cfg, zapsentry.NewSentryClientFromDSN(DSN))
+	core, err := zapsentry.NewCore(cfg, zapsentry.NewSentryClientFromDSN(dsn))
 	return zapsentry.AttachCoreToLogger(core, log), err
 }
 
