@@ -222,9 +222,18 @@ func sendCodeboxRequest(ctx context.Context, c echo.Context, inst *models.Instan
 		return nil, e
 	}
 
+	metadata := endpoint.Metadata.Get().(map[string]interface{})
+	async := settings.Socket.DefaultAsync
+	if v, ok := metadata["async"]; ok {
+		async = uint32(v.(int))
+	}
 	timeout := int64(settings.Socket.DefaultTimeout)
-	if t, ok := endpoint.Metadata.Get().(map[string]interface{})["timeout"]; ok {
-		timeout = int64(t.(float64) * 1000)
+	if v, ok := metadata["timeout"]; ok {
+		timeout = int64(v.(float64) * 1000)
+	}
+	mcpu := settings.Socket.DefaultMCPU
+	if v, ok := metadata["mcpu"]; ok {
+		mcpu = uint32(v.(int))
 	}
 
 	// Prepare request.
@@ -242,6 +251,8 @@ func sendCodeboxRequest(ctx context.Context, c echo.Context, inst *models.Instan
 						EntryPoint:  endpoint.Entrypoint(call),
 						OutputLimit: uint32(settings.Socket.MaxResultSize),
 						Timeout:     timeout,
+						Async:       async,
+						MCPU:        mcpu,
 						Args:        payloadBytes,
 						Config:      configBytes,
 						Meta:        metaBytes,

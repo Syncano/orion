@@ -154,6 +154,8 @@ var API = &api{
 
 type socket struct {
 	DefaultTimeout time.Duration
+	DefaultAsync   uint32
+	DefaultMCPU    uint32
 	MaxPayloadSize int64
 	MaxResultSize  int64
 	YAML           string
@@ -162,6 +164,8 @@ type socket struct {
 // Socket ...
 var Socket = &socket{
 	DefaultTimeout: 30 * time.Second / 1e6,
+	DefaultAsync:   0,
+	DefaultMCPU:    250,
 	MaxPayloadSize: 6 << 20,
 	MaxResultSize:  6 << 20,
 	YAML:           "socket.yml",
