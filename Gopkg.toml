@@ -1,6 +1,6 @@
 [[constraint]]
   name = "github.com/labstack/echo"
-  version = "3.3.7"
+  version = "3.3.10"
 
 [[override]]
   name = "github.com/apache/thrift"
@@ -12,7 +12,7 @@
 
 [[constraint]]
   name = "github.com/go-redis/redis"
-  version = "6.14.2"
+  version = "6.15.2"
 
 [[constraint]]
   name = "github.com/satori/go.uuid"
@@ -20,7 +20,7 @@
 
 [[constraint]]
   name = "github.com/stretchr/testify"
-  version = "1.2.1"
+  version = "1.3.0"
 
 [[constraint]]
   name = "github.com/urfave/cli"
@@ -28,7 +28,7 @@
 
 [[constraint]]
   name = "github.com/vmihailenco/msgpack"
-  version = "4.0.1"
+  version = "4.0.2"
 
 [[constraint]]
   name = "github.com/go-pg/pg"
@@ -36,7 +36,7 @@
 
 [[constraint]]
   name = "google.golang.org/grpc"
-  version = "1.16.0"
+  version = "1.19.0"
 
 [[constraint]]
   name = "go.uber.org/zap"
@@ -48,11 +48,11 @@
 
 [[constraint]]
   name = "github.com/jackc/pgx"
-  version = "3.2.0"
+  version = "3.3.0"
 
 [[constraint]]
   name = "github.com/aws/aws-sdk-go"
-  version = "1.15.73"
+  version = "1.18.6"
 
 [[constraint]]
   name = "github.com/caarlos0/env"
@@ -68,7 +68,7 @@
 
 [[constraint]]
   name = "gopkg.in/go-playground/validator.v9"
-  version = "9.23.0"
+  version = "9.27.0"
 
 [[constraint]]
   name = "github.com/gorilla/websocket"
@@ -77,6 +77,14 @@
 [[constraint]]
   name = "cloud.google.com/go"
   version = "0.33.1"
+
+[[constraint]]
+  name = "github.com/smartystreets/goconvey"
+  revision = "200a235640ff2643e3126834b67f3e93df76640a"
+
+[[override]]
+  name = "github.com/smartystreets/assertions"
+  revision = "980c5ac6f3acb6ce1cfe13160e49188807174fbe"
 
 [prune]
   go-tests = true

@@ -1,4 +1,4 @@
-FROM golang:1.11
+FROM golang:1.12
 
 ARG EMAIL=devops@syncano.com
 ENV ACME_VERSION=2.7.8 \
