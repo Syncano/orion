@@ -32,15 +32,14 @@ deps: ## Install dep and sync vendored dependencies
 
 
 testdeps: deps ## Install testing dependencies
-	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | bash -s -- -b $(GOPATH)/bin v1.15.0
+	if ! which golangci-lint > /dev/null; then \
+		curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | bash -s -- -b $(GOPATH)/bin v1.15.0; \
+	fi
 
 devdeps: ## Install compile, testing and development dependencies
 	if ! which protoc > /dev/null; then \
 		echo "Installing proto"; \
 		go get -u -v github.com/golang/protobuf/proto; \
-	fi
-	if ! which golangci-init > /dev/null; then \
-		github.com/golangci/golangci-lint/cmd/golangci-lint; \
 	fi
 	go get -u -v github.com/smartystreets/goconvey
 	go get -u -v github.com/gogo/protobuf/protoc-gen-gofast
