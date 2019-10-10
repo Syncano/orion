@@ -42,7 +42,7 @@ lint: ## Run lint checks
 		echo "Installing golangci-lint"; \
 		curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $$(go env GOPATH)/bin v1.20.0; \
 	fi
-	golangci-lint run $(ARGS)
+	golangci-lint run $(ARGS) --deadline 2m
 
 fmt: ## Format code through goimports
 	gofmt -s -w $(GOFILES)
