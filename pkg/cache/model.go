@@ -32,13 +32,13 @@ func getSchemaKey(db orm.DB) string {
 
 // ModelCacheInvalidate ...
 func ModelCacheInvalidate(db orm.DB, m interface{}) {
-	storage.AddDBCommitHook(db, func() {
+	storage.AddDBCommitHook(db, func() error {
 		table := orm.GetTable(reflect.TypeOf(m).Elem())
 		tableName := string(table.Name)
 		schema := getSchemaKey(db)
 		versionKey := createModelVersionCacheKey(schema, tableName, table.PKs[0].Value(reflect.ValueOf(m).Elem()).Interface())
 
-		InvalidateVersion(versionKey, settings.Common.CacheTimeout)
+		return InvalidateVersion(versionKey, settings.Common.CacheTimeout)
 	})
 }
 

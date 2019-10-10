@@ -39,9 +39,9 @@ func DefaultDBOptions() *pg.Options {
 			})
 		},
 		PoolSize:    10,
-		IdleTimeout: 15 * time.Minute,
+		IdleTimeout: 5 * time.Minute,
 		PoolTimeout: 30 * time.Second,
-		MaxConnAge:  30 * time.Minute,
+		MaxConnAge:  15 * time.Minute,
 	}
 }
 

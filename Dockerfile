@@ -1,10 +1,12 @@
-FROM golang:1.12
+FROM golang:1.13
 
 ARG EMAIL=devops@syncano.com
-ENV ACME_VERSION=2.7.8 \
+ENV ACME_VERSION=2.8.3 \
     LE_WORKING_DIR=/acme/home \
     LE_CONFIG_HOME=/acme/config \
-    CERT_HOME=/acme/certs
+    CERT_HOME=/acme/certs \
+    GOPROXY=https://proxy.golang.org
+WORKDIR /opt/build
 
 RUN set -ex \
     && apt-get update && apt-get install --no-install-recommends -y \
@@ -14,7 +16,7 @@ RUN set -ex \
         # pdf packages
         wkhtmltopdf \
         xvfb \
-        ttf-freefont \
+        fonts-freefont-ttf \
         fontconfig \
         dbus \
     && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
@@ -39,6 +41,5 @@ killall Xvfb\
     && cd .. \
     && rm -rf ${ACME_VERSION}.zip acme.sh-${ACME_VERSION}
 
-COPY ./Gopkg.* ./Makefile /go/src/github.com/Syncano/orion/
-WORKDIR /go/src/github.com/Syncano/orion
-RUN make testdeps
+COPY go.mod go.sum ./
+RUN go mod download

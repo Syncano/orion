@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/go-redis/cache"
+	"github.com/go-redis/redis"
 	"github.com/vmihailenco/msgpack"
 
 	"github.com/Syncano/orion/pkg/settings"
@@ -67,18 +68,27 @@ func VersionedCache(cacheKey string, lookup string, val interface{},
 	versionKeyFunc func() string, compute func() (interface{}, error), validate func(interface{}) bool, expiration time.Duration) error {
 
 	item := &cacheItem{Object: val}
-	var version string
+	var (
+		version string
+		err     error
+	)
 
 	// Get object and check version. First local and fallback to global cache.
 	if codecLocal.Get(cacheKey, item) == nil {
-		version = codec.Redis.Get(versionKeyFunc()).Val()
+		version, err = codec.Redis.Get(versionKeyFunc()).Result()
+		if err != nil && err != redis.Nil {
+			return err
+		}
 		if item.validate(version, validate) {
 			return nil
 		}
 	}
 	if codec.Get(cacheKey, item) == nil {
 		if version == "" {
-			version = codec.Redis.Get(versionKeyFunc()).Val()
+			version, err = codec.Redis.Get(versionKeyFunc()).Result()
+			if err != nil && err != redis.Nil {
+				return err
+			}
 		}
 		if item.validate(version, validate) {
 			return codecLocal.Set(&cache.Item{
@@ -96,7 +106,10 @@ func VersionedCache(cacheKey string, lookup string, val interface{},
 	}
 
 	if version == "" {
-		version = codec.Redis.Get(versionKeyFunc()).Val()
+		version, err = codec.Redis.Get(versionKeyFunc()).Result()
+		if err != nil && err != redis.Nil {
+			return err
+		}
 	}
 
 	// Set object through reflect.
@@ -124,10 +137,10 @@ func VersionedCache(cacheKey string, lookup string, val interface{},
 }
 
 // InvalidateVersion ...
-func InvalidateVersion(versionKey string, expiration time.Duration) {
-	codec.Redis.Set(
+func InvalidateVersion(versionKey string, expiration time.Duration) error {
+	return codec.Redis.Set(
 		versionKey,
 		util.GenerateRandomString(4),
 		expiration+versionGraceDuration, // Add grace period to avoid race condition.
-	)
+	).Err()
 }

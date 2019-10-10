@@ -8,7 +8,7 @@ import (
 	"github.com/go-pg/pg/orm"
 )
 
-type hookFunc func()
+type hookFunc func() error
 
 var (
 	dbhookmu      sync.RWMutex
@@ -20,7 +20,7 @@ var (
 func AddDBCommitHook(db orm.DB, f hookFunc) {
 	tx, istx := db.(*pg.Tx)
 	if !istx {
-		f()
+		_ = f()
 		return
 	}
 	dbhookmu.Lock()
@@ -53,7 +53,9 @@ func processDBHooks(tx *pg.Tx, process map[*pg.Tx][]hookFunc, cleanup map[*pg.Tx
 	}
 
 	for _, f := range funcs {
-		f()
+		if err := f(); err != nil {
+			return err
+		}
 	}
 	return nil
 }

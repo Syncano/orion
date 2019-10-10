@@ -2,7 +2,7 @@ FROM madnight/docker-alpine-wkhtmltopdf:alpine-3.8
 FROM alpine:3.8
 
 ARG EMAIL=devops@syncano.com
-ENV ACME_VERSION=2.7.9 \
+ENV ACME_VERSION=2.8.3 \
     LE_WORKING_DIR=/acme/home \
     LE_CONFIG_HOME=/acme/config \
     CERT_HOME=/acme/certs
@@ -46,7 +46,7 @@ killall Xvfb\
     && rm -rf ${ACME_VERSION}.zip acme.sh-${ACME_VERSION}
 
 COPY --from=0 /bin/wkhtmltopdf /usr/bin/wkhtmltopdf-origin
-COPY orion-static /usr/local/bin/orion
+COPY orion /usr/local/bin/orion
 
 WORKDIR /home/orion
 USER orion

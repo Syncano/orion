@@ -1,6 +1,7 @@
 run:
+  timeout: 2m
   tests: false
-  skip-dirs: 
+  skip-dirs:
     - assets
     - dev
     - proto
@@ -19,7 +20,7 @@ linters-settings:
   golint:
     min-confidence: 0
   gocyclo:
-    min-complexity: 15
+    min-complexity: 20
   maligned:
     suggest-new: true
   dupl:
@@ -38,3 +39,8 @@ linters:
     - prealloc
     - gochecknoglobals
     - gochecknoinits
+    - godox
+    - whitespace
+    - wsl
+    - funlen
+    - gocognit

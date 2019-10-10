@@ -6,8 +6,6 @@ import (
 
 	"cloud.google.com/go/storage"
 	"github.com/go-pg/pg/orm"
-
-	"github.com/Syncano/orion/pkg/util"
 )
 
 type gcloudStorage struct {
@@ -30,10 +28,8 @@ func (s *gcloudStorage) Client() interface{} {
 
 // SafeUploadFileToS3 ...
 func (s *gcloudStorage) SafeUpload(ctx context.Context, db orm.DB, bucket, key string, f io.Reader) error {
-	AddDBRollbackHook(db, func() {
-		util.Must(
-			s.Delete(ctx, bucket, key),
-		)
+	AddDBRollbackHook(db, func() error {
+		return s.Delete(ctx, bucket, key)
 	})
 	return s.Upload(ctx, bucket, key, f)
 }
