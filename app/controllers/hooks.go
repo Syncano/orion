@@ -4,14 +4,12 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/Syncano/orion/app/tasks"
-
 	"github.com/go-pg/pg/orm"
 
 	"github.com/Syncano/orion/app/models"
+	"github.com/Syncano/orion/app/tasks"
 	"github.com/Syncano/orion/pkg/settings"
 	"github.com/Syncano/orion/pkg/storage"
-	"github.com/Syncano/orion/pkg/util"
 )
 
 func init() {
@@ -34,13 +32,11 @@ func liveObjectSoftDeleteHook(c storage.DBContext, db orm.DB, m interface{}) err
 
 	objectPK := table.PKs[0].Value(reflect.ValueOf(m).Elem()).Interface()
 
-	storage.AddDBCommitHook(db, func() {
-		util.Must(
-			tasks.NewDeleteLiveObjectTask(
-				c.Get(settings.ContextInstanceKey).(*models.Instance).ID,
-				modelName, objectPK,
-			).Publish(),
-		)
+	storage.AddDBCommitHook(db, func() error {
+		return tasks.NewDeleteLiveObjectTask(
+			c.Get(settings.ContextInstanceKey).(*models.Instance).ID,
+			modelName, objectPK,
+		).Publish()
 	})
 
 	return nil

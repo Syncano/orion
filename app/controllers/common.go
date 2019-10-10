@@ -26,8 +26,7 @@ func CacheInvalidate(c echo.Context) error {
 			return api.NewGenericError(http.StatusBadRequest, "Invalid signature.")
 		}
 
-		cache.InvalidateVersion(v.VersionKey, settings.Common.CacheTimeout)
-		return nil
+		return cache.InvalidateVersion(v.VersionKey, settings.Common.CacheTimeout)
 	}); err != nil {
 		return err
 	}

@@ -19,15 +19,15 @@ func createFuncVersionCacheKey(funcKey, versionKey string) string {
 }
 
 // FuncCacheInvalidate ...
-func FuncCacheInvalidate(funcKey, versionKey string) {
+func FuncCacheInvalidate(funcKey, versionKey string) error {
 	versionKey = createFuncVersionCacheKey(funcKey, versionKey)
-	InvalidateVersion(versionKey, settings.Common.CacheTimeout)
+	return InvalidateVersion(versionKey, settings.Common.CacheTimeout)
 }
 
 // FuncCacheCommitInvalidate ...
 func FuncCacheCommitInvalidate(db orm.DB, funcKey, versionKey string) {
-	storage.AddDBCommitHook(db, func() {
-		FuncCacheInvalidate(funcKey, versionKey)
+	storage.AddDBCommitHook(db, func() error {
+		return FuncCacheInvalidate(funcKey, versionKey)
 	})
 }
 

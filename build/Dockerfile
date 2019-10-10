@@ -46,7 +46,7 @@ killall Xvfb\
     && rm -rf ${ACME_VERSION}.zip acme.sh-${ACME_VERSION}
 
 COPY --from=0 /bin/wkhtmltopdf /usr/bin/wkhtmltopdf-origin
-COPY orion-static /usr/local/bin/orion
+COPY orion /usr/local/bin/orion
 
 WORKDIR /home/orion
 USER orion

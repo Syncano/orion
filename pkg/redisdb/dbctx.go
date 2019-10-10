@@ -303,7 +303,9 @@ func (c *DBCtx) Save(updateFields []string) error {
 			return err
 		}
 		if ttl > 0 {
-			c.redisCli.Expire(seqKey, ttl*2)
+			if err := c.redisCli.Expire(seqKey, ttl*2).Err(); err != nil {
+				return err
+			}
 		}
 		i := int(v)
 		c.table.SetPK(c.value, i)
