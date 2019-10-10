@@ -90,7 +90,7 @@ build: ## Build
 	CGO_ENABLED=0 go build -ldflags "$(LDFLAGS)" -o ./build/$(EXECNAME)
 
 build-in-docker: require-docker-compose ## Build in docker environment
-	docker-compose run --no-deps --rm app make build build-wrapper
+	docker-compose run --no-deps --rm app make build
 
 docker: require-docker ## Builds docker image for application (requires static version to be built first)
 	docker build -t $(DOCKERIMAGE) build
