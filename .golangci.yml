@@ -1,4 +1,5 @@
 run:
+  deadline: 2m
   tests: false
   skip-dirs:
     - assets
