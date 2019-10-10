@@ -5,7 +5,7 @@ import (
 )
 
 // Modeler represents Redis Model interfaces.
-//go:generate mockery -name Modeler
+//go:generate go run github.com/vektra/mockery/cmd/mockery -name Modeler
 type Modeler interface {
 	// Key returns base object/list key. Object may be nil.
 	Key(args map[string]interface{}) string

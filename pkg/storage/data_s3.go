@@ -49,10 +49,8 @@ func createS3Session(accessKeyID, secretAccessKey, region, endpoint string) *ses
 }
 
 func (s *s3Storage) SafeUpload(ctx context.Context, db orm.DB, bucket, key string, f io.Reader) error {
-	AddDBRollbackHook(db, func() {
-		util.Must(
-			s.Delete(ctx, bucket, key),
-		)
+	AddDBRollbackHook(db, func() error {
+		return s.Delete(ctx, bucket, key)
 	})
 	return s.Upload(ctx, bucket, key, f)
 }

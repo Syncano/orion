@@ -5,6 +5,5 @@ services:
     build: .
     image: orion_app
     volumes:
-      - .:/go/src/github.com/Syncano/orion
-      - /go/src/github.com/Syncano/orion/vendor
+      - .:/opt/build
       - /tmp/storage:/home/orion/storage

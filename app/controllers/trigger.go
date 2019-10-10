@@ -3,14 +3,12 @@ package controllers
 import (
 	"github.com/go-pg/pg/orm"
 
-	"github.com/Syncano/orion/pkg/settings"
-	"github.com/Syncano/orion/pkg/storage"
-	"github.com/Syncano/orion/pkg/util"
-
 	"github.com/Syncano/orion/app/models"
 	"github.com/Syncano/orion/app/query"
 	"github.com/Syncano/orion/app/serializers"
 	"github.com/Syncano/orion/app/tasks"
+	"github.com/Syncano/orion/pkg/settings"
+	"github.com/Syncano/orion/pkg/storage"
 )
 
 func dataObjectSoftDeleteTriggerHook(c storage.DBContext, db orm.DB, i interface{}) error {
@@ -52,12 +50,10 @@ func launchTrigger(c storage.DBContext, db orm.DB, o interface{}, event map[stri
 		data = dtemp
 	}
 
-	storage.AddDBCommitHook(db, func() {
-		util.Must(
-			tasks.NewCeleryHandleTriggerEventTask(
-				instance.ID,
-				event, signal, data, map[string]interface{}{"changes": changes},
-			).Publish(),
-		)
+	storage.AddDBCommitHook(db, func() error {
+		return tasks.NewCeleryHandleTriggerEventTask(
+			instance.ID,
+			event, signal, data, map[string]interface{}{"changes": changes},
+		).Publish()
 	})
 }

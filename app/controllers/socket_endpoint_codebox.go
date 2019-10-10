@@ -291,7 +291,7 @@ func sendCodeboxRequest(ctx context.Context, c echo.Context, inst *models.Instan
 		Request: scriptReq,
 	}
 
-	stream, err := codebox.Runner.Run(ctx, req, grpc.FailFast(false))
+	stream, err := codebox.Runner.Run(ctx, req, grpc.WaitForReady(true))
 	return stream, err
 }
 

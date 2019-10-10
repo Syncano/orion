@@ -10,7 +10,7 @@ import (
 )
 
 // Paginator ...
-//go:generate mockery -inpkg -testonly -name Paginator
+//go:generate go run github.com/vektra/mockery/cmd/mockery -inpkg -testonly -name Paginator
 type Paginator interface {
 	FilterObjects(cursor Cursorer) error
 	ProcessObjects(c echo.Context, cursor Cursorer, typ reflect.Type, serializer serializers.Serializer, responseLimit *int) ([]api.RawMessage, error)
@@ -25,7 +25,7 @@ var (
 )
 
 // Cursorer ...
-//go:generate mockery -inpkg -testonly -name Cursorer
+//go:generate go run github.com/vektra/mockery/cmd/mockery -inpkg -testonly -name Cursorer
 type Cursorer interface {
 	NextURL(path string) string
 	PrevURL(path string) string
