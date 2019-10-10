@@ -1,6 +1,6 @@
 run:
   tests: false
-  skip-dirs: 
+  skip-dirs:
     - assets
     - dev
     - proto
@@ -38,3 +38,8 @@ linters:
     - prealloc
     - gochecknoglobals
     - gochecknoinits
+    - godox
+    - whitespace
+    - wsl
+    - funlen
+    - gocognit

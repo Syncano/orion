@@ -48,7 +48,7 @@ func Init(dsn string, debug bool) error {
 	if debug {
 		zapgrpcOpts = append(zapgrpcOpts, zapgrpc.WithDebug())
 	}
-	grpclog.SetLogger(zapgrpc.NewLogger(logger, zapgrpcOpts...))
+	grpclog.SetLogger(zapgrpc.NewLogger(logger, zapgrpcOpts...)) // nolint: staticcheck
 	return err
 }
 

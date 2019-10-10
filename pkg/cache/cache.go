@@ -77,7 +77,7 @@ func VersionedCache(cacheKey string, lookup string, val interface{},
 	if codecLocal.Get(cacheKey, item) == nil {
 		version, err = codec.Redis.Get(versionKeyFunc()).Result()
 		if err != nil && err != redis.Nil {
-
+			return err
 		}
 		if item.validate(version, validate) {
 			return nil
