@@ -16,7 +16,7 @@ RUN set -ex \
         # pdf packages
         wkhtmltopdf \
         xvfb \
-        ttf-freefont \
+        fonts-freefont-ttf \
         fontconfig \
         dbus \
     && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
