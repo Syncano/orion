@@ -377,11 +377,11 @@ func SocketEndpointCodeboxRun(c echo.Context) error {
 
 	stream, err := sendCodeboxRequest(ctx, c, instance, socket, endpoint, trace)
 	if err != nil {
-		return err
+		return fmt.Errorf("error sending codebox request: %w", err)
 	}
 
 	if err := processCodeboxResponse(stream, trace); err != nil {
-		return err
+		return fmt.Errorf("error processing codebox response: %w", err)
 	}
 	return serializers.SocketTraceSerializer{}.Render(c, trace)
 }
