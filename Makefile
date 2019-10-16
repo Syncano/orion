@@ -119,7 +119,7 @@ start: require-docker-compose ## Run docker-compose of an app.
 	docker-compose -f build/docker-compose.yml up
 
 devserver: ## Run devserver
-	DEBUG=1 FORCE_TERM=1 go run github.com/codegangsta/gin --port 8080 --bin build/$(EXECNAME) server
+	DEBUG=1 FORCE_TERM=1 go run github.com/codegangsta/gin --laddr 127.0.0.1 --port 8080 --bin build/$(EXECNAME) server
 
 run-server: build ## Build and run server binary
 	./build/$(EXECNAME) $(ARGS) server
