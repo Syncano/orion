@@ -1,6 +1,8 @@
 package api
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -30,11 +32,18 @@ var defaultErrors = map[int]string{
 
 // HTTPErrorHandler is a custom error handler for API.
 func HTTPErrorHandler(err error, c echo.Context) {
+	// context.Canceled means that http/2.0 client disconnected.
+	if errors.Is(err, context.Canceled) {
+		_ = c.NoContent(http.StatusNoContent)
+		return
+	}
+
 	// Process API errors.
 	if e, ok := err.(*Error); ok {
 		Render(c, e.Code, e.Data) // nolint: errcheck
 		return
 	}
+
 	// Process echo errors.
 	if e, ok := err.(*echo.HTTPError); ok {
 		message := e.Message
