@@ -80,13 +80,16 @@ func RunTransactionWithHooks(tx *pg.Tx, fn func(*pg.Tx) error) error {
 			panic(err)
 		}
 	}()
+
 	if err := fn(tx); err != nil {
 		_ = tx.Rollback()
+		err = fmt.Errorf("rollback due to error: %w", err)
 		if hookErr := ProcessDBRollbackHooks(tx); hookErr != nil {
-			return fmt.Errorf("rollback error: %s, hook error: %s", err, hookErr)
+			return fmt.Errorf("hook error: %w", hookErr)
 		}
 		return err
 	}
+
 	if err := tx.Commit(); err != nil {
 		return err
 	}
