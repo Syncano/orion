@@ -108,6 +108,10 @@ func (op *filterOp) validateKind(k reflect.Kind, expected []reflect.Kind, val in
 }
 
 func (op *filterOp) validateList(f models.FilterField, expectedListValue []reflect.Kind, lst interface{}) bool {
+	if lst == nil {
+		return false
+	}
+
 	kind := reflect.TypeOf(lst).Kind()
 	if kind != reflect.Slice {
 		return false
