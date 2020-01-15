@@ -42,8 +42,10 @@ envsubst() {
 echo "* Starting deployment for $TARGET at $VERSION."
 
 # Setup environment variables.
-# shellcheck disable=SC2046
-export $(xargs < deploy/env/"${TARGET}".env)
+set -a
+# shellcheck disable=SC1090
+source deploy/env/"${TARGET}".env
+set +a
 BUILDTIME=$(date +%Y-%m-%dt%H%M)
 export BUILDTIME
 
@@ -61,9 +63,8 @@ fi
 # Create configmap.
 echo "* Updating ConfigMap."
 CONFIGMAP="apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: ${APP}\ndata:\n"
-while read -r line
-do
-    if [[ "${line}" != *"#"* ]]; then
+while read -r line; do
+    if [[ -n "${line}" && "${line}" != *"#"* ]]; then
         CONFIGMAP+="  ${line%%=*}: \"${line#*=}\"\n"
     fi
 done < deploy/env/"${TARGET}".env
@@ -73,9 +74,8 @@ echo -e "$CONFIGMAP" | kubectl apply -f -
 # Create secrets.
 echo "* Updating Secrets."
 SECRETS="apiVersion: v1\nkind: Secret\nmetadata:\n  name: ${APP}\ntype: Opaque\ndata:\n"
-while read -r line
-do
-    if [[ "${line}" != *"#"* ]]; then
+while read -r line; do
+    if [[ -n "${line}" && "${line}" != *"#"* ]]; then
         SECRETS+="  ${line%%=*}: $(echo -n "${line#*=}" | base64 | tr -d '\n')\n"
     fi
 done < deploy/env/"${TARGET}".secrets.unenc
