@@ -28,6 +28,7 @@ func (mgr *ClassManager) OneByName(o *models.Class) error {
 	if o.Name == "user" {
 		o.Name = models.UserClassName
 	}
+
 	return RequireOne(
 		cache.SimpleModelCache(mgr.DB(), o, fmt.Sprintf("n=%s", o.Name), func() (interface{}, error) {
 			return o, mgr.Query(o).
@@ -44,6 +45,7 @@ func (mgr *ClassManager) WithAccessQ(o interface{}) *orm.Query {
 		Column("class.*").
 		ColumnExpr(`?schema.count_estimate('SELECT id FROM ?schema.data_dataobject WHERE _klass_id=' || "class"."id", ?) AS "objects_count"`,
 			settings.API.DataObjectEstimateThreshold)
+
 	return q
 }
 

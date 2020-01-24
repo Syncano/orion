@@ -9,7 +9,6 @@ import (
 	"github.com/Syncano/orion/app/serializers"
 )
 
-// Paginator ...
 //go:generate go run github.com/vektra/mockery/cmd/mockery -inpkg -testonly -name Paginator
 type Paginator interface {
 	FilterObjects(cursor Cursorer) error
@@ -24,7 +23,6 @@ var (
 	_ Paginator = (*PaginatorRedis)(nil)
 )
 
-// Cursorer ...
 //go:generate go run github.com/vektra/mockery/cmd/mockery -inpkg -testonly -name Cursorer
 type Cursorer interface {
 	NextURL(path string) string

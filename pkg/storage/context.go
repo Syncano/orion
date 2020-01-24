@@ -1,6 +1,5 @@
 package storage
 
-// DBContext ...
 //go:generate go run github.com/vektra/mockery/cmd/mockery -name DBContext
 type DBContext interface {
 	// Get retrieves data from the context.

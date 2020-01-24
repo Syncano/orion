@@ -17,17 +17,14 @@ func newQueryError(detail string) *api.Error {
 	return api.NewError(http.StatusBadRequest, map[string]interface{}{"query": detail})
 }
 
-// DataObjectQuery ...
 type DataObjectQuery struct {
 	fields map[string]models.FilterField
 }
 
-// NewDataObjectQuery ...
 func NewDataObjectQuery(fields map[string]models.FilterField) *DataObjectQuery {
 	return &DataObjectQuery{fields: fields}
 }
 
-// Parse ...
 func (doq *DataObjectQuery) Parse(c echo.Context, q *orm.Query) (*orm.Query, error) {
 	qs := c.QueryParam("query")
 	if qs == "" {
@@ -37,6 +34,7 @@ func (doq *DataObjectQuery) Parse(c echo.Context, q *orm.Query) (*orm.Query, err
 	var (
 		m map[string]interface{}
 	)
+
 	if err := json.Unmarshal([]byte(qs), &m); err != nil {
 		return nil, newQueryError("Invalid JSON.")
 	}
@@ -48,13 +46,13 @@ func (doq *DataObjectQuery) Parse(c echo.Context, q *orm.Query) (*orm.Query, err
 	return doq.ParseMap(c, q, m)
 }
 
-// ParseMap ...
 func (doq *DataObjectQuery) ParseMap(c echo.Context, q *orm.Query, m map[string]interface{}) (*orm.Query, error) {
 	var (
 		f   models.FilterField
 		ok  bool
 		err error
 	)
+
 	for name, props := range m {
 		f, ok = doq.fields[name]
 		if !ok {
@@ -67,10 +65,10 @@ func (doq *DataObjectQuery) ParseMap(c echo.Context, q *orm.Query, m map[string]
 			}
 		}
 	}
+
 	return q, nil
 }
 
-// Validate ...
 func (doq *DataObjectQuery) Validate(m map[string]interface{}, top bool) error {
 	var (
 		ok        bool
@@ -111,5 +109,6 @@ func (doq *DataObjectQuery) fieldQuery(c echo.Context, q *orm.Query, f models.Fi
 			}
 		}
 	}
+
 	return nil, newQueryError(fmt.Sprintf(`Invalid lookup "%s" defined for field "%s".`, lookup, f.Name()))
 }

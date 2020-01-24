@@ -46,7 +46,7 @@ func DefaultDBOptions() *pg.Options {
 }
 
 // InitDB sets up a database.
-func InitDB(opts *pg.Options, instancesOpts *pg.Options, debug bool) {
+func InitDB(opts, instancesOpts *pg.Options, debug bool) {
 	commonDB = initDB(opts, debug)
 	tenantDB = commonDB
 
@@ -73,6 +73,7 @@ func initDB(opts *pg.Options, debug bool) *pg.DB {
 			).Debug(fmt.Sprintf("%s:%d", event.File, event.Line))
 		})
 	}
+
 	return db
 }
 

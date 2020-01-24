@@ -68,9 +68,7 @@ var ErrNilValue = errors.New("nil value")
 // nolint: gocyclo
 func ValueFromString(typ, s string) (interface{}, error) {
 	switch typ {
-	case FieldStringType:
-		fallthrough
-	case FieldTextType:
+	case FieldStringType, FieldTextType:
 		return s, nil
 
 	case FieldIntegerType:
@@ -92,17 +90,19 @@ func ValueFromString(typ, s string) (interface{}, error) {
 	case FieldRelationType:
 		var i []int
 		err := json.Unmarshal([]byte("["+s[1:len(s)-1]+"]"), &i)
+
 		return i, err
 
-	case FieldObjectType:
-		fallthrough
-	case FieldArrayType:
+	case FieldObjectType, FieldArrayType:
 		var i interface{}
-		return i, json.Unmarshal([]byte(s), &i)
+		err := json.Unmarshal([]byte(s), &i)
+
+		return i, err
 
 	case FieldGeopointType:
 		return ewkbhex.Decode(s)
 	}
+
 	return nil, nil
 }
 
@@ -114,9 +114,7 @@ func ValueToString(typ string, val interface{}) (string, error) {
 	}
 
 	switch typ {
-	case FieldStringType:
-		fallthrough
-	case FieldTextType:
+	case FieldStringType, FieldTextType:
 		return val.(string), nil
 
 	case FieldIntegerType:
@@ -129,6 +127,7 @@ func ValueToString(typ string, val interface{}) (string, error) {
 		if val.(bool) {
 			return "true", nil
 		}
+
 		return "false", nil
 
 	case FieldDatetimeType:
@@ -144,6 +143,7 @@ func ValueToString(typ string, val interface{}) (string, error) {
 	case FieldRelationType:
 		vArr := val.([]int)
 		ids := make([]string, len(vArr))
+
 		for i, k := range vArr {
 			ids[i] = strconv.Itoa(k)
 		}
@@ -152,11 +152,10 @@ func ValueToString(typ string, val interface{}) (string, error) {
 		sb.WriteByte('{')
 		sb.WriteString(strings.Join(ids, ","))
 		sb.WriteByte('}')
+
 		return sb.String(), nil
 
-	case FieldObjectType:
-		fallthrough
-	case FieldArrayType:
+	case FieldObjectType, FieldArrayType:
 		if v, err := json.Marshal(val); err == nil {
 			return string(v), nil
 		}
@@ -168,7 +167,6 @@ func ValueToString(typ string, val interface{}) (string, error) {
 	return "", nil
 }
 
-// SimpleObjectField ...
 type SimpleObjectField struct {
 	name  string
 	table string
@@ -181,37 +179,33 @@ func (f *SimpleObjectField) Get(o interface{}) interface{} {
 	return f.field.Value(reflect.ValueOf(o).Elem()).Interface()
 }
 
-// ToString ...
 func (f *SimpleObjectField) ToString(v interface{}) (string, error) {
 	return ValueToString(f.typ, v)
 }
 
-// FromString ...
 func (f *SimpleObjectField) FromString(s string) (interface{}, error) {
 	return ValueFromString(f.typ, s)
 }
 
-// Name ...
 func (f *SimpleObjectField) Name() string {
 	return f.name
 }
 
-// Type ...
 func (f *SimpleObjectField) Type() string {
 	return f.typ
 }
 
-// SQLName ...
 func (f *SimpleObjectField) SQLName() string {
 	return fmt.Sprintf("%s.%s", f.table, f.field.SQLName)
 }
 
-// NewObjectField ...
 func NewObjectField(m interface{}, alias, fieldName, typ string) *SimpleObjectField {
 	table := orm.GetTable(reflect.TypeOf(m).Elem())
-	if len(alias) == 0 {
+
+	if alias == "" {
 		alias = string(table.Alias)
 	}
+
 	return &SimpleObjectField{name: fieldName, typ: typ, field: table.FieldsMap[fieldName], table: alias}
 }
 
@@ -228,29 +222,25 @@ type DataObjectField struct {
 	Mapping    string
 }
 
-// Name ...
 func (f *DataObjectField) Name() string {
 	return f.FName
 }
 
-// Type ...
 func (f *DataObjectField) Type() string {
 	return f.FType
 }
 
-// ToString ...
 func (f *DataObjectField) ToString(v interface{}) (string, error) {
 	return ValueToString(f.FType, v)
 }
 
-// FromString ...
 func (f *DataObjectField) FromString(s string) (interface{}, error) {
 	return ValueFromString(f.FType, s)
 }
 
-// SQLName ...
 func (f *DataObjectField) SQLName() string {
 	var typ string
+
 	field := fmt.Sprintf(`("%s"."_data"->'%s')`, f.TableAlias, f.Mapping)
 
 	switch f.FType {
@@ -272,15 +262,14 @@ func (f *DataObjectField) SQLName() string {
 		typ = "integer"
 	case FieldRelationType:
 		typ = "integer[]"
-	case FieldObjectType:
-		fallthrough
-	case FieldArrayType:
+	case FieldObjectType, FieldArrayType:
 		typ = "jsonb"
 	case FieldGeopointType:
 		typ = "geography(POINT,4326)"
 	default:
 		return f.FName
 	}
+
 	return field + "::" + typ
 }
 
@@ -288,12 +277,15 @@ func (f *DataObjectField) SQLName() string {
 func (f *DataObjectField) Get(o interface{}) interface{} {
 	data := o.(*DataObject).Data
 	val := data.Map[f.Mapping]
+
 	if val.Status != pgtype.Present {
 		return nil
 	}
+
 	if v, err := f.FromString(val.String); err == nil {
 		return v
 	}
+
 	return nil
 }
 
@@ -310,6 +302,8 @@ func (f *DataObjectField) Set(data Hstore, val interface{}) error {
 		data.Map[f.Mapping] = pgtype.Text{Status: pgtype.Null}
 		return err
 	}
+
 	data.Map[f.Mapping] = pgtype.Text{String: v, Status: pgtype.Present}
+
 	return err
 }

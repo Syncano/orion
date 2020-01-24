@@ -20,10 +20,13 @@ func launchDataObjectTrigger(c storage.DBContext, db orm.DB, o *models.DataObjec
 	var (
 		changes []string
 	)
+
 	class := c.Get(contextClassKey).(*models.Class)
+
 	if signal == models.TriggerSignalUpdate {
 		changes = o.SQLChangesVirtual()
 	}
+
 	launchTrigger(c, db, o, map[string]string{"source": "dataobject", "class": class.Name}, signal, serializers.DataObjectSerializer{Class: class}, changes)
 }
 
@@ -31,6 +34,7 @@ func launchTrigger(c storage.DBContext, db orm.DB, o interface{}, event map[stri
 	var (
 		data map[string]interface{}
 	)
+
 	instance := c.Get(settings.ContextInstanceKey).(*models.Instance)
 	if t, _ := query.NewTriggerManager(c).Match(instance, event, signal); len(t) == 0 {
 		return
@@ -47,6 +51,7 @@ func launchTrigger(c storage.DBContext, db orm.DB, o interface{}, event map[stri
 		for _, change := range changes {
 			dtemp[change] = data[change]
 		}
+
 		data = dtemp
 	}
 

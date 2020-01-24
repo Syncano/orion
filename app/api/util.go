@@ -31,9 +31,11 @@ func BindAndValidate(c echo.Context, i interface{}) error {
 	if err := c.Bind(i); err != nil {
 		return err
 	}
+
 	if err := c.Validate(i); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -42,6 +44,7 @@ func BindValidateAndExec(c echo.Context, i interface{}, fn func() error) error {
 	if err := c.Bind(i); err != nil {
 		return err
 	}
+
 	return util.RetryWithCritical(validationRetries, 0, func() (bool, error) {
 		if err := c.Validate(i); err != nil {
 			return true, err
@@ -60,5 +63,6 @@ func SimpleDelete(c echo.Context, mgr Deleter, q *orm.Query, v Verboser) error {
 	}); err != nil {
 		return err
 	}
+
 	return c.NoContent(http.StatusNoContent)
 }

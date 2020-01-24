@@ -12,12 +12,10 @@ import (
 	"github.com/Syncano/orion/pkg/util"
 )
 
-// DataObjectSerializer ...
 type DataObjectSerializer struct {
 	Class *models.Class
 }
 
-// Response ...
 func (s DataObjectSerializer) Response(i interface{}) interface{} {
 	o := i.(*models.DataObject)
 	base := map[string]interface{}{
@@ -28,13 +26,17 @@ func (s DataObjectSerializer) Response(i interface{}) interface{} {
 	}
 
 	processDataObjectFields(s.Class, o, base)
+
 	return base
 }
 
 func processDataObjectFields(class *models.Class, o *models.DataObject, m map[string]interface{}) {
 	// Serialize hstore fields.
-	var data map[string]pgtype.Text
-	var val interface{}
+	var (
+		data map[string]pgtype.Text
+		val  interface{}
+	)
+
 	if !o.Data.IsNull() {
 		data = o.Data.Map
 	}
@@ -44,6 +46,7 @@ func processDataObjectFields(class *models.Class, o *models.DataObject, m map[st
 		if v, ok := data[field.Mapping]; ok && v.Status != pgtype.Null {
 			val = dataObjectFieldResponse(field, v.String)
 		}
+
 		m[field.FName] = val
 	}
 }
@@ -119,9 +122,7 @@ func dataObjectFieldResponse(f *models.DataObjectField, val string) interface{} 
 			}
 		}
 
-	case models.FieldObjectType:
-		fallthrough
-	case models.FieldArrayType:
+	case models.FieldObjectType, models.FieldArrayType:
 		if v, err := f.FromString(val); err == nil {
 			return v
 		}
@@ -129,6 +130,7 @@ func dataObjectFieldResponse(f *models.DataObjectField, val string) interface{} 
 	case models.FieldGeopointType:
 		if g, err := ewkbhex.Decode(val); err == nil {
 			p := g.(*geom.Point)
+
 			return struct {
 				Type      string  `json:"type"`
 				Longitude float64 `json:"longitude"`
@@ -140,5 +142,6 @@ func dataObjectFieldResponse(f *models.DataObjectField, val string) interface{} 
 			}
 		}
 	}
+
 	return val
 }

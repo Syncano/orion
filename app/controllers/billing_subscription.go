@@ -17,7 +17,6 @@ const (
 	contextAdminLimitKey   = "admin_limit"
 )
 
-// InstanceSubscriptionContext ...
 func InstanceSubscriptionContext(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		instance := c.Get(settings.ContextInstanceKey).(*models.Instance)
@@ -32,6 +31,7 @@ func InstanceSubscriptionContext(next echo.HandlerFunc) echo.HandlerFunc {
 		c.Set(contextSubscriptionKey, o)
 		c.Set(contextAdminLimitKey, limit)
 		c.Set(api.ContextRateLimitKey, limit.RateLimit(o))
+
 		return next(c)
 	}
 }

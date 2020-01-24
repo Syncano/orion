@@ -27,10 +27,10 @@ func getSchemaKey(db orm.DB) string {
 	} else {
 		schema = strings.SplitN(schema, "_", 2)[0]
 	}
+
 	return schema
 }
 
-// ModelCacheInvalidate ...
 func ModelCacheInvalidate(db orm.DB, m interface{}) {
 	storage.AddDBCommitHook(db, func() error {
 		table := orm.GetTable(reflect.TypeOf(m).Elem())
@@ -42,10 +42,8 @@ func ModelCacheInvalidate(db orm.DB, m interface{}) {
 	})
 }
 
-// ModelCache ...
 func ModelCache(db orm.DB, keyModel, val interface{}, lookup string,
 	compute func() (interface{}, error), validate func(interface{}) bool) error {
-
 	table := orm.GetTable(reflect.TypeOf(keyModel).Elem())
 	n := strings.Split(string(table.Name), ".")
 	tableName := n[len(n)-1]
@@ -59,7 +57,6 @@ func ModelCache(db orm.DB, keyModel, val interface{}, lookup string,
 		compute, validate, settings.Common.CacheTimeout)
 }
 
-// SimpleModelCache ...
 func SimpleModelCache(db orm.DB, m interface{}, lookup string, compute func() (interface{}, error)) error {
 	return ModelCache(db, m, m, lookup, compute, nil)
 }

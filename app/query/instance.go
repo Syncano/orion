@@ -29,6 +29,7 @@ func (mgr *InstanceManager) WithAccessQ(o interface{}) *orm.Query {
 	} else if a := mgr.Context.Get(settings.ContextAPIKeyKey); a != nil {
 		q = q.Where("id = ?", a.(*models.APIKey).InstanceID)
 	}
+
 	return q
 }
 

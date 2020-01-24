@@ -24,6 +24,7 @@ func NewChannelManager(c storage.DBContext) *ChannelManager {
 // OneByName outputs object filtered by name.
 func (mgr *ChannelManager) OneByName(o *models.Channel) error {
 	o.Name = strings.ToLower(o.Name)
+
 	return RequireOne(
 		cache.SimpleModelCache(mgr.DB(), o, fmt.Sprintf("n=%s", o.Name), func() (interface{}, error) {
 			return o, mgr.Query(o).Where("name = ?", o.Name).Select()

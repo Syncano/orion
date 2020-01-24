@@ -56,16 +56,16 @@ var adaptersMap = map[reflect.Kind]FieldAdapter{
 	reflect.Bool:   &boolFieldAdapter{},
 }
 
-func getAdapter(sf reflect.StructField) FieldAdapter {
+func getAdapter(sf *reflect.StructField) FieldAdapter {
 	if sf.Type == timeType {
 		return timeAdapter
 	}
+
 	if sf.Type.Implements(fieldAdapterType) {
 		return reflect.New(sf.Type).Interface().(FieldAdapter)
 	}
 
-	kind := sf.Type.Kind()
-	return adaptersMap[kind]
+	return adaptersMap[sf.Type.Kind()]
 }
 
 // String
@@ -108,7 +108,9 @@ type jsonFieldAdapter struct{}
 
 func (f *jsonFieldAdapter) Load(value string) interface{} {
 	var v interface{}
+
 	jsoniter.Unmarshal([]byte(value), &v) // nolint: errcheck
+
 	return v
 }
 
@@ -116,6 +118,7 @@ func (f *jsonFieldAdapter) Dump(value interface{}) string {
 	if b, err := jsoniter.Marshal(value); err == nil {
 		return string(b)
 	}
+
 	return ""
 }
 
@@ -130,5 +133,6 @@ func (f *boolFieldAdapter) Dump(value interface{}) string {
 	if value.(bool) {
 		return "t"
 	}
+
 	return "f"
 }

@@ -18,7 +18,6 @@ var (
 	}
 )
 
-// SocketTraceListResponse ...
 type SocketTraceListResponse struct {
 	ID         int                    `json:"id"`
 	Status     string                 `json:"status"`
@@ -27,10 +26,8 @@ type SocketTraceListResponse struct {
 	Meta       map[string]interface{} `json:"meta"`
 }
 
-// SocketTraceListSerializer ...
 type SocketTraceListSerializer struct{}
 
-// Response ...
 func (s SocketTraceListSerializer) Response(i interface{}) interface{} {
 	o := i.(*models.SocketTrace)
 
@@ -38,6 +35,7 @@ func (s SocketTraceListSerializer) Response(i interface{}) interface{} {
 	if o.Duration > 0 {
 		dur = &o.Duration
 	}
+
 	return &SocketTraceListResponse{
 		ID:         o.ID,
 		Status:     o.Status,
@@ -47,7 +45,6 @@ func (s SocketTraceListSerializer) Response(i interface{}) interface{} {
 	}
 }
 
-// SocketTraceResponse ...
 type SocketTraceResponse struct {
 	*SocketTraceListResponse
 
@@ -55,12 +52,11 @@ type SocketTraceResponse struct {
 	Args   map[string]interface{} `json:"args"`
 }
 
-// SocketTraceSerializer ...
 type SocketTraceSerializer struct{}
 
-// Response ...
 func (s SocketTraceSerializer) Response(i interface{}) interface{} {
 	o := i.(*models.SocketTrace)
+
 	return &SocketTraceResponse{
 		SocketTraceListResponse: SocketTraceListSerializer{}.Response(i).(*SocketTraceListResponse),
 		Result:                  o.Result,
@@ -68,7 +64,6 @@ func (s SocketTraceSerializer) Response(i interface{}) interface{} {
 	}
 }
 
-// SocketTraceRenderResponse ...
 type SocketTraceRenderResponse struct {
 	ID         int                    `json:"id"`
 	Status     string                 `json:"status"`
@@ -77,7 +72,6 @@ type SocketTraceRenderResponse struct {
 	Result     map[string]interface{} `json:"result"`
 }
 
-// Render ...
 func (s SocketTraceSerializer) Render(c echo.Context, i interface{}) error {
 	trace := i.(*models.SocketTrace)
 
@@ -87,10 +81,12 @@ func (s SocketTraceSerializer) Render(c echo.Context, i interface{}) error {
 
 		if res["header"] != nil {
 			h := c.Response().Header()
+
 			for k, v := range res["header"].(map[string]string) {
 				h.Set(k, v)
 			}
 		}
+
 		return c.Blob(res["status"].(int), res["content_type"].(string), res["content"].([]byte))
 	}
 

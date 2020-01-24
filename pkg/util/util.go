@@ -22,9 +22,11 @@ func IsTrue(s string) bool {
 func generateRandomString(n int, base string) string {
 	b := make([]byte, n)
 	l := len(base)
+
 	for i := range b {
 		b[i] = base[rand.Intn(l)]
 	}
+
 	return string(b)
 }
 
@@ -56,6 +58,7 @@ func GenerateHexKeyWithParity(parity bool) string {
 	} else {
 		b[len(b)-1] = b[len(b)-1] | 1
 	}
+
 	return string(b)
 }
 
@@ -63,6 +66,7 @@ func GenerateHexKeyWithParity(parity bool) string {
 func CheckStringParity(s string) bool {
 	b := []rune(s)
 	i, _ := strconv.ParseInt(string(b[len(b)-1]), 8, 32) // nolint: errcheck
+
 	return i&1 != 1
 }
 
@@ -80,6 +84,7 @@ func Retry(attempts int, sleep time.Duration, f func() error) (err error) {
 
 		time.Sleep(sleep)
 	}
+
 	return
 }
 
@@ -99,6 +104,7 @@ func RetryWithCritical(attempts int, sleep time.Duration, f func() (bool, error)
 
 		time.Sleep(sleep)
 	}
+
 	return err
 }
 
@@ -114,7 +120,9 @@ func Must(err error) {
 func Hash(s string) uint32 {
 	h := fnv.New32a()
 	_, e := h.Write([]byte(s))
+
 	Must(e)
+
 	return h.Sum32()
 }
 
@@ -124,6 +132,7 @@ const lowerhex = "0123456789abcdef"
 func ToQuoteJSON(s []byte) []byte { // nolint: gocyclo
 	buf := make([]byte, 0, 3*len(s)/2)
 	buf = append(buf, '"')
+
 	var width int
 
 	for ; len(s) > 0; s = s[width:] {
@@ -131,8 +140,7 @@ func ToQuoteJSON(s []byte) []byte { // nolint: gocyclo
 		width = 1
 
 		if r == '"' || r == '\\' {
-			buf = append(buf, '\\')
-			buf = append(buf, byte(r))
+			buf = append(buf, '\\', byte(r))
 			continue
 		}
 
@@ -157,18 +165,24 @@ func ToQuoteJSON(s []byte) []byte { // nolint: gocyclo
 			switch {
 			case r < 0x10000:
 				buf = append(buf, `\u`...)
+
 				for s := 12; s >= 0; s -= 4 {
 					buf = append(buf, lowerhex[r>>uint(s)&0xF])
 				}
 			default:
 				r -= 0x10000
-				buf = append(buf, `\u`...)
 				r = (r >> 10) + 0xd800
+
+				buf = append(buf, `\u`...)
+
 				for s := 12; s >= 0; s -= 4 {
 					buf = append(buf, lowerhex[r>>uint(s)&0xF])
 				}
-				buf = append(buf, `\u`...)
+
 				r = (r & 0x3ff) + 0xdc00
+
+				buf = append(buf, `\u`...)
+
 				for s := 12; s >= 0; s -= 4 {
 					buf = append(buf, lowerhex[r>>uint(s)&0xF])
 				}
@@ -177,6 +191,7 @@ func ToQuoteJSON(s []byte) []byte { // nolint: gocyclo
 	}
 
 	buf = append(buf, '"')
+
 	return buf
 }
 
@@ -185,6 +200,7 @@ func NonEmptyString(a, b string) string {
 	if a == "" {
 		return b
 	}
+
 	return a
 }
 
@@ -193,6 +209,7 @@ func Truncate(a string, i int) string {
 	if len(a) > i {
 		return a[:i]
 	}
+
 	return a
 }
 
@@ -200,10 +217,12 @@ func Truncate(a string, i int) string {
 func RegexNamedGroups(regex *regexp.Regexp, matches []string) map[string]string {
 	m, n := matches[1:], regex.SubexpNames()[1:]
 	r := make(map[string]string, len(m))
+
 	for i := range n {
 		if n[i] != "" {
 			r[n[i]] = m[i]
 		}
 	}
+
 	return r
 }

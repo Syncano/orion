@@ -20,27 +20,27 @@ import (
 	"github.com/Syncano/orion/pkg/util"
 )
 
-// DataObjectCreate ...
 func DataObjectCreate(c echo.Context) error {
 	// TODO: #16 Object updates
-
 	// o.Data.Set(map[string]string{ // nolint: errcheck
 	// 	"abc": "aa",
 	// })
 	return api.NewPermissionDeniedError()
 }
 
-// DataObjectList ...
 func DataObjectList(c echo.Context) error {
 	var o []*models.DataObject
+
 	mgr := query.NewDataObjectManager(c)
 	props := make(map[string]interface{})
 	class := c.Get(contextClassKey).(*models.Class)
 
 	// Prepare query.
 	q := mgr.ForClassQ(class, &o)
+
 	if _, e := c.QueryParams()["query"]; e {
 		var err error
+
 		q, err = NewDataObjectQuery(class.FilterFields()).Parse(c, q)
 		if err != nil {
 			return err
@@ -67,24 +67,28 @@ func DataObjectList(c echo.Context) error {
 
 	// Return paginated results.
 	serializer := serializers.DataObjectSerializer{Class: class}
+
 	r, err := Paginate(c, cursor, (*models.DataObject)(nil), serializer, paginator)
 	if err != nil {
 		return err
 	}
+
 	return api.Render(c, http.StatusOK, serializers.CreatePage(c, r, props))
 }
 
 func detailDataObject(c echo.Context) *models.DataObject {
 	o := &models.DataObject{}
+
 	v, ok := api.IntParam(c, "object_id")
 	if !ok {
 		return nil
 	}
+
 	o.ID = v
+
 	return o
 }
 
-// DataObjectRetrieve ...
 func DataObjectRetrieve(c echo.Context) error {
 	o := detailDataObject(c)
 	if o == nil {
@@ -98,13 +102,14 @@ func DataObjectRetrieve(c echo.Context) error {
 	}
 
 	serializer := serializers.DataObjectSerializer{Class: class}
+
 	return api.Render(c, http.StatusOK, serializer.Response(o))
 }
 
-// DataObjectUpdate ...
 func DataObjectUpdate(c echo.Context) error {
 	// TODO: #16 Object updates
 	mgr := query.NewDataObjectManager(c)
+
 	o := detailDataObject(c)
 	if o == nil {
 		return api.NewNotFoundError(o)
@@ -114,6 +119,7 @@ func DataObjectUpdate(c echo.Context) error {
 	class := c.Get(contextClassKey).(*models.Class)
 	schema := class.ComputedSchema()
 	virt := make(map[string]models.StateField)
+
 	for name, field := range schema {
 		virt[name] = field
 	}
@@ -135,10 +141,10 @@ func DataObjectUpdate(c echo.Context) error {
 	}); err != nil {
 		return err
 	}
+
 	return api.NewPermissionDeniedError()
 }
 
-// DataObjectDelete ...
 func DataObjectDelete(c echo.Context) error {
 	o := detailDataObject(c)
 	if o == nil {
@@ -147,6 +153,7 @@ func DataObjectDelete(c echo.Context) error {
 
 	class := c.Get(contextClassKey).(*models.Class)
 	mgr := query.NewDataObjectManager(c)
+
 	return api.SimpleDelete(c, mgr, mgr.ForClassByIDQ(class, o), o)
 }
 
@@ -171,6 +178,7 @@ func dataObjectDeleteHook(c storage.DBContext, db orm.DB, i interface{}) error {
 
 		return updateInstanceIndicatorValue(c, db, models.InstanceIndicatorTypeStorageSize, -sizeDiff)
 	}
+
 	return nil
 }
 
@@ -181,10 +189,13 @@ func uploadDataObjectFile(db orm.DB, instance *models.Instance, class *models.Cl
 		util.GenerateHexKey(),
 		util.Truncate(filepath.Ext(fh.Filename), 16),
 	)
+
 	f, err := fh.Open()
 	if err != nil {
 		return err
 	}
+
 	defer f.Close()
+
 	return storage.Data().SafeUpload(context.Background(), db, settings.Storage.Bucket, key, f)
 }

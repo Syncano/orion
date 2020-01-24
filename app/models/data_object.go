@@ -28,9 +28,9 @@ type DataObject struct {
 	Class   *Class `pg:"fk:_klass_id"`
 }
 
-// NewDataObject ...
 func NewDataObject(class *Class) *DataObject {
 	now := time.Now()
+
 	return &DataObject{
 		IsLive:    true,
 		Class:     class,

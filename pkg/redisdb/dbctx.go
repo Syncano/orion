@@ -38,24 +38,30 @@ func (c *DBCtx) Find(pk int) error {
 	if c.value.Kind() != reflect.Struct {
 		panic("redis: model is not a struct")
 	}
+
 	objectKey := c.getObjectKey(pk)
+
 	r, err := c.redisCli.HGetAll(objectKey).Result()
 	if err != nil {
 		return err
 	}
+
 	if len(r) == 0 {
 		return ErrNotFound
 	}
 
 	val := c.value
+
 	var (
 		name, v string
 		ok      bool
 		vv      reflect.Value
 	)
+
 	for _, f := range c.table.Fields {
 		name = f.Name
 		v, ok = r[name]
+
 		if ok {
 			vv = reflect.ValueOf(f.Adapter.Load(v))
 		} else {
@@ -71,7 +77,6 @@ func (c *DBCtx) Find(pk int) error {
 	return nil
 }
 
-// Value ...
 func (c *DBCtx) Value() reflect.Value {
 	return c.value
 }
@@ -80,11 +85,13 @@ func (c *DBCtx) listKeys(minPK, maxPK, limit int, isOrderAsc bool) ([]string, er
 	var (
 		min, max string
 	)
+
 	if maxPK == 0 {
 		max = "+inf"
 	} else {
 		max = strconv.Itoa(maxPK)
 	}
+
 	if minPK == 0 {
 		min = "-inf"
 	} else {
@@ -93,22 +100,27 @@ func (c *DBCtx) listKeys(minPK, maxPK, limit int, isOrderAsc bool) ([]string, er
 
 	l := c.model.ListMaxSize(c.args)
 	listKey := c.getListKey()
+
 	if limit > l {
 		limit = l
 	}
 
 	opt := redis.ZRangeBy{Max: max, Min: min, Count: int64(limit)}
+
 	if isOrderAsc {
 		return c.redisCli.ZRangeByScore(listKey, opt).Result()
 	}
+
 	return c.redisCli.ZRevRangeByScore(listKey, opt).Result()
 }
 
 func (c *DBCtx) createSlice(objs []reflect.Value) {
 	sv := reflect.MakeSlice(c.value.Type(), len(objs), len(objs))
+
 	for i, o := range objs {
 		sv.Index(i).Set(o)
 	}
+
 	c.value.Set(sv)
 	c.value = sv
 }
@@ -120,6 +132,7 @@ func (c *DBCtx) getFields(included, skipped []string) []string {
 	}
 
 	incl := make(map[string]struct{})
+
 	if len(included) == 0 {
 		for n := range c.table.Fields {
 			incl[n] = struct{}{}
@@ -133,14 +146,17 @@ func (c *DBCtx) getFields(included, skipped []string) []string {
 	var (
 		fields []string
 	)
+
 	for n := range c.table.Fields {
 		if _, ok := skip[n]; ok {
 			continue
 		}
+
 		if _, ok := incl[n]; ok {
 			fields = append(fields, n)
 		}
 	}
+
 	return fields
 }
 
@@ -167,6 +183,7 @@ func (c *DBCtx) List(minPK, maxPK, limit int, isOrderAsc bool, skippedFields []s
 	if err != nil {
 		return err
 	}
+
 	fields := c.getFields(nil, skippedFields)
 
 	ret, err := c.redisCli.Pipelined(func(pipe redis.Pipeliner) error {
@@ -186,8 +203,10 @@ func (c *DBCtx) List(minPK, maxPK, limit int, isOrderAsc bool, skippedFields []s
 		empty                       bool
 		field                       *Field
 	)
+
 	for _, cmd := range ret {
 		objVal = reflect.New(c.table.Type)
+
 		v, err = cmd.(*redis.SliceCmd).Result()
 		if err != nil {
 			return err
@@ -200,6 +219,7 @@ func (c *DBCtx) List(minPK, maxPK, limit int, isOrderAsc bool, skippedFields []s
 		}
 
 		empty = true
+
 		for i, f := range fields {
 			field = c.table.Fields[f]
 
@@ -207,19 +227,23 @@ func (c *DBCtx) List(minPK, maxPK, limit int, isOrderAsc bool, skippedFields []s
 				if !field.HasDefault() {
 					continue
 				}
+
 				fieldVal = field.Default()
 			} else {
 				fieldVal = reflect.ValueOf(field.Adapter.Load(v[i].(string)))
 				empty = false
 			}
+
 			field.Value(structVal).Set(fieldVal)
 		}
+
 		if !empty {
 			objs = append(objs, objVal)
 		}
 	}
 
 	c.createSlice(objs)
+
 	return nil
 }
 
@@ -233,12 +257,14 @@ func (c *DBCtx) trimList(cmds []redis.Cmder) error {
 	if err != nil {
 		return err
 	}
+
 	_, err = c.redisCli.Pipelined(func(pipe redis.Pipeliner) error {
 		for _, key := range keys {
 			pipe.Expire(key, trimmedTTL)
 		}
 		return nil
 	})
+
 	return err
 }
 
@@ -249,6 +275,7 @@ func (c *DBCtx) saveObject(pipe redis.Pipeliner, pk int, objectKey string, field
 		s        string
 		trimming bool
 	)
+
 	for _, f := range fields {
 		field = c.table.Fields[f]
 		v = field.Value(c.value)
@@ -260,6 +287,7 @@ func (c *DBCtx) saveObject(pipe redis.Pipeliner, pk int, objectKey string, field
 			pipe.HDel(objectKey, f)
 		}
 	}
+
 	if ttl > 0 {
 		pipe.Expire(objectKey, ttl)
 	}
@@ -268,6 +296,7 @@ func (c *DBCtx) saveObject(pipe redis.Pipeliner, pk int, objectKey string, field
 		// Save to list if not added already.
 		listKey := c.getListKey()
 		pipe.ZAdd(listKey, redis.Z{Score: float64(pk), Member: objectKey})
+
 		if ttl > 0 {
 			pipe.Expire(listKey, ttl)
 		}
@@ -280,14 +309,15 @@ func (c *DBCtx) saveObject(pipe redis.Pipeliner, pk int, objectKey string, field
 			pipe.ZRemRangeByRank(listKey, 0, trim)
 		}
 	}
+
 	return trimming
 }
 
-// Save ...
 func (c *DBCtx) Save(updateFields []string) error {
 	if c.value.Kind() != reflect.Struct {
 		panic("redis: model is not a struct")
 	}
+
 	ttl := c.model.TTL(c.args)
 	pk := c.table.PK(c.value)
 	saved := pk != 0
@@ -297,16 +327,20 @@ func (c *DBCtx) Save(updateFields []string) error {
 		if len(updateFields) > 0 {
 			panic("redis: updateFields cannot be specified for unsaved object")
 		}
+
 		seqKey := fmt.Sprintf("%s:seq", c.model.Key(c.args))
+
 		v, err := c.redisCli.Incr(seqKey).Result()
 		if err != nil {
 			return err
 		}
+
 		if ttl > 0 {
 			if err := c.redisCli.Expire(seqKey, ttl*2).Err(); err != nil {
 				return err
 			}
 		}
+
 		i := int(v)
 		c.table.SetPK(c.value, i)
 		pk = i
@@ -315,7 +349,9 @@ func (c *DBCtx) Save(updateFields []string) error {
 	// Save object.
 	objectKey := c.getObjectKey(pk)
 	fields := c.getFields(updateFields, nil)
+
 	var trimming bool
+
 	cmds, err := c.redisCli.Pipelined(func(pipe redis.Pipeliner) error {
 		trimming = c.saveObject(pipe, pk, objectKey, fields, saved, ttl)
 		return nil
@@ -327,14 +363,15 @@ func (c *DBCtx) Save(updateFields []string) error {
 	if trimming {
 		return c.trimList(cmds)
 	}
+
 	return nil
 }
 
-// Delete ...
 func (c *DBCtx) Delete() error {
 	if c.value.Kind() != reflect.Struct {
 		panic("redis: model is not a struct")
 	}
+
 	objectKey := c.getObjectKey(c.table.PK(c.value))
 	listKey := c.getListKey()
 
@@ -343,10 +380,10 @@ func (c *DBCtx) Delete() error {
 		pipe.ZRem(listKey, objectKey)
 		return nil
 	})
+
 	return err
 }
 
-// Update ...
 func (c *DBCtx) Update(pk int, updated, expected map[string]interface{}) error {
 	objectKey := c.getObjectKey(pk)
 
@@ -354,6 +391,7 @@ func (c *DBCtx) Update(pk int, updated, expected map[string]interface{}) error {
 	if len(expected) > 0 {
 		watch = append(watch, objectKey)
 	}
+
 	return util.RetryWithCritical(updateRetries, 0, func() (bool, error) {
 		err := c.redisCli.Watch(func(tx *redis.Tx) error {
 			var (

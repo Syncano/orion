@@ -35,23 +35,28 @@ var (
 	socketEndpointHistoryURIRegex = regexp.MustCompile("/history(/(?P<change_id>[^/]+))?$")
 )
 
-// SocketEndpointList ...
 func SocketEndpointList(c echo.Context) error {
-	var o []*models.SocketEndpoint
-	mgr := query.NewSocketEndpointManager(c)
+	var (
+		o []*models.SocketEndpoint
+		q *orm.Query
+	)
 
 	// Filter by socket if needed.
+	mgr := query.NewSocketEndpointManager(c)
 	socketName := c.Param("socket_name")
-	var q *orm.Query
+
 	if socketName != "" {
 		s := &models.Socket{Name: socketName}
+
 		if query.NewSocketManager(c).OneByName(s) != nil {
 			return api.NewNotFoundError(s)
 		}
+
 		q = mgr.ForSocketQ(s, &o)
 	} else {
 		q = mgr.WithAccessQ(&o)
 	}
+
 	paginator := &PaginatorDB{Query: q}
 	cursor := paginator.CreateCursor(c, true)
 
@@ -59,10 +64,11 @@ func SocketEndpointList(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+
 	return api.Render(c, http.StatusOK, serializers.CreatePage(c, r, nil))
 }
 
-func matchRegex(c echo.Context, regex *regexp.Regexp, path, detailParam string, list echo.HandlerFunc, retrieve echo.HandlerFunc) (echo.HandlerFunc, string) {
+func matchRegex(c echo.Context, regex *regexp.Regexp, path, detailParam string, list, retrieve echo.HandlerFunc) (handler echo.HandlerFunc, newPath string) {
 	if r := regex.FindStringSubmatch(path); r != nil {
 		path = path[:len(path)-len(r[0])]
 
@@ -70,11 +76,14 @@ func matchRegex(c echo.Context, regex *regexp.Regexp, path, detailParam string, 
 		for k, v := range params {
 			c.Set(k, v)
 		}
+
 		if params[detailParam] != "" {
 			return retrieve, path
 		}
+
 		return list, path
 	}
+
 	return nil, path
 }
 
@@ -105,6 +114,7 @@ func socketEndpointHandler(h echo.HandlerFunc, requireAuth bool, call map[string
 	if requireAuth {
 		return InstanceAuth(RequireAdmin(h))
 	}
+
 	return h
 }
 
@@ -122,6 +132,7 @@ func SocketEndpointMap(c echo.Context) error {
 	if !strings.HasSuffix(p, "/") {
 		return echo.ErrNotFound
 	}
+
 	p = p[:len(p)-1]
 
 	var (
@@ -129,6 +140,7 @@ func SocketEndpointMap(c echo.Context) error {
 		method      string
 		requireAuth bool
 	)
+
 	callType := socketCallScript
 
 	// Match invalidate, history and traces endpoints first.
@@ -162,9 +174,11 @@ func SocketEndpointMap(c echo.Context) error {
 	o := &models.SocketEndpoint{
 		Name: name,
 	}
+
 	if query.NewSocketEndpointManager(c).OneByName(o) != nil {
 		return api.NewNotFoundError(o)
 	}
+
 	c.Set(contextSocketEndpointKey, o)
 
 	// Add call to context and check expected call type.
@@ -174,6 +188,7 @@ func SocketEndpointMap(c echo.Context) error {
 	if call == nil {
 		return echo.ErrMethodNotAllowed
 	}
+
 	if h != nil && callType != call["type"] {
 		return echo.ErrNotFound
 	}
@@ -189,12 +204,14 @@ func socketEndpointChannel(next echo.HandlerFunc) echo.HandlerFunc {
 		if query.NewChannelManager(c).OneByName(ch) != nil {
 			return api.NewNotFoundError(ch)
 		}
+
 		c.Set(contextChannelKey, ch)
 
 		room, err := createChannelRoom(c)
 		if err != nil {
 			return err
 		}
+
 		c.Set(contextChannelRoomKey, room)
 
 		return next(c)
@@ -208,7 +225,6 @@ func createSocketTraceDBCtx(c echo.Context, o interface{}) *redisdb.DBCtx {
 	})
 }
 
-// SocketEndpointTraceList ...
 func SocketEndpointTraceList(c echo.Context) error {
 	var o []*models.SocketTrace
 
@@ -219,12 +235,13 @@ func SocketEndpointTraceList(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+
 	return api.Render(c, http.StatusOK, serializers.CreatePage(c, r, nil))
 }
 
-// SocketEndpointTraceRetrieve ...
 func SocketEndpointTraceRetrieve(c echo.Context) error {
 	o := &models.SocketTrace{}
+
 	v, ok := api.IntGet(c, "trace_id")
 	if !ok {
 		return api.NewNotFoundError(o)
@@ -241,16 +258,17 @@ func createEndpointCacheKey(instanceID int, endpointName, hash string) string {
 	return fmt.Sprintf("%d:cache:s:%s:%s", instanceID, endpointName, hash)
 }
 
-// SocketEndpointInvalidate ...
 func SocketEndpointInvalidate(c echo.Context) error {
 	endpoint := c.Get(contextSocketEndpointKey).(*models.SocketEndpoint)
 	s := &models.Socket{ID: endpoint.SocketID}
+
 	if query.NewSocketManager(c).OneByID(s) != nil {
 		return api.NewNotFoundError(s)
 	}
 
 	cacheKey := createEndpointCacheKey(c.Get(settings.ContextInstanceKey).(*models.Instance).ID, endpoint.Name, s.Hash())
 	storage.Redis().Del(cacheKey)
+
 	return c.NoContent(http.StatusNoContent)
 }
 
@@ -258,10 +276,13 @@ func createChannelRoom(c echo.Context) (string, error) {
 	format := c.Get(contextSocketEndpointCallKey).(map[string]interface{})["channel"].(string)
 	// Prepare context for room formatting.
 	ctx := make(map[string]interface{})
+
 	for q, v := range c.QueryParams() {
 		ctx[q] = v[0]
 	}
+
 	delete(ctx, "user")
+
 	if k := c.Get(settings.ContextUserKey); k != nil {
 		ctx["user"] = k.(*models.User).Username
 	}
@@ -271,29 +292,30 @@ func createChannelRoom(c echo.Context) (string, error) {
 		if _, ok := ctx["user"]; !ok && strings.Contains(format, "{user}") {
 			return "", api.NewPermissionDeniedError()
 		}
+
 		return "", api.NewGenericError(http.StatusForbidden, "Channel format not satisfied.")
 	}
+
 	return room, nil
 }
 
-// SocketEndpointChannelRun ...
 func SocketEndpointChannelRun(c echo.Context) error {
 	room := c.Get(contextChannelRoomKey).(string)
 	return changeSubscribe(c, &room)
 }
 
-// SocketEndpointHistoryList ...
 func SocketEndpointHistoryList(c echo.Context) error {
 	return changeList(c, c.Get(contextChannelRoomKey).(string))
 }
 
-// SocketEndpointHistoryRetrieve ...
 func SocketEndpointHistoryRetrieve(c echo.Context) error {
 	o := &models.Change{}
+
 	v, ok := api.IntGet(c, "change_id")
 	if !ok {
 		return api.NewNotFoundError(o)
 	}
+
 	o.ID = v
 
 	return changeRetrieve(c, c.Get(contextChannelRoomKey).(string), o)

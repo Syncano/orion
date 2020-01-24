@@ -49,9 +49,12 @@ func HTTPErrorHandler(err error, c echo.Context) {
 		if m, ok := defaultErrors[e.Code]; ok {
 			message = m
 		}
+
 		Render(c, e.Code, map[string]interface{}{"detail": fmt.Sprintf("%s.", message)}) // nolint: errcheck
+
 		return
 	}
+
 	// Process validation errors.
 	if e, ok := err.(validator.ValidationErrors); ok {
 		Render(c, http.StatusBadRequest, validators.TranslateErrors(e)) // nolint: errcheck
@@ -73,7 +76,6 @@ func (f fakeBody) Close() error {
 	return nil
 }
 
-// DisableBody ...
 func DisableBody(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := c.Request()
@@ -95,6 +97,7 @@ func RateLimit(limiter *redis_rate.Limiter, rateKey string, rateDur time.Duratio
 		return func(c echo.Context) error {
 			authAdmin := c.Get(settings.ContextAdminKey)
 			authAPIKey := c.Get(settings.ContextAPIKeyKey)
+
 			if anonRateLimit && authAdmin == nil && authAPIKey == nil {
 				// If we are to check against anon rates and admin is not logged in - check against anon rate limit.
 				if _, delay, allowed := limiter.Allow(c.RealIP(), settings.API.AnonRateLimitS, time.Second); !allowed {
@@ -161,6 +164,7 @@ func MethodOverride(next echo.HandlerFunc) echo.HandlerFunc {
 				if m != req.Method {
 					req.Method = m
 					c.Echo().Router().Find(req.Method, req.URL.Path, c)
+
 					return c.Handler()(c)
 				}
 			}

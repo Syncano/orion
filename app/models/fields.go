@@ -13,16 +13,15 @@ import (
 
 var jsonNull = []byte("null")
 
-// Time ...
 type Time struct {
 	pgtype.Timestamptz
 }
 
-// NewTime ...
 func NewTime(t *time.Time) Time {
 	if t == nil || t.IsZero() {
 		return Time{Timestamptz: pgtype.Timestamptz{Status: pgtype.Null}}
 	}
+
 	return Time{Timestamptz: pgtype.Timestamptz{Time: t.UTC(), Status: pgtype.Present}}
 }
 
@@ -40,15 +39,14 @@ func (t *Time) IsNull() bool {
 	return t.Status == pgtype.Null
 }
 
-// MarshalJSON ...
 func (t *Time) MarshalJSON() ([]byte, error) {
 	if t.IsNull() {
 		return jsonNull, nil
 	}
+
 	return []byte(fmt.Sprintf("\"%s\"", t.String())), nil
 }
 
-// Date ...
 type Date struct {
 	pgtype.Date
 }
@@ -67,15 +65,14 @@ func (d *Date) String() string {
 	return d.Time.UTC().Format(settings.Common.DateTimeFormat)
 }
 
-// MarshalJSON ...
 func (d *Date) MarshalJSON() ([]byte, error) {
 	if d.IsNull() {
 		return jsonNull, nil
 	}
+
 	return []byte(fmt.Sprintf("\"%s\"", d.String())), nil
 }
 
-// Daterange ...
 type Daterange struct {
 	pgtype.Daterange
 }
@@ -85,7 +82,6 @@ func (r *Daterange) IsNull() bool {
 	return r.Status == pgtype.Null
 }
 
-// JSON ...
 type JSON struct {
 	pgtype.JSON
 	Data interface{}
@@ -97,14 +93,15 @@ func (j JSON) Value() (driver.Value, error) {
 		b, e := json.Marshal(j.Data)
 		return string(b), e
 	}
+
 	return j.JSON.Value()
 }
 
-// Get ...
 func (j *JSON) Get() interface{} {
 	if j.Data == nil && !j.IsNull() {
 		j.Data = j.JSON.Get()
 	}
+
 	return j.Data
 }
 
@@ -112,6 +109,7 @@ func (j *JSON) Get() interface{} {
 func (j *JSON) Scan(src interface{}) error {
 	err := j.JSON.Scan(src)
 	j.Data = nil
+
 	return err
 }
 
@@ -120,20 +118,18 @@ func (j *JSON) IsNull() bool {
 	return j.JSON.Status == pgtype.Null
 }
 
-// MarshalJSON ...
 func (j *JSON) MarshalJSON() ([]byte, error) {
 	if j.Data != nil {
 		return json.Marshal(j.Data)
 	}
+
 	return j.Bytes, nil
 }
 
-// Hstore ...
 type Hstore struct {
 	pgtype.Hstore
 }
 
-// NewHstore ...
 func NewHstore() Hstore {
 	return Hstore{Hstore: pgtype.Hstore{Map: make(map[string]pgtype.Text), Status: pgtype.Present}}
 }

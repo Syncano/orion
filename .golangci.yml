@@ -8,11 +8,10 @@ run:
     - mocks
 
 issues:
-  exclude-use-default: false
-  exclude:
-    - G104
-    - should have a package comment
-    - Error return value of .((os\.)?std(out|err)\..*|.*Close|.*Flush|os\.Remove(All)?|.*printf?|os\.(Un)?Setenv). is not checked
+  exclude-rules:
+    - text: declaration of "err" shadows declaration
+      linters:
+        - govet
 
 linters-settings:
   govet:
@@ -30,17 +29,58 @@ linters-settings:
     min-occurrences: 3
   misspell:
     locale: US
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - experimental
+      - opinionated
+      - performance
+      - style
+    disabled-checks:
+      - whyNoLint
+      - commentedOutCode
 
 linters:
-  enable-all: true
-  disable:
-    - lll
-    - maligned
+  disable-all: true
+  enable:
+    - bodyclose
+    - deadcode
+    - depguard
+    - dogsled
+    - dupl
+    - errcheck
+    - goconst
+    - gocritic
+    - gocyclo
+    - gofmt
+    - goimports
+    - golint
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - interfacer
+    - misspell
+    - nakedret
     - prealloc
-    - gochecknoglobals
-    - gochecknoinits
-    - godox
+    - scopelint
+    - staticcheck
+    - structcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - varcheck
     - whitespace
     - wsl
-    - funlen
-    - gocognit
+
+    # don't enable:
+    # - funlen
+    # - gochecknoglobals
+    # - gochecknoinits
+    # - godox
+    # - gocognit
+    # - gomnd
+    # - lll
+    # - maligned

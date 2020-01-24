@@ -15,7 +15,6 @@ import (
 	"github.com/Syncano/orion/pkg/settings"
 )
 
-// CacheInvalidate ...
 func CacheInvalidate(c echo.Context) error {
 	v := &validators.CacheInvalidateForm{}
 

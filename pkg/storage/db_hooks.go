@@ -16,30 +16,30 @@ var (
 	rollbackHooks = map[*pg.Tx][]hookFunc{}
 )
 
-// AddDBCommitHook ...
 func AddDBCommitHook(db orm.DB, f hookFunc) {
 	tx, istx := db.(*pg.Tx)
 	if !istx {
 		_ = f()
 		return
 	}
+
 	dbhookmu.Lock()
 	commitHooks[tx] = append(commitHooks[tx], f)
 	dbhookmu.Unlock()
 }
 
-// AddDBRollbackHook ...
 func AddDBRollbackHook(db orm.DB, f hookFunc) {
 	tx, istx := db.(*pg.Tx)
 	if !istx {
 		return
 	}
+
 	dbhookmu.Lock()
 	rollbackHooks[tx] = append(rollbackHooks[tx], f)
 	dbhookmu.Unlock()
 }
 
-func processDBHooks(tx *pg.Tx, process map[*pg.Tx][]hookFunc, cleanup map[*pg.Tx][]hookFunc) error {
+func processDBHooks(tx *pg.Tx, process, cleanup map[*pg.Tx][]hookFunc) error {
 	dbhookmu.RLock()
 	funcs := process[tx]
 	_, cleanupNeeded := cleanup[tx]
@@ -57,6 +57,7 @@ func processDBHooks(tx *pg.Tx, process map[*pg.Tx][]hookFunc, cleanup map[*pg.Tx
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -77,6 +78,7 @@ func RunTransactionWithHooks(tx *pg.Tx, fn func(*pg.Tx) error) error {
 	defer func() {
 		if err := recover(); err != nil {
 			_ = tx.Rollback()
+
 			panic(err)
 		}
 	}()
@@ -84,9 +86,11 @@ func RunTransactionWithHooks(tx *pg.Tx, fn func(*pg.Tx) error) error {
 	if err := fn(tx); err != nil {
 		_ = tx.Rollback()
 		err = fmt.Errorf("rollback due to error: %w", err)
+
 		if hookErr := ProcessDBRollbackHooks(tx); hookErr != nil {
 			return fmt.Errorf("hook error: %w", hookErr)
 		}
+
 		return err
 	}
 
@@ -95,5 +99,4 @@ func RunTransactionWithHooks(tx *pg.Tx, fn func(*pg.Tx) error) error {
 	}
 
 	return ProcessDBCommitHooks(tx)
-
 }
