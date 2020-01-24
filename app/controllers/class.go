@@ -14,7 +14,6 @@ import (
 
 const contextClassKey = "class"
 
-// ClassContext ...
 func ClassContext(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		o := &models.Class{Name: c.Param("class_name")}
@@ -23,17 +22,16 @@ func ClassContext(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		c.Set(contextClassKey, o)
+
 		return next(c)
 	}
 }
 
-// ClassCreate ...
 func ClassCreate(c echo.Context) error {
 	// TODO: #13 Class create
 	return api.NewPermissionDeniedError()
 }
 
-// ClassList ...
 func ClassList(c echo.Context) error {
 	var o []*models.Class
 
@@ -44,6 +42,7 @@ func ClassList(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+
 	return api.Render(c, http.StatusOK, serializers.CreatePage(c, r, nil))
 }
 
@@ -51,7 +50,6 @@ func detailClass(c echo.Context) *models.Class {
 	return &models.Class{Name: c.Param("class_name")}
 }
 
-// ClassRetrieve ...
 func ClassRetrieve(c echo.Context) error {
 	o := detailClass(c)
 
@@ -62,7 +60,6 @@ func ClassRetrieve(c echo.Context) error {
 	return api.Render(c, http.StatusOK, serializers.ClassSerializer{}.Response(o))
 }
 
-// ClassUpdate ...
 func ClassUpdate(c echo.Context) error {
 	// TODO: #8 Class updates/deletes
 	mgr := query.NewClassManager(c)
@@ -72,27 +69,28 @@ func ClassUpdate(c echo.Context) error {
 		if query.Lock(mgr.WithAccessByNameQ(o)) != nil {
 			return api.NewNotFoundError(o)
 		}
+
 		return nil
 	}); err != nil {
 		return err
 	}
+
 	return api.NewPermissionDeniedError()
 }
 
-// ClassDelete ...
 func ClassDelete(c echo.Context) error {
 	// TODO: #8 Class updates/deletes
 	// index cleanup, DO cascade!
-
+	//
 	// user := detailUserObject(c)
 	// if user == nil {
 	// 	return api.NewNotFoundError(user)
 	// }
-
+	//
 	// mgr := query.NewUserMembershipManager(c)
 	// group := c.Get(contextUserGroupKey).(*models.UserGroup)
 	// o := &models.UserMembership{UserID: user.ID, GroupID: group.ID}
-
+	//
 	// return api.SimpleDelete(c, mgr, mgr.ForUserAndGroupQ(o), o)
 	return api.NewPermissionDeniedError()
 }

@@ -50,33 +50,30 @@ func (m *Change) ActionString() string {
 	return ChangeAction[m.Action]
 }
 
-// Key ...
 func (m *Change) Key(args map[string]interface{}) string {
 	return fmt.Sprintf("%d:rdb:Change", args["instance"].(*Instance).ID)
 }
 
-// ListArgs ...
 func (m *Change) ListArgs(args map[string]interface{}) string {
 	return fmt.Sprintf("%d:%v", args["channel"].(*Channel).ID, args["room"])
 }
 
-// ListMaxSize ...
 func (m *Change) ListMaxSize(args map[string]interface{}) int {
 	if args["channel"].(*Channel).Name == ChannelEventlogName {
 		return changeEventlogListMaxSize
 	}
+
 	return changeListMaxSize
 }
 
-// TTL ...
 func (m *Change) TTL(args map[string]interface{}) time.Duration {
 	return changeTTL
 }
 
-// TrimmedTTL ...
 func (m *Change) TrimmedTTL(args map[string]interface{}) time.Duration {
 	if args["channel"].(*Channel).Name == ChannelEventlogName {
 		return changeEventlogTrimmedTTL
 	}
+
 	return changeTrimmedTTL
 }

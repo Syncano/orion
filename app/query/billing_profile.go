@@ -34,12 +34,12 @@ func (mgr *ProfileManager) GetBillingStatus(sub *models.Subscription) (string, e
 	if sub == nil {
 		return BillingStatusNoActiveSubscription, nil
 	}
-	o := &models.Profile{AdminID: sub.AdminID}
 
 	var ret string
-	n := time.Now()
 
-	return ret, cache.ModelCache(mgr.DB(), o, &ret, fmt.Sprintf("billing;a=%d;t=%s", o.AdminID, n.Format("06-01")), func() (interface{}, error) {
+	o := &models.Profile{AdminID: sub.AdminID}
+	n := time.Now()
+	err := cache.ModelCache(mgr.DB(), o, &ret, fmt.Sprintf("billing;a=%d;t=%s", o.AdminID, n.Format("06-01")), func() (interface{}, error) {
 		if b, err := mgr.Query(o).Where("admin_id = ? AND hard_limit_reached >= ?", o.AdminID, now.BeginningOfMonth()).Exists(); err != nil {
 			return "", err
 		} else if b {
@@ -57,4 +57,6 @@ func (mgr *ProfileManager) GetBillingStatus(sub *models.Subscription) (string, e
 		}
 		return "", nil
 	}, nil)
+
+	return ret, err
 }

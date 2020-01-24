@@ -29,6 +29,7 @@ func (mgr *SocketEndpointManager) ForSocketQ(socket *models.Socket, o interface{
 // OneByName outputs object filtered by name.
 func (mgr *SocketEndpointManager) OneByName(o *models.SocketEndpoint) error {
 	o.Name = strings.ToLower(o.Name)
+
 	return RequireOne(
 		cache.SimpleModelCache(mgr.DB(), o, fmt.Sprintf("n=%s", o.Name), func() (interface{}, error) {
 			return o, mgr.Query(o).Where("name = ?", o.Name).Select()

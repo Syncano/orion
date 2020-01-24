@@ -34,6 +34,7 @@ func Render(e echo.Context, code int, obj interface{}) error {
 	if err != nil {
 		return err
 	}
+
 	return e.JSONBlob(code, bytes)
 }
 
@@ -44,6 +45,7 @@ func jsonConfig() jsoniter.API {
 			SortMapKeys:                   settings.Common.Debug, // sort map keys if debug mode is on
 		}.Froze()
 	})
+
 	return jsonConfigAPI
 }
 

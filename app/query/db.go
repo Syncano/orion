@@ -6,7 +6,6 @@ import (
 	"github.com/Syncano/orion/pkg/storage"
 )
 
-// ContextSchemaKey ...
 const ContextSchemaKey = "schema"
 
 // DB returns base db for context.

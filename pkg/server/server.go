@@ -35,6 +35,7 @@ func NewServer(debug bool) (*Server, error) {
 		debug: debug,
 	}
 	s.srv.Handler = s.setupRouter()
+
 	return s, nil
 }
 
@@ -64,6 +65,7 @@ func (s *Server) setupRouter() *echo.Echo {
 	e.Validator = validators.NewValidator()
 
 	routers.Register(e)
+
 	return e
 }
 

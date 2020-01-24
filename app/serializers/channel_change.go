@@ -4,7 +4,6 @@ import (
 	"github.com/Syncano/orion/app/models"
 )
 
-// ChangeResponse ...
 type ChangeResponse struct {
 	ID        int                    `json:"id"`
 	Action    string                 `json:"status"`
@@ -14,10 +13,8 @@ type ChangeResponse struct {
 	Payload   map[string]interface{} `json:"payload"`
 }
 
-// ChangeSerializer ...
 type ChangeSerializer struct{}
 
-// Response ...
 func (s ChangeSerializer) Response(i interface{}) interface{} {
 	o := i.(*models.Change)
 

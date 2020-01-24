@@ -9,14 +9,12 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/urfave/cli"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
 	"github.com/Syncano/orion/app/proto/codebox"
 	"github.com/Syncano/orion/app/proto/codebox/broker"
-
-	"github.com/urfave/cli"
-	"go.uber.org/zap"
-
 	"github.com/Syncano/orion/pkg/log"
 	"github.com/Syncano/orion/pkg/server"
 	"github.com/Syncano/orion/pkg/settings"

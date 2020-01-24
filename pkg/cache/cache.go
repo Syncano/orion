@@ -51,6 +51,7 @@ func Stats() *cache.Stats {
 	statsLocal := codec.Stats()
 	statsLocal.Hits += stats.Hits
 	statsLocal.Misses += stats.Misses
+
 	return statsLocal
 }
 
@@ -63,11 +64,10 @@ func (ci *cacheItem) validate(version string, validate func(interface{}) bool) b
 	return version == ci.Version && (validate == nil || validate(ci.Object))
 }
 
-// VersionedCache ...
-func VersionedCache(cacheKey string, lookup string, val interface{},
+func VersionedCache(cacheKey, lookup string, val interface{},
 	versionKeyFunc func() string, compute func() (interface{}, error), validate func(interface{}) bool, expiration time.Duration) error {
-
 	item := &cacheItem{Object: val}
+
 	var (
 		version string
 		err     error
@@ -79,10 +79,12 @@ func VersionedCache(cacheKey string, lookup string, val interface{},
 		if err != nil && err != redis.Nil {
 			return err
 		}
+
 		if item.validate(version, validate) {
 			return nil
 		}
 	}
+
 	if codec.Get(cacheKey, item) == nil {
 		if version == "" {
 			version, err = codec.Redis.Get(versionKeyFunc()).Result()
@@ -90,6 +92,7 @@ func VersionedCache(cacheKey string, lookup string, val interface{},
 				return err
 			}
 		}
+
 		if item.validate(version, validate) {
 			return codecLocal.Set(&cache.Item{
 				Key:        cacheKey,
@@ -119,7 +122,9 @@ func VersionedCache(cacheKey string, lookup string, val interface{},
 	if oref.Kind() == reflect.Ptr {
 		oref = oref.Elem()
 	}
+
 	vref.Elem().Set(oref)
+
 	item.Object = val
 	item.Version = version
 
@@ -129,6 +134,7 @@ func VersionedCache(cacheKey string, lookup string, val interface{},
 		Object:     item,
 		Expiration: settings.Common.LocalCacheTimeout,
 	})
+
 	return codec.Set(&cache.Item{
 		Key:        cacheKey,
 		Object:     item,
@@ -136,7 +142,6 @@ func VersionedCache(cacheKey string, lookup string, val interface{},
 	})
 }
 
-// InvalidateVersion ...
 func InvalidateVersion(versionKey string, expiration time.Duration) error {
 	return codec.Redis.Set(
 		versionKey,

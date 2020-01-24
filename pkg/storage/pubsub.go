@@ -6,7 +6,6 @@ import (
 	"github.com/go-redis/redis"
 )
 
-// PubSub ...
 type PubSub struct {
 	mu       sync.RWMutex
 	initOnce sync.Once
@@ -16,7 +15,6 @@ type PubSub struct {
 	pubsub *redis.PubSub
 }
 
-// NewPubSub ...
 func NewPubSub(cli *redis.Client) *PubSub {
 	return &PubSub{
 		cli:  cli,
@@ -24,7 +22,6 @@ func NewPubSub(cli *redis.Client) *PubSub {
 	}
 }
 
-// Subscribe ...
 func (p *PubSub) Subscribe(name string, ch chan<- string) error {
 	p.initOnce.Do(func() {
 		p.pubsub = p.cli.Subscribe()
@@ -39,11 +36,12 @@ func (p *PubSub) Subscribe(name string, ch chan<- string) error {
 			return err
 		}
 	}
+
 	p.subs[name] = append(p.subs[name], ch)
+
 	return nil
 }
 
-// Unsubscribe ...
 func (p *PubSub) Unsubscribe(name string) error {
 	return p.pubsub.Unsubscribe(name)
 }

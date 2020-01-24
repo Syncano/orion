@@ -4,7 +4,6 @@ import (
 	"github.com/Syncano/orion/app/models"
 )
 
-// ClassResponse ...
 type ClassResponse struct {
 	Name         string      `json:"name"`
 	Description  string      `json:"description"`
@@ -17,10 +16,8 @@ type ClassResponse struct {
 	Metadata     models.JSON `json:"metadata"`
 }
 
-// ClassSerializer ...
 type ClassSerializer struct{}
 
-// Response ...
 func (s ClassSerializer) Response(i interface{}) interface{} {
 	o := i.(*models.Class)
 	cls := &ClassResponse{
@@ -34,5 +31,6 @@ func (s ClassSerializer) Response(i interface{}) interface{} {
 		Revision:     o.Revision,
 		Metadata:     o.Metadata,
 	}
+
 	return cls
 }

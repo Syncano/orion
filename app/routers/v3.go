@@ -46,9 +46,11 @@ func (m *middlewares) Get() []echo.MiddlewareFunc {
 	if m.DisableBody {
 		f = append(f, api.DisableBody)
 	}
+
 	if m.SizeLimit > 0 {
 		f = append(f, middleware.BodyLimit(bytes.Format(m.SizeLimit)))
 	}
+
 	f = append(f, api.MethodOverride)
 
 	if m.Auth {
@@ -57,32 +59,38 @@ func (m *middlewares) Get() []echo.MiddlewareFunc {
 		if m.AuthUser {
 			f = append(f, controllers.AuthUser)
 		}
+
 		if m.RequireAuth {
 			if m.RequireAdmin {
 				f = append(f, controllers.RequireAdmin)
 			} else {
 				f = append(f, controllers.RequireAPIKeyOrAdmin)
 			}
+
 			if m.RequireUser {
 				f = append(f, controllers.RequireUser)
 			}
+
 			f = append(f, m.authChain...)
 		}
 	}
 
 	f = append(f, api.RateLimit(m.limiter, m.RateLimitKey, m.RateLimitDuration, m.AnonRateLimit))
+
 	return f
 }
 
 func (m *middlewares) Add(f ...echo.MiddlewareFunc) *middlewares {
 	m = m.Copy()
 	m.chain = append(m.chain, f...)
+
 	return m
 }
 
 func (m *middlewares) AddAuth(f ...echo.MiddlewareFunc) *middlewares {
 	m = m.Copy()
 	m.authChain = append(m.authChain, f...)
+
 	return m
 }
 
@@ -91,6 +99,7 @@ func (m *middlewares) Copy() *middlewares {
 	*cp = *m
 	cp.chain = append([]echo.MiddlewareFunc(nil), cp.chain...)
 	cp.authChain = append([]echo.MiddlewareFunc(nil), cp.authChain...)
+
 	return cp
 }
 

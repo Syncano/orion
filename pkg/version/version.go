@@ -19,10 +19,12 @@ func mustParseBuildtime(buildtimeStr string) time.Time {
 	if buildtimeStr == "" {
 		return time.Now()
 	}
+
 	b, err := time.Parse("2006-01-02T15:04", buildtimeStr)
 	if err != nil {
 		panic(err)
 	}
+
 	return b
 }
 

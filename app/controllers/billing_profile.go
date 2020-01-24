@@ -10,16 +10,17 @@ import (
 	"github.com/Syncano/orion/app/query"
 )
 
-// BillingCheck ...
 func BillingCheck(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		sub := c.Get(contextSubscriptionKey).(*models.Subscription)
 		mgr := query.NewProfileManager(c)
-		var str string
+
 		status, err := mgr.GetBillingStatus(sub)
 		if err != nil {
 			return err
 		}
+
+		var str string
 
 		switch status {
 		case query.BillingStatusNoActiveSubscription:

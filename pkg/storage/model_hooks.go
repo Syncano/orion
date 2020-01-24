@@ -28,36 +28,40 @@ var (
 	anyModelKey = fmt.Sprintf("%T", AnyModel)
 )
 
-// AddModelDeleteHook ...
 func AddModelDeleteHook(model interface{}, f DeleteModelHookFunc) {
-	key := fmt.Sprintf("%T", model)
 	modelhookmu.Lock()
+
+	key := fmt.Sprintf("%T", model)
 	deleteHooks[key] = append(deleteHooks[key], f)
+
 	modelhookmu.Unlock()
 }
 
-// AddModelSoftDeleteHook ...
 func AddModelSoftDeleteHook(model interface{}, f SoftDeleteModelHookFunc) {
-	key := fmt.Sprintf("%T", model)
 	modelhookmu.Lock()
+
+	key := fmt.Sprintf("%T", model)
 	softDeleteHooks[key] = append(softDeleteHooks[key], f)
+
 	modelhookmu.Unlock()
 }
 
-// AddModelSaveHook ...
 func AddModelSaveHook(model interface{}, f SaveModelHookFunc) {
-	key := fmt.Sprintf("%T", model)
 	modelhookmu.Lock()
+
+	key := fmt.Sprintf("%T", model)
 	saveHooks[key] = append(saveHooks[key], f)
+
 	modelhookmu.Unlock()
 }
 
-// ProcessModelSaveHook ...
 func ProcessModelSaveHook(c DBContext, db orm.DB, created bool, model interface{}) error {
-	key := fmt.Sprintf("%T", model)
 	modelhookmu.RLock()
+
+	key := fmt.Sprintf("%T", model)
 	funcs := saveHooks[key]
 	funcsAny := saveHooks[anyModelKey]
+
 	modelhookmu.RUnlock()
 
 	funcs = append(funcs, funcsAny...)
@@ -66,15 +70,17 @@ func ProcessModelSaveHook(c DBContext, db orm.DB, created bool, model interface{
 			return err
 		}
 	}
+
 	return nil
 }
 
-// ProcessModelDeleteHook ...
 func ProcessModelDeleteHook(c DBContext, db orm.DB, model interface{}) error {
-	key := fmt.Sprintf("%T", model)
 	modelhookmu.RLock()
+
+	key := fmt.Sprintf("%T", model)
 	funcs := deleteHooks[key]
 	funcsAny := deleteHooks[anyModelKey]
+
 	modelhookmu.RUnlock()
 
 	funcs = append(funcs, funcsAny...)
@@ -83,15 +89,17 @@ func ProcessModelDeleteHook(c DBContext, db orm.DB, model interface{}) error {
 			return err
 		}
 	}
+
 	return nil
 }
 
-// ProcessModelSoftDeleteHook ...
 func ProcessModelSoftDeleteHook(c DBContext, db orm.DB, model interface{}) error {
-	key := fmt.Sprintf("%T", model)
 	modelhookmu.RLock()
+
+	key := fmt.Sprintf("%T", model)
 	funcs := softDeleteHooks[key]
 	funcsAny := softDeleteHooks[anyModelKey]
+
 	modelhookmu.RUnlock()
 
 	funcs = append(funcs, funcsAny...)
@@ -100,5 +108,6 @@ func ProcessModelSoftDeleteHook(c DBContext, db orm.DB, model interface{}) error
 			return err
 		}
 	}
+
 	return nil
 }

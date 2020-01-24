@@ -10,17 +10,16 @@ import (
 	"github.com/Syncano/orion/pkg/redisdb"
 )
 
-// PaginatorRedis ...
 type PaginatorRedis struct {
 	DBCtx         *redisdb.DBCtx
 	SkippedFields []string
 }
 
-// FilterObjects ...
 func (p *PaginatorRedis) FilterObjects(cursor Cursorer) error {
 	lastPk := cursor.LastPK()
 	isOrderAsc := cursor.IsOrderAsc()
 	limit := cursor.Limit()
+
 	var minPK, maxPK int
 
 	if lastPk != 0 {
@@ -34,7 +33,6 @@ func (p *PaginatorRedis) FilterObjects(cursor Cursorer) error {
 	return p.DBCtx.List(minPK, maxPK, limit, isOrderAsc, p.SkippedFields)
 }
 
-// ProcessObjects ...
 func (p *PaginatorRedis) ProcessObjects(c echo.Context, cursor Cursorer, typ reflect.Type, serializer serializers.Serializer, responseLimit *int) ([]api.RawMessage, error) {
 	var ret []api.RawMessage
 
@@ -45,18 +43,24 @@ func (p *PaginatorRedis) ProcessObjects(c echo.Context, cursor Cursorer, typ ref
 		e         error
 		obj, last interface{}
 	)
+
 	for i := 0; i < r.Len(); i++ {
 		obj = r.Index(i).Interface()
 		data, e = api.Marshal(c, serializer.Response(obj))
+
 		if last == nil {
 			cursor.SetFirst(obj)
 		}
+
 		last = obj
+
 		ret = append(ret, data)
+
 		if e != nil {
 			return nil, e
 		}
 	}
+
 	if last != nil {
 		cursor.SetLast(obj)
 	}
@@ -64,7 +68,6 @@ func (p *PaginatorRedis) ProcessObjects(c echo.Context, cursor Cursorer, typ ref
 	return ret, nil
 }
 
-// CreateCursor ...
 func (p *PaginatorRedis) CreateCursor(c echo.Context, defaultOrderAsc bool) Cursorer {
 	return newCursor(c, defaultOrderAsc)
 }

@@ -9,8 +9,8 @@ import (
 var translator ut.Translator
 
 func initTranslator() {
-	en := en.New()
-	uni := ut.New(en, en)
+	enLocale := en.New()
+	uni := ut.New(enLocale, enLocale)
 	translator, _ = uni.GetTranslator("en")
 
 	for _, trans := range []struct {
@@ -39,6 +39,7 @@ func initTranslator() {
 		if trans.customTransFunc == nil {
 			trans.customTransFunc = translationFunc
 		}
+
 		if trans.customRegisFunc == nil {
 			trans.customRegisFunc = registrationFunc(trans.tag, trans.translation, true)
 		}
@@ -47,26 +48,29 @@ func initTranslator() {
 	}
 }
 
-func registrationFunc(tag string, translation string, override bool) validator.RegisterTranslationsFunc {
+func registrationFunc(tag, translation string, override bool) validator.RegisterTranslationsFunc {
 	return func(ut ut.Translator) (err error) {
 		if err = ut.Add(tag, translation, override); err != nil {
 			return
 		}
+
 		return
 	}
 }
 
-func translationFunc(ut ut.Translator, fe validator.FieldError) string {
-	t, _ := ut.T(fe.Tag())
+func translationFunc(trans ut.Translator, fe validator.FieldError) string {
+	t, _ := trans.T(fe.Tag())
 	return t
 }
 
 // TranslateErrors returns translated error map.
 func TranslateErrors(errs []validator.FieldError) map[string][]string {
 	ret := make(map[string][]string)
+
 	for _, fe := range errs {
 		fname := fe.Field()
 		ret[fname] = append(ret[fname], fe.Translate(translator))
 	}
+
 	return ret
 }

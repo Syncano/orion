@@ -31,13 +31,15 @@ func Init(ch AMQPChannel) {
 }
 
 // NewTask returns a new task object.
-func NewTask(task string, queue string, args []interface{}, kwargs map[string]interface{}) *Task {
+func NewTask(task, queue string, args []interface{}, kwargs map[string]interface{}) *Task {
 	if args == nil {
 		args = make([]interface{}, 0)
 	}
+
 	if kwargs == nil {
 		kwargs = make(map[string]interface{})
 	}
+
 	return &Task{
 		Task:   task,
 		Queue:  queue,
@@ -61,5 +63,6 @@ func (t *Task) Publish() error {
 		ContentEncoding: "utf-8",
 		Body:            body,
 	}
+
 	return amqpCh.Publish(exchange, t.Queue, false, false, msg)
 }

@@ -135,9 +135,11 @@ func init() {
 		if err := log.Init(c.String("dsn"), c.Bool("debug")); err != nil {
 			return err
 		}
+
 		if err := raven.SetDSN(c.String("dsn")); err != nil {
 			return err
 		}
+
 		if c.Bool("debug") {
 			settings.Common.Debug = true
 		}
@@ -145,6 +147,7 @@ func init() {
 		// Serve expvar and checks.
 		logger := log.Logger()
 		logger.With(zap.Int("port", c.Int("port"))).Info("Serving http for expvar and checks")
+
 		go func() {
 			if err := http.ListenAndServe(fmt.Sprintf(":%d", c.Int("port")), nil); err != nil && err != http.ErrServerClosed {
 				logger.With(zap.Error(err)).Fatal("Serve error")
@@ -161,6 +164,7 @@ func init() {
 		}
 
 		recorder := zipkin.NewRecorder(collector, c.Bool("debug"), "0", c.String("service-name"))
+
 		tracer, err := zipkin.NewTracer(recorder,
 			zipkin.ClientServerSameSpan(false),
 			zipkin.WithSampler(zipkin.ModuloSampler(c.Uint64("zipkin-modulo"))),
@@ -168,6 +172,7 @@ func init() {
 		if err != nil {
 			return err
 		}
+
 		opentracing.SetGlobalTracer(tracer)
 
 		// Initialize database client.
@@ -185,6 +190,7 @@ func init() {
 		if err := amqpChannel.Init(c.String("broker-url")); err != nil {
 			return err
 		}
+
 		celery.Init(amqpChannel)
 
 		return nil
@@ -204,6 +210,7 @@ func init() {
 
 		// Shutdown job system.
 		jobs.Shutdown()
+
 		return nil
 	}
 }

@@ -29,6 +29,7 @@ func (d *DB) Model(m interface{}, args map[string]interface{}) *DBCtx {
 	if !v.IsValid() {
 		panic("redis: Model(nil)")
 	}
+
 	if v.Kind() != reflect.Ptr {
 		panic(fmt.Sprintf("pg: Model(non-pointer %T)", m))
 	}
@@ -41,6 +42,7 @@ func (d *DB) Model(m interface{}, args map[string]interface{}) *DBCtx {
 
 	typ = v.Type()
 	v = v.Elem()
+
 	switch v.Kind() {
 	case reflect.Slice:
 		typ = v.Type().Elem()
@@ -54,6 +56,7 @@ func (d *DB) Model(m interface{}, args map[string]interface{}) *DBCtx {
 	}
 
 	modeler := reflect.Zero(typ).Interface().(Modeler)
+
 	if typ.Kind() == reflect.Ptr {
 		typ = typ.Elem()
 	}

@@ -14,7 +14,6 @@ import (
 	"github.com/labstack/echo"
 )
 
-// Binder ...
 type Binder struct{}
 
 const contextParsedDataKey = "parsed_data"
@@ -26,19 +25,24 @@ func (b *Binder) Bind(i interface{}, c echo.Context) error {
 		if req.Method == http.MethodGet || req.Method == http.MethodDelete {
 			return nil
 		}
+
 		return echo.NewHTTPError(http.StatusBadRequest, "Request body can't be empty")
 	}
+
 	ctype := req.Header.Get(echo.HeaderContentType)
+
 	switch {
 	case strings.HasPrefix(ctype, echo.MIMEApplicationForm), strings.HasPrefix(ctype, echo.MIMEMultipartForm):
 		params, err := c.FormParams()
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "Error parsing data").SetInternal(err)
 		}
+
 		if err = b.bindData(c, i, params, "form"); err != nil {
 			if _, ok := err.(*Error); ok {
 				return err
 			}
+
 			return echo.NewHTTPError(http.StatusBadRequest, "Error parsing data").SetInternal(err)
 		}
 	default:
@@ -53,10 +57,12 @@ func (b *Binder) Bind(i interface{}, c echo.Context) error {
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "Error parsing data").SetInternal(err)
 		}
+
 		if err := dec.Decode(data); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "Error parsing data").SetInternal(err)
 		}
 	}
+
 	return nil
 }
 
@@ -83,6 +89,7 @@ func ParsedData(c echo.Context) (map[string]interface{}, error) {
 	}
 
 	c.Set(contextParsedDataKey, dataMap)
+
 	return dataMap, nil
 }
 
@@ -97,9 +104,11 @@ func (b *Binder) bindData(c echo.Context, ptr interface{}, data map[string][]str
 	for i := 0; i < typ.NumField(); i++ {
 		typeField := typ.Field(i)
 		structField := val.Field(i)
+
 		if !structField.CanSet() {
 			continue
 		}
+
 		structFieldKind := structField.Kind()
 		inputFieldName := typeField.Tag.Get(tag)
 
@@ -111,9 +120,11 @@ func (b *Binder) bindData(c echo.Context, ptr interface{}, data map[string][]str
 				if err != nil {
 					return err
 				}
+
 				continue
 			}
 		}
+
 		inputValue, exists := data[inputFieldName]
 		if !exists {
 			continue
@@ -124,6 +135,7 @@ func (b *Binder) bindData(c echo.Context, ptr interface{}, data map[string][]str
 			if err != nil {
 				return err
 			}
+
 			continue
 		}
 
@@ -131,21 +143,25 @@ func (b *Binder) bindData(c echo.Context, ptr interface{}, data map[string][]str
 		if structFieldKind == reflect.Slice && numElems > 0 {
 			sliceOf := structField.Type().Elem().Kind()
 			slice := reflect.MakeSlice(structField.Type(), numElems, numElems)
+
 			for j := 0; j < numElems; j++ {
 				if err := setWithProperType(c, sliceOf, inputValue[j], slice.Index(j)); err != nil {
 					return NewError(http.StatusBadRequest, map[string]interface{}{
 						inputFieldName: fmt.Sprintf("Incorrect type. Expected %s.", sliceOf)})
 				}
 			}
+
 			val.Field(i).Set(slice)
 		} else {
 			typ := typeField.Type.Kind()
+
 			if err := setWithProperType(c, typ, inputValue[0], structField); err != nil {
 				return NewError(http.StatusBadRequest, map[string]interface{}{
 					inputFieldName: fmt.Sprintf("Incorrect type. Expected %s.", typ)})
 			}
 		}
 	}
+
 	return nil
 }
 
@@ -160,6 +176,7 @@ func setWithProperType(c echo.Context, valueKind reflect.Kind, val string, struc
 		if _, ok := structField.Interface().(*multipart.FileHeader); ok {
 			return setFileheaderField(c, val, structField)
 		}
+
 		return setWithProperType(c, structField.Elem().Kind(), val, structField.Elem())
 	case reflect.Int:
 		return setIntField(val, 0, structField)
@@ -192,6 +209,7 @@ func setWithProperType(c echo.Context, valueKind reflect.Kind, val string, struc
 	default:
 		return errors.New("unknown type")
 	}
+
 	return nil
 }
 
@@ -213,6 +231,7 @@ func bindUnmarshaler(field reflect.Value) (echo.BindUnmarshaler, bool) {
 			return unmarshaler, ok
 		}
 	}
+
 	return nil, false
 }
 
@@ -220,8 +239,10 @@ func unmarshalFieldNonPtr(value string, field reflect.Value) (bool, error) {
 	if unmarshaler, ok := bindUnmarshaler(field); ok {
 		err := unmarshaler.UnmarshalParam(value)
 		field.Set(reflect.ValueOf(unmarshaler).Elem())
+
 		return true, err
 	}
+
 	return false, nil
 }
 
@@ -230,6 +251,7 @@ func unmarshalFieldPtr(value string, field reflect.Value) (bool, error) {
 		// Initialize the pointer to a nil value
 		field.Set(reflect.New(field.Type().Elem()))
 	}
+
 	return unmarshalFieldNonPtr(value, field.Elem())
 }
 
@@ -237,10 +259,12 @@ func setIntField(value string, bitSize int, field reflect.Value) error {
 	if value == "" {
 		value = "0"
 	}
+
 	intVal, err := strconv.ParseInt(value, 10, bitSize)
 	if err == nil {
 		field.SetInt(intVal)
 	}
+
 	return err
 }
 
@@ -248,10 +272,12 @@ func setUintField(value string, bitSize int, field reflect.Value) error {
 	if value == "" {
 		value = "0"
 	}
+
 	uintVal, err := strconv.ParseUint(value, 10, bitSize)
 	if err == nil {
 		field.SetUint(uintVal)
 	}
+
 	return err
 }
 
@@ -259,10 +285,12 @@ func setBoolField(value string, field reflect.Value) error {
 	if value == "" {
 		value = "false"
 	}
+
 	boolVal, err := strconv.ParseBool(value)
 	if err == nil {
 		field.SetBool(boolVal)
 	}
+
 	return err
 }
 
@@ -270,10 +298,12 @@ func setFloatField(value string, bitSize int, field reflect.Value) error {
 	if value == "" {
 		value = "0.0"
 	}
+
 	floatVal, err := strconv.ParseFloat(value, bitSize)
 	if err == nil {
 		field.SetFloat(floatVal)
 	}
+
 	return err
 }
 
@@ -282,5 +312,6 @@ func setFileheaderField(c echo.Context, value string, field reflect.Value) error
 	if err == nil {
 		field.Set(reflect.ValueOf(fh))
 	}
+
 	return err
 }

@@ -4,7 +4,6 @@ import (
 	"github.com/Syncano/orion/app/models"
 )
 
-// InstanceResponse ...
 type InstanceResponse struct {
 	Name        string      `json:"name"`
 	Description string      `json:"description"`
@@ -15,12 +14,11 @@ type InstanceResponse struct {
 	Owner       interface{} `json:"owner"`
 }
 
-// InstanceSerializer ...
 type InstanceSerializer struct{}
 
-// Response ...
 func (s InstanceSerializer) Response(i interface{}) interface{} {
 	o := i.(*models.Instance)
+
 	return &InstanceResponse{
 		Name:        o.Name,
 		Description: o.Description,

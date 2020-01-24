@@ -28,6 +28,7 @@ type keysetcursor struct {
 func (c *keysetcursor) buildURL(path string, direction int, o interface{}) string {
 	lastPk := c.lastPk
 	lastVal := c.lastValue
+
 	if o != nil {
 		obj := o.(keysetcursorObject)
 		lastPk = obj.id
@@ -38,40 +39,41 @@ func (c *keysetcursor) buildURL(path string, direction int, o interface{}) strin
 	if c.limit != defaultLimit {
 		base += fmt.Sprintf("&page_size=%d", c.limit)
 	}
+
 	if lastPk != 0 {
 		base += fmt.Sprintf("&last_pk=%d", lastPk)
 	}
+
 	if v, err := c.field.ToString(lastVal); err == nil {
 		base += fmt.Sprintf("&last_value=%s", url.QueryEscape(v))
 	}
+
 	return base
 }
 
-// NextURL ...
 func (c *keysetcursor) NextURL(path string) string {
 	o := c.last
 	if !c.forward {
 		o = c.first
 	}
+
 	return c.buildURL(path, 1, o)
 }
 
-// PrevURL ...
 func (c *keysetcursor) PrevURL(path string) string {
 	o := c.first
 	if !c.forward {
 		o = c.last
 	}
+
 	return c.buildURL(path, 0, o)
 }
 
-// PaginatorOrderedDB ...
 type PaginatorOrderedDB struct {
 	*PaginatorDB
 	OrderFields map[string]models.OrderField
 }
 
-// FilterObjects ...
 func (p *PaginatorOrderedDB) FilterObjects(cursor Cursorer) error {
 	q := p.Query
 	isOrderAsc := cursor.IsOrderAsc()
@@ -115,10 +117,10 @@ func (p *PaginatorOrderedDB) FilterObjects(cursor Cursorer) error {
 
 	order := orderingMap[isOrderAsc]
 	p.Query = q.OrderExpr(fmt.Sprintf("%s %s, ?TableAlias.id %s", sqlName, order, order)).Limit(limit)
+
 	return nil
 }
 
-// CreateCursor ...
 func (p *PaginatorOrderedDB) CreateCursor(c echo.Context, defaultOrderAsc bool) Cursorer {
 	cur := &keysetcursor{cursor: newCursor(c, defaultOrderAsc)}
 
@@ -147,14 +149,15 @@ func (p *PaginatorOrderedDB) CreateCursor(c echo.Context, defaultOrderAsc bool) 
 	if !cur.forward {
 		orderAsc = !orderAsc
 	}
-	cur.orderAsc = orderAsc
 
+	cur.orderAsc = orderAsc
 	cur.extractor = func(v interface{}) interface{} {
 		return keysetcursorObject{
 			id:  int(reflect.ValueOf(v).Elem().FieldByName("ID").Int()),
 			val: cur.field.Get(v),
 		}
 	}
+
 	return cur
 }
 

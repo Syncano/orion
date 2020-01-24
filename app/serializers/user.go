@@ -4,12 +4,10 @@ import (
 	"github.com/Syncano/orion/app/models"
 )
 
-// UserSerializer ...
 type UserSerializer struct {
 	Class *models.Class
 }
 
-// Response ...
 func (s UserSerializer) Response(i interface{}) interface{} {
 	o := i.(*models.User)
 	base := map[string]interface{}{
@@ -22,10 +20,10 @@ func (s UserSerializer) Response(i interface{}) interface{} {
 	}
 
 	processDataObjectFields(s.Class, o.Profile, base)
+
 	return base
 }
 
-// ResponseWithGroup ...
 func (s UserSerializer) ResponseWithGroup(i interface{}) interface{} {
 	o := i.(*models.User)
 	gSerializer := UserGroupSerializer{}
@@ -35,6 +33,7 @@ func (s UserSerializer) ResponseWithGroup(i interface{}) interface{} {
 	for _, group := range o.Groups {
 		groups = append(groups, gSerializer.ShortResponse(group))
 	}
+
 	base["groups"] = groups
 
 	return base

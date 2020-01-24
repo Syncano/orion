@@ -33,6 +33,7 @@ func (mgr *SocketManager) OneByID(o *models.Socket) error {
 // OneByName outputs object filtered by name.
 func (mgr *SocketManager) OneByName(o *models.Socket) error {
 	o.Name = strings.ToLower(o.Name)
+
 	return RequireOne(
 		cache.SimpleModelCache(mgr.DB(), o, fmt.Sprintf("n=%s", o.Name), func() (interface{}, error) {
 			return o, mgr.Query(o).Where("name = ?", o.Name).Select()
