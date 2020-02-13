@@ -134,6 +134,7 @@ func prepareSocketEndpointMeta(c echo.Context, inst *models.Instance, sock *mode
 		"socket":      sock.Name,
 		"token":       createAuthToken(inst, socketEndpointTokenDuration),
 		"api_host":    settings.API.Host,
+		"space_host":  settings.API.SpaceHost,
 	}
 
 	for h, v := range req.Header {
@@ -182,7 +183,7 @@ func prepareSocketEndpointConfig(inst *models.Instance, sock *models.Socket) map
 }
 
 func sendCodeboxRequest(ctx context.Context, c echo.Context, inst *models.Instance, sock *models.Socket,
-	endpoint *models.SocketEndpoint, trace *models.SocketTrace) (broker.ScriptRunner_RunClient, error) {
+	endpoint *models.SocketEndpoint) (broker.ScriptRunner_RunClient, *models.SocketTrace, error) {
 	call := c.Get(contextSocketEndpointCallKey).(map[string]interface{})
 	sub := c.Get(contextSubscriptionKey).(*models.Subscription)
 
@@ -191,7 +192,7 @@ func sendCodeboxRequest(ctx context.Context, c echo.Context, inst *models.Instan
 	if sock.EnvironmentID != 0 {
 		environment := &models.SocketEnvironment{ID: sock.EnvironmentID}
 		if query.NewSocketEnvironmentManager(c).OneByID(environment) != nil {
-			return nil, api.NewNotFoundError(environment)
+			return nil, nil, api.NewNotFoundError(environment)
 		}
 
 		environmentHash = environment.Hash()
@@ -201,12 +202,12 @@ func sendCodeboxRequest(ctx context.Context, c echo.Context, inst *models.Instan
 	// Process payload.
 	payload, files, err := prepareSocketEndpointPayload(c)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	payloadBytes, err := jsoniter.Marshal(payload)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Process meta.
@@ -214,7 +215,7 @@ func sendCodeboxRequest(ctx context.Context, c echo.Context, inst *models.Instan
 
 	metaBytes, err := jsoniter.Marshal(meta)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Process meta.
@@ -222,32 +223,33 @@ func sendCodeboxRequest(ctx context.Context, c echo.Context, inst *models.Instan
 
 	configBytes, err := jsoniter.Marshal(config)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Prepare trace.
-	trace.Meta = meta["request"].(map[string]interface{})
-	trace.Args = payload
-
-	if e := createSocketTraceDBCtx(c, trace).Save(nil); e != nil {
-		return nil, e
+	trace := &models.SocketTrace{
+		Meta: meta["request"].(map[string]interface{}),
+		Args: payload,
 	}
 
-	metadata := endpoint.Metadata.Get().(map[string]interface{})
+	if e := createSocketTraceDBCtx(c, trace).Save(nil); e != nil {
+		return nil, nil, e
+	}
+
 	async := settings.Socket.DefaultAsync
 	timeout := int64(settings.Socket.DefaultTimeout)
 	mcpu := settings.Socket.DefaultMCPU
 
-	if v, ok := metadata["async"]; ok {
-		async = uint32(v.(int))
+	if v, ok := call["async"]; ok {
+		async = uint32(v.(float64))
 	}
 
-	if v, ok := metadata["timeout"]; ok {
+	if v, ok := call["timeout"]; ok {
 		timeout = int64(v.(float64) * 1000)
 	}
 
-	if v, ok := metadata["mcpu"]; ok {
-		mcpu = uint32(v.(int))
+	if v, ok := call["mcpu"]; ok {
+		mcpu = uint32(v.(float64))
 	}
 
 	// Prepare request.
@@ -307,7 +309,7 @@ func sendCodeboxRequest(ctx context.Context, c echo.Context, inst *models.Instan
 
 	stream, err := codebox.Runner.Run(ctx, req, grpc.WaitForReady(true))
 
-	return stream, err
+	return stream, trace, err
 }
 
 func processCodeboxResponse(stream broker.ScriptRunner_RunClient, trace *models.SocketTrace) error {
@@ -368,16 +370,21 @@ func processCodeboxResponse(stream broker.ScriptRunner_RunClient, trace *models.
 func SocketEndpointCodeboxRun(c echo.Context) error {
 	instance := c.Get(settings.ContextInstanceKey).(*models.Instance)
 	endpoint := c.Get(contextSocketEndpointKey).(*models.SocketEndpoint)
+	call := c.Get(contextSocketEndpointCallKey).(map[string]interface{})
 	socket := &models.Socket{ID: endpoint.SocketID}
 
 	if query.NewSocketManager(c).OneByID(socket) != nil {
 		return api.NewNotFoundError(socket)
 	}
 
-	trace := &models.SocketTrace{}
+	var (
+		trace  *models.SocketTrace
+		stream broker.ScriptRunner_RunClient
+		err    error
+	)
 
 	// Process caching.
-	if v, ok := endpoint.Metadata.Get().(map[string]interface{})["cache"]; ok && c.QueryParam(getSkipCache) != "1" {
+	if v, ok := call["cache"]; ok && c.QueryParam(getSkipCache) != "1" {
 		cacheTimeout := v.(float64)
 		cacheKey := createEndpointCacheKey(c.Get(settings.ContextInstanceKey).(*models.Instance).ID, endpoint.Name, socket.Hash())
 
@@ -386,11 +393,13 @@ func SocketEndpointCodeboxRun(c echo.Context) error {
 		}
 
 		defer func() {
-			cache.Codec().Set(&redis_cache.Item{ // nolint: errcheck
-				Key:        cacheKey,
-				Object:     trace,
-				Expiration: time.Duration(cacheTimeout),
-			})
+			if trace != nil {
+				cache.Codec().Set(&redis_cache.Item{ // nolint: errcheck
+					Key:        cacheKey,
+					Object:     trace,
+					Expiration: time.Duration(cacheTimeout),
+				})
+			}
 		}()
 	}
 
@@ -398,7 +407,7 @@ func SocketEndpointCodeboxRun(c echo.Context) error {
 	ctx, cancel := context.WithTimeout(c.Request().Context(), codebox.Timeout)
 	defer cancel()
 
-	stream, err := sendCodeboxRequest(ctx, c, instance, socket, endpoint, trace)
+	stream, trace, err = sendCodeboxRequest(ctx, c, instance, socket, endpoint)
 	if err != nil {
 		return fmt.Errorf("error sending codebox request: %w", err)
 	}
