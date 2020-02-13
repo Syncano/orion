@@ -24,7 +24,7 @@ spec:
         - name: syncano-k8s-pull-secret
       containers:
         - name: orion-server
-          image: {{ DOCKERIMAGE }}:{{ VERSION }}
+          image: {{ IMAGE }}
           command:
             - "orion"
             - "server"
@@ -53,13 +53,24 @@ spec:
               path: /health
               port: 9080
             initialDelaySeconds: 5
-{%- if STORAGE_TYPE == "gcloud" %}
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sleep", "5"]
+
+{%- if GCP_LOCATIONS %}
           volumeMounts:
-            - name: storage-credentials
-              mountPath: /secrets/storage
+  {%- for item in GCP_LOCATIONS.split(',') %}
+            - name: {{ item }}-storage-credentials
+              mountPath: /secrets/{{ item }}-storage
               readOnly: true
+  {%- endfor %}
+{%- endif %}
+{%- if GCP_LOCATIONS %}
       volumes:
-        - name: storage-credentials
+  {%- for item in GCP_LOCATIONS.split(',') %}
+        - name: {{ item }}-storage-credentials
           secret:
-            secretName: storage-credentials
+            secretName: {{ item }}-storage-credentials
+  {%- endfor %}
 {%- endif %}

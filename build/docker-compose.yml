@@ -3,7 +3,7 @@ version: '3'
 services:
   server:
     command: orion --debug server
-    image: quay.io/syncano/orion
+    image: syncano/orion
     build: .
     ports:
       - "80:80"
@@ -15,7 +15,7 @@ services:
   worker:
     command: orion --debug worker
     user: root
-    image: quay.io/syncano/orion
+    image: syncano/orion
     build: .
     environment:
       - SERVICE_NAME=orion-worker
