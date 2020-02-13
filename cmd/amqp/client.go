@@ -26,15 +26,19 @@ type Channel struct {
 
 func (ac *Channel) connect(url string) error {
 	ac.ch = nil
+
 	connection, err := amqp.Dial(url)
 	if err != nil {
 		return err
 	}
+
 	ch, err := connection.Channel()
 	if err != nil {
 		connection.Close() // nolint: errcheck
+
 		return err
 	}
+
 	if err = ch.ExchangeDeclare(
 		"default", // name
 		"direct",  // type
@@ -46,10 +50,13 @@ func (ac *Channel) connect(url string) error {
 	); err != nil {
 		ch.Close()         // nolint: errcheck
 		connection.Close() // nolint: errcheck
+
 		return err
 	}
+
 	ac.ch = ch
 	ac.registeredQueues = make(map[string]struct{})
+
 	return nil
 }
 
@@ -76,7 +83,9 @@ func (ac *Channel) Init(url string) error {
 
 			if e != nil {
 				logger.With(zap.Error(e)).Warn("Lost AMQP connection")
+
 				amqpSleep := amqpRetrySleep
+
 				ac.mu.Lock()
 
 				for {
@@ -84,13 +93,17 @@ func (ac *Channel) Init(url string) error {
 						if e := ac.connect(url); e != nil {
 							logger.With(zap.Error(e)).Error("Cannot connect to AMQP, retrying")
 							time.Sleep(amqpSleep)
+
 							if amqpSleep < amqpMaxRetrySleep {
 								amqpSleep += amqpRetrySleep
 							}
+
 							continue
 						}
+
 						logger.Info("Reconnected to AMQP")
 					}
+
 					break
 				}
 				ac.mu.Unlock()
@@ -118,7 +131,7 @@ func (ac *Channel) setRunning(running bool) {
 }
 
 // Publish sends a Publishing from the client to an exchange on the server.
-func (ac *Channel) Publish(exchange, key string, mandatory, immediate bool, msg amqp.Publishing) error {
+func (ac *Channel) Publish(exchange, key string, mandatory, immediate bool, msg amqp.Publishing) error { // nolint: gocritic
 	ac.mu.Lock()
 	defer ac.mu.Unlock()
 
@@ -133,6 +146,7 @@ func (ac *Channel) Publish(exchange, key string, mandatory, immediate bool, msg 
 		); err != nil {
 			return err
 		}
+
 		ac.registeredQueues[key] = struct{}{}
 	}
 

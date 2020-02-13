@@ -27,6 +27,7 @@ func logg(c echo.Context, start time.Time, path string, l *zap.Logger) {
 	end := time.Now()
 	latency := end.Sub(start)
 	dataLength := res.Size
+
 	if dataLength < 0 {
 		dataLength = 0
 	}
@@ -37,6 +38,7 @@ func logg(c echo.Context, start time.Time, path string, l *zap.Logger) {
 		zap.Duration("took", latency),
 	)
 	msg := c.Request().Method + " " + path
+
 	if code > 499 {
 		l.Error(msg)
 	} else {
@@ -98,9 +100,12 @@ func Logger() echo.MiddlewareFunc {
 						raven.NewStacktrace(traceSkipFrames, traceContextLines, nil)),
 						raven.NewHttp(req))
 				}
+
 				l = logger.With(zap.Error(err))
 			}
+
 			logg(c, start, path, l)
+
 			return nil
 		}
 	}
@@ -111,6 +116,7 @@ func OpenTracing() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			var span opentracing.Span
+
 			req := c.Request()
 			tracer := opentracing.GlobalTracer()
 			opName := fmt.Sprintf("%s %s", req.Method, req.URL.Path)
@@ -144,6 +150,7 @@ func OpenTracing() echo.MiddlewareFunc {
 			span.SetTag("http.status_code", c.Response().Status)
 
 			c.SetRequest(req.WithContext(opentracing.ContextWithSpan(req.Context(), span)))
+
 			return nil
 		}
 	}

@@ -15,6 +15,7 @@ func RequireOne(err error) error {
 	if err == nil || err == pg.ErrNoRows {
 		return err
 	}
+
 	panic(err)
 }
 
@@ -23,7 +24,9 @@ func CountEstimate(db orm.DB, q *orm.Query, threshold int) (int, error) {
 	type res struct {
 		ObjectsCount int
 	}
+
 	r := res{}
+
 	qq, err := q.AppendQuery(nil)
 	if err != nil {
 		return 0, err

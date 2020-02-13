@@ -28,11 +28,13 @@ func Data() DataStorage {
 // InitData sets up a data storage.
 func InitData() {
 	var err error
+
 	switch settings.Storage.Type {
 	case "s3":
 		dataStorage = newS3Storage()
 	case "gcloud":
 		dataStorage, err = newGCloudStorage()
 	}
+
 	util.Must(err)
 }

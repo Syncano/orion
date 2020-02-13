@@ -71,6 +71,7 @@ func getLocalPath(path string) string {
 		path = regexp.MustCompile(`[-\s]+`).ReplaceAllString(path, "-")
 		path = strings.ToLower(path)
 	}
+
 	return path
 }
 
@@ -79,23 +80,25 @@ func buildAbsoluteURL(path string) string {
 	if url[0] == '/' {
 		return fmt.Sprintf("http://%s%s", settings.API.Host, url)
 	}
+
 	return url
 }
 
-// Files ...
 func (m *Socket) Files() map[string]string {
 	f := make(map[string]string)
+
 	for path, data := range m.FileList.Get().(map[string]interface{}) {
 		if path == settings.Socket.YAML {
 			continue
 		}
+
 		url := data.(map[string]interface{})["file"].(string)
 		f[buildAbsoluteURL(url)] = getLocalPath(path)
 	}
+
 	return f
 }
 
-// Hash ...
 func (m *Socket) Hash() string {
 	return fmt.Sprintf("S:%s", m.Checksum)
 }

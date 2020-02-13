@@ -8,20 +8,19 @@ import (
 
 var httpAllMethods = []string{http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodGet, http.MethodDelete}
 
-// SocketEndpointResponse ...
 type SocketEndpointResponse struct {
 	Name           string      `json:"name"`
 	AllowedMethods []string    `json:"allowed_methods"`
 	Metadata       models.JSON `json:"metadata"`
 }
 
-// SocketEndpointSerializer ...
 type SocketEndpointSerializer struct{}
 
-// Response ...
 func (s SocketEndpointSerializer) Response(i interface{}) interface{} {
 	o := i.(*models.SocketEndpoint)
+
 	var allowedMethods []string
+
 	for _, call := range o.Calls.Get().([]interface{}) {
 		methods := call.(map[string]interface{})["methods"].([]interface{})
 
@@ -33,6 +32,7 @@ func (s SocketEndpointSerializer) Response(i interface{}) interface{} {
 			}
 		}
 	}
+
 	return &SocketEndpointResponse{
 		Name:           o.Name,
 		AllowedMethods: allowedMethods,

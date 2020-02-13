@@ -14,6 +14,7 @@ func indirectType(t reflect.Type) reflect.Type {
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
 	}
+
 	return t
 }
 
@@ -63,10 +64,11 @@ func (r *Table) addFields(typ reflect.Type, baseIndex []int) {
 
 			fieldType := indirectType(f.Type)
 			r.addFields(fieldType, append(index, f.Index...))
+
 			continue
 		}
 
-		field := r.newField(typ, f)
+		field := r.newField(typ, &f)
 		if field != nil {
 			r.Fields[field.Name] = field
 		}
@@ -75,16 +77,18 @@ func (r *Table) addFields(typ reflect.Type, baseIndex []int) {
 	if _, ok := r.Fields[pkName]; !ok || r.Fields[pkName].Field.Type.Kind() != reflect.Int {
 		panic("redis: pk undefined on model or wrong type (int required)")
 	}
+
 	r.pkField = r.Fields[pkName]
 }
 
-func (r *Table) newField(typ reflect.Type, f reflect.StructField) *Field {
+func (r *Table) newField(typ reflect.Type, f *reflect.StructField) *Field {
 	name := f.Name
 
 	if tag := f.Tag.Get("redis"); tag != "" {
 		if tag == "-" {
 			return nil
 		}
+
 		name = tag
 	} else {
 		name = util.Underscore(name)
@@ -97,7 +101,7 @@ func (r *Table) newField(typ reflect.Type, f reflect.StructField) *Field {
 
 	return &Field{
 		Name:    name,
-		Field:   f,
+		Field:   *f,
 		Type:    typ,
 		Adapter: adapter,
 		def:     f.Tag.Get("default"),
@@ -122,12 +126,14 @@ func GetTable(typ reflect.Type) *Table {
 	_tables.mu.RLock()
 	table, ok := _tables.tables[typ]
 	_tables.mu.RUnlock()
+
 	if ok {
 		return table
 	}
 
 	_tables.mu.Lock()
 	table, ok = _tables.tables[typ]
+
 	if ok {
 		_tables.mu.Unlock()
 		return table
@@ -136,5 +142,6 @@ func GetTable(typ reflect.Type) *Table {
 	table = newTable(typ)
 	_tables.tables[typ] = table
 	_tables.mu.Unlock()
+
 	return table
 }

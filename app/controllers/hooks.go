@@ -20,15 +20,14 @@ func init() {
 	storage.AddModelSoftDeleteHook((*models.DataObject)(nil), dataObjectSoftDeleteTriggerHook)
 
 	// LiveObject cleanup.
-	storage.AddModelSoftDeleteHook(storage.AnyModel, liveObjectSoftDeleteHook)
-
 	// TODO: InstanceIndicator post save hook after live obj delete is done.
+	storage.AddModelSoftDeleteHook(storage.AnyModel, liveObjectSoftDeleteHook)
 }
 
 func liveObjectSoftDeleteHook(c storage.DBContext, db orm.DB, m interface{}) error {
 	table := orm.GetTable(reflect.TypeOf(m).Elem())
 	n := strings.Split(string(table.Name), ".")
-	modelName := strings.Replace(n[len(n)-1], "_", ".", -1)
+	modelName := strings.ReplaceAll(n[len(n)-1], "_", ".")
 
 	objectPK := table.PKs[0].Value(reflect.ValueOf(m).Elem()).Interface()
 

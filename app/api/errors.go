@@ -32,6 +32,7 @@ func (e *Error) Error() string {
 	if err == nil {
 		return string(d)
 	}
+
 	return fmt.Sprintf("Error %d", e.Code)
 }
 

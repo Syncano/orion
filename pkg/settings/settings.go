@@ -50,7 +50,6 @@ type storage struct {
 	Endpoint        string `env:"S3_ENDPOINT"`
 }
 
-// Storage ...
 var (
 	Storage = &storage{
 		Type: "s3",
@@ -66,10 +65,8 @@ type social struct {
 	TwitterClientSecret  string `env:"TWITTER_CLIENT_SECRET"`
 }
 
-// Social ...
 var Social = &social{}
 
-// PlanLimit ...
 type PlanLimit struct {
 	Default int
 	Paid    int
@@ -94,7 +91,6 @@ type billing struct {
 	SchedulesCount     PlanLimit
 }
 
-// Billing ...
 var Billing = &billing{
 	DefaultPlanName:            "builder",
 	DefaultPlanExpiration:      30,
@@ -114,7 +110,8 @@ var Billing = &billing{
 }
 
 type api struct {
-	Host        string `env:"API_DOMAIN"`
+	Host        string `env:"API_HOST"`
+	SpaceHost   string `env:"SPACE_HOST"`
 	MediaPrefix string `env:"MEDIA_PREFIX"`
 
 	MaxPayloadSize int64 `env:"MAX_PAYLOAD_SIZE"`
@@ -132,9 +129,9 @@ type api struct {
 	InstanceRateLimitS int64
 }
 
-// API ...
 var API = &api{
 	Host:        "api.syncano.test",
+	SpaceHost:   "syncano.space",
 	MediaPrefix: "/media/",
 
 	MaxPayloadSize: 128 << 20,
@@ -161,11 +158,10 @@ type socket struct {
 	YAML           string
 }
 
-// Socket ...
 var Socket = &socket{
 	DefaultTimeout: 30 * time.Second / 1e6,
 	DefaultAsync:   0,
-	DefaultMCPU:    250,
+	DefaultMCPU:    0,
 	MaxPayloadSize: 6 << 20,
 	MaxResultSize:  6 << 20,
 	YAML:           "socket.yml",

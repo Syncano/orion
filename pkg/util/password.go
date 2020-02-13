@@ -20,6 +20,8 @@ func VerifyPassword(password, encoded string) bool {
 	if !unchained.IsPasswordUsable(encoded) {
 		return false
 	}
+
 	ok, _ := hasher.Verify(password, encoded)
+
 	return ok
 }

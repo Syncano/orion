@@ -21,9 +21,9 @@ type s3Storage struct {
 }
 
 func newS3Storage() DataStorage {
-	session := createS3Session(settings.Storage.AccessKeyID, settings.Storage.SecretAccessKey,
+	sess := createS3Session(settings.Storage.AccessKeyID, settings.Storage.SecretAccessKey,
 		settings.Storage.Region, settings.Storage.Endpoint)
-	client := s3.New(session)
+	client := s3.New(sess)
 	uploader := s3manager.NewUploaderWithClient(client)
 
 	return &s3Storage{
@@ -45,6 +45,7 @@ func createS3Session(accessKeyID, secretAccessKey, region, endpoint string) *ses
 	creds := credentials.NewStaticCredentials(accessKeyID, secretAccessKey, "")
 	sess, err := session.NewSession(conf.WithCredentials(creds))
 	util.Must(err)
+
 	return sess
 }
 
@@ -52,6 +53,7 @@ func (s *s3Storage) SafeUpload(ctx context.Context, db orm.DB, bucket, key strin
 	AddDBRollbackHook(db, func() error {
 		return s.Delete(ctx, bucket, key)
 	})
+
 	return s.Upload(ctx, bucket, key, f)
 }
 
@@ -63,6 +65,7 @@ func (s *s3Storage) Upload(ctx context.Context, bucket, key string, f io.Reader)
 			ACL:    aws.String("public-read"),
 			Body:   f,
 		})
+
 	return err
 }
 
@@ -73,5 +76,6 @@ func (s *s3Storage) Delete(ctx context.Context, bucket, key string) error {
 			Bucket: aws.String(bucket),
 			Key:    aws.String(key),
 		})
+
 	return err
 }

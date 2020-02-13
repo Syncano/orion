@@ -47,12 +47,10 @@ func (m *SocketEnvironment) String() string {
 	return fmt.Sprintf("SocketEnvironment<ID=%d, Name=%q>", m.ID, m.Name)
 }
 
-// Hash ...
 func (m *SocketEnvironment) Hash() string {
 	return fmt.Sprintf("E:%s", m.Checksum)
 }
 
-// URL ...
 func (m *SocketEnvironment) URL() string {
 	return buildAbsoluteURL(m.FsFile)
 }

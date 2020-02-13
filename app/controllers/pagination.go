@@ -62,10 +62,11 @@ func newCursor(c echo.Context, defaultOrderAsc bool) *cursor {
 	// Process order. Reverse order if direction is not forward.
 	orderAsc := defaultOrderAsc
 	if ordering := c.QueryParam("ordering"); ordering != "" {
-		orderAsc = strings.ToLower(ordering) == "asc"
+		orderAsc = strings.EqualFold(ordering, "asc")
 	} else if orderBy := c.QueryParam("order_by"); orderBy != "" {
 		orderAsc = orderBy[0] != '-'
 	}
+
 	if !forward {
 		orderAsc = !orderAsc
 		defaultOrderAsc = !defaultOrderAsc
@@ -89,12 +90,15 @@ func (c *cursor) buildURL(path string, direction int, o interface{}) string {
 	if c.limit != defaultLimit {
 		base += fmt.Sprintf("&page_size=%d", c.limit)
 	}
+
 	if lastPk != 0 {
 		base += fmt.Sprintf("&last_pk=%d", lastPk)
 	}
+
 	if c.orderAsc != c.defaultOrderAsc {
 		base += fmt.Sprintf("&ordering=%s", orderingMap[c.orderAsc])
 	}
+
 	return base
 }
 
@@ -117,30 +121,28 @@ func (c *cursor) SetLast(v interface{}) {
 	c.last = c.extractor(v)
 }
 
-// NextURL ...
 func (c *cursor) NextURL(path string) string {
 	o := c.last
 	if !c.forward {
 		o = c.first
 	}
+
 	return c.buildURL(path, 1, o)
 }
 
-// PrevURL ...
 func (c *cursor) PrevURL(path string) string {
 	o := c.first
 	if !c.forward {
 		o = c.last
 	}
+
 	return c.buildURL(path, 0, o)
 }
 
-// PaginatorDB ...
 type PaginatorDB struct {
 	Query *orm.Query
 }
 
-// FilterObjects ...
 func (p *PaginatorDB) FilterObjects(cursor Cursorer) error {
 	// Filter by ID.
 	q := p.Query
@@ -157,12 +159,13 @@ func (p *PaginatorDB) FilterObjects(cursor Cursorer) error {
 	}
 
 	p.Query = q.OrderExpr("?TableAlias.id " + orderingMap[isOrderAsc]).Limit(limit)
+
 	return nil
 }
 
-// ProcessObjects ...
 func (p *PaginatorDB) ProcessObjects(c echo.Context, cursor Cursorer, typ reflect.Type, serializer serializers.Serializer, responseLimit *int) ([]api.RawMessage, error) {
 	var ret []api.RawMessage
+
 	q := p.Query
 
 	// Create foreach function using reflection.
@@ -171,6 +174,7 @@ func (p *PaginatorDB) ProcessObjects(c echo.Context, cursor Cursorer, typ reflec
 		e         error
 		obj, last interface{}
 	)
+
 	foreach := reflect.MakeFunc(reflect.FuncOf([]reflect.Type{typ}, []reflect.Type{errorType}, false),
 		func(args []reflect.Value) (results []reflect.Value) {
 			if *responseLimit <= 0 {
@@ -197,6 +201,7 @@ func (p *PaginatorDB) ProcessObjects(c echo.Context, cursor Cursorer, typ reflec
 	if err := q.ForEach(foreach.Interface()); err != nil && err != errStopIteration {
 		return nil, err
 	}
+
 	if last != nil {
 		cursor.SetLast(last)
 	}
@@ -204,12 +209,10 @@ func (p *PaginatorDB) ProcessObjects(c echo.Context, cursor Cursorer, typ reflec
 	return ret, nil
 }
 
-// CreateCursor ...
 func (p *PaginatorDB) CreateCursor(c echo.Context, defaultOrderAsc bool) Cursorer {
 	return newCursor(c, defaultOrderAsc)
 }
 
-// Paginate ...
 // nolint: gocyclo
 func Paginate(c echo.Context, cursor Cursorer, typ interface{}, serializer serializers.Serializer, paginator Paginator) ([]api.RawMessage, error) {
 	if cursor.Limit() == 0 {
@@ -229,6 +232,7 @@ func Paginate(c echo.Context, cursor Cursorer, typ interface{}, serializer seria
 	if err := paginator.FilterObjects(cursor); err != nil {
 		return nil, err
 	}
+
 	ret, err := paginator.ProcessObjects(c, cursor, reflect.TypeOf(typ), serializer, responseLimit)
 	if err != nil {
 		return nil, err
@@ -236,6 +240,7 @@ func Paginate(c echo.Context, cursor Cursorer, typ interface{}, serializer seria
 
 	// Reverse required if direction is not forward.
 	rLen := len(ret)
+
 	if !cursor.IsForward() {
 		for i := 0; i < rLen/2; i++ {
 			ret[i], ret[rLen-1-i] = ret[rLen-1-i], ret[i]
@@ -246,6 +251,7 @@ func Paginate(c echo.Context, cursor Cursorer, typ interface{}, serializer seria
 	var hasNext, hasPrev bool
 
 	limitReached := rLen == cursor.Limit() && cursor.Limit() > 0
+
 	if cursor.IsForward() {
 		hasNext = limitReached
 		hasPrev = cursor.LastPK() > 0
@@ -255,11 +261,14 @@ func Paginate(c echo.Context, cursor Cursorer, typ interface{}, serializer seria
 	}
 
 	req := c.Request()
+
 	if hasNext {
 		c.Set("next", cursor.NextURL(req.URL.Path))
 	}
+
 	if hasPrev {
 		c.Set("prev", cursor.PrevURL(req.URL.Path))
 	}
+
 	return ret, nil
 }

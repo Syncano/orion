@@ -6,14 +6,13 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Syncano/orion/app/routers"
-	"github.com/Syncano/orion/app/validators"
-
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"go.uber.org/zap"
 
 	"github.com/Syncano/orion/app/api"
+	"github.com/Syncano/orion/app/routers"
+	"github.com/Syncano/orion/app/validators"
 	"github.com/Syncano/orion/pkg/log"
 	"github.com/Syncano/orion/pkg/settings"
 )
@@ -35,6 +34,7 @@ func NewServer(debug bool) (*Server, error) {
 		debug: debug,
 	}
 	s.srv.Handler = s.setupRouter()
+
 	return s, nil
 }
 
@@ -64,6 +64,7 @@ func (s *Server) setupRouter() *echo.Echo {
 	e.Validator = validators.NewValidator()
 
 	routers.Register(e)
+
 	return e
 }
 

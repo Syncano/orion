@@ -42,6 +42,7 @@ func (m *LiveManager) Delete(model interface{}) error {
 	if _, err := db.Model(model).WherePK().Set("_is_live = ?", false).Update(); err != nil {
 		return err
 	}
+
 	return storage.ProcessModelSoftDeleteHook(m.Context, db, model)
 }
 

@@ -41,6 +41,7 @@ func createChangeDBCtx(c echo.Context, room string, o interface{}) *redisdb.DBCt
 
 func changeList(c echo.Context, room string) error {
 	var o []*models.Change
+
 	paginator := &PaginatorRedis{DBCtx: createChangeDBCtx(c, room, &o)}
 	cursor := paginator.CreateCursor(c, false)
 
@@ -48,6 +49,7 @@ func changeList(c echo.Context, room string) error {
 	if err != nil {
 		return err
 	}
+
 	return api.Render(c, http.StatusOK, serializers.CreatePage(c, r, nil))
 }
 
@@ -63,6 +65,7 @@ func channelAddRoomKey(s string, room *string) string {
 	if room != nil {
 		s += fmt.Sprintf(":%x", md5.Sum([]byte(*room))) // nolint: gosec
 	}
+
 	return s
 }
 func channelPublishLockKey(inst *models.Instance, ch *models.Channel, room *string) string { // nolint - ignore that it is unused for now
@@ -75,6 +78,7 @@ func channelStreamKey(inst *models.Instance, ch *models.Channel, room *string) s
 func changeSubscribe(c echo.Context, room *string) error {
 	isWebSocket := c.QueryParam("transport") == "websocket"
 	limit := 1
+
 	if isWebSocket {
 		limit = settings.API.ChannelWebSocketLimit
 	}
@@ -96,14 +100,15 @@ func changeSubscribe(c echo.Context, room *string) error {
 				return err
 			}
 		}
+
 		return nil
 	}
-	fmt.Println("")
 
 	o := <-ch
 	if o != nil {
 		return c.JSONBlob(http.StatusOK, o)
 	}
+
 	return c.NoContent(http.StatusNoContent)
 }
 
@@ -111,18 +116,18 @@ func changeSubscribeStream(c echo.Context, room *string, limit int, timeout time
 	instance := c.Get(settings.ContextInstanceKey).(*models.Instance)
 	channel := c.Get(contextChannelKey).(*models.Channel)
 	start := time.Now()
+	outCh := make(chan []byte, limit)
 
 	var (
 		lastID int
 		err    error
 	)
-	outCh := make(chan []byte, limit)
 
 	if lastIDStr := c.QueryParam("last_id"); lastIDStr != "" {
 		lastID, _ = strconv.Atoi(lastIDStr)
 
 		var o []*models.Change
-		if err = createChangeDBCtx(c, *room, &o).List(lastID+1, 0, limit, true, nil); err != nil {
+		if err := createChangeDBCtx(c, *room, &o).List(lastID+1, 0, limit, true, nil); err != nil {
 			return nil, err
 		}
 
@@ -130,7 +135,9 @@ func changeSubscribeStream(c echo.Context, room *string, limit int, timeout time
 		for _, obj := range o {
 			b, err = api.Marshal(c, serializers.ChangeSerializer{}.Response(obj))
 			outCh <- b
+
 			lastID = obj.ID
+
 			if err != nil {
 				return outCh, err
 			}
@@ -144,12 +151,14 @@ func changeSubscribeStream(c echo.Context, room *string, limit int, timeout time
 
 	streamKey := channelStreamKey(instance, channel, room)
 	ch := make(chan string, limit)
-	if err = storage.RedisPubSub().Subscribe(streamKey, ch); err != nil {
+
+	if err := storage.RedisPubSub().Subscribe(streamKey, ch); err != nil {
 		return outCh, err
 	}
 
 	go func() {
 		var timer *time.Timer
+
 		for {
 			timer = time.NewTimer(timeout - time.Since(start))
 
@@ -159,14 +168,17 @@ func changeSubscribeStream(c echo.Context, room *string, limit int, timeout time
 				if lastID > 0 {
 					m := changeIDRegex.FindStringSubmatch(o)
 					id, _ := strconv.Atoi(m[1])
+
 					if id <= lastID {
 						break
 					}
+
 					lastID = 0
 				}
 
 				outCh <- []byte(o)
 				limit--
+
 				if limit == 0 {
 					close(outCh)
 					return
@@ -178,5 +190,6 @@ func changeSubscribeStream(c echo.Context, room *string, limit int, timeout time
 			}
 		}
 	}()
+
 	return outCh, nil
 }

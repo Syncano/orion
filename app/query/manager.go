@@ -33,6 +33,7 @@ func (m *Manager) DB() orm.DB {
 	if m.db != nil {
 		return m.db
 	}
+
 	return m.dbGet(m.Context)
 }
 
@@ -52,6 +53,7 @@ func (m *Manager) Insert(model interface{}) error {
 	if err := db.Insert(model); err != nil {
 		return err
 	}
+
 	return storage.ProcessModelSaveHook(m.Context, db, true, model)
 }
 
@@ -61,6 +63,7 @@ func (m *Manager) Update(model interface{}, fields ...string) error {
 	if _, err := db.Model(model).Column(fields...).WherePK().Update(); err != nil {
 		return err
 	}
+
 	return storage.ProcessModelSaveHook(m.Context, db, false, model)
 }
 
@@ -70,6 +73,7 @@ func (m *Manager) Delete(model interface{}) error {
 	if err := db.Delete(model); err != nil {
 		return err
 	}
+
 	return storage.ProcessModelDeleteHook(m.Context, db, model)
 }
 
@@ -85,11 +89,13 @@ func (m *Manager) RunInTransaction(fn func(*pg.Tx) error) error {
 		if err != nil {
 			return err
 		}
+
 		m.db = tx
 
 		defer func() {
 			m.db = nil
 		}()
 	}
+
 	return storage.RunTransactionWithHooks(tx, fn)
 }

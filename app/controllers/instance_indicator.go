@@ -21,5 +21,6 @@ func updateInstanceIndicatorValue(c storage.DBContext, db orm.DB, typ, diff int)
 	}
 
 	o.Value += diff
+
 	return mgr.Update(o)
 }

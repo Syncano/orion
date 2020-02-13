@@ -25,15 +25,20 @@ func NewTriggerManager(c storage.DBContext) *TriggerManager {
 // Match outputs one object within specific class filtered by id.
 func (mgr *TriggerManager) Match(instance *models.Instance, event map[string]string, signal string) ([]*models.Trigger, error) {
 	var o []*models.Trigger
+
 	eventSerialized, e := json.ConfigCompatibleWithStandardLibrary.Marshal(event)
 	util.Must(e)
 
 	versionKey := fmt.Sprintf("i=%d;e=%s", instance.ID, eventSerialized)
 	lookup := fmt.Sprintf("s=%s", signal)
 
-	return o, cache.SimpleFuncCache("Trigger.Match", versionKey, o, lookup, func() (interface{}, error) {
+	err := cache.SimpleFuncCache("Trigger.Match", versionKey, o, lookup, func() (interface{}, error) {
 		ehstore := new(models.Hstore)
 		ehstore.Set(event) // nolint: errcheck
-		return o, mgr.Query(&o).Where("event @> ?", ehstore).Where("signals @> ?", pg.Array([]string{signal})).Select()
+
+		err := mgr.Query(&o).Where("event @> ?", ehstore).Where("signals @> ?", pg.Array([]string{signal})).Select()
+		return o, err
 	})
+
+	return o, err
 }

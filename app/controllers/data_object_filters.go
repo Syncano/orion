@@ -46,14 +46,17 @@ type filterOp struct {
 
 func (op *filterOp) Supports(f models.FilterField) bool {
 	typ := f.Type()
+
 	if op.supportedTypes != nil {
 		for _, t := range op.supportedTypes {
 			if t == typ {
 				return true
 			}
 		}
+
 		return false
 	}
+
 	if op.unsupportedTypes != nil {
 		for _, t := range op.unsupportedTypes {
 			if t == typ {
@@ -61,6 +64,7 @@ func (op *filterOp) Supports(f models.FilterField) bool {
 			}
 		}
 	}
+
 	return true
 }
 
@@ -81,6 +85,7 @@ func (op *filterOp) Process(doq *DataObjectQuery, c echo.Context, q *orm.Query, 
 
 	if ok && op.validate != nil {
 		var err error
+
 		data, err = op.validate(c, op, f, data)
 		if err != nil {
 			return nil, err
@@ -104,6 +109,7 @@ func (op *filterOp) validateKind(k reflect.Kind, expected []reflect.Kind, val in
 			return val, true
 		}
 	}
+
 	return nil, false
 }
 
@@ -127,13 +133,16 @@ func (op *filterOp) validateList(f models.FilterField, expectedListValue []refle
 		val interface{}
 		ok  bool
 	)
+
 	for i, v := range arr {
 		val, ok = op.validateValue(f, expectedListValue, v)
 		if !ok {
 			return false
 		}
+
 		arr[i] = val
 	}
+
 	return true
 }
 
@@ -143,6 +152,7 @@ func (op *filterOp) validateValue(f models.FilterField, expectedValue []reflect.
 	}
 
 	kind := reflect.TypeOf(val).Kind()
+
 	if len(expectedValue) > 0 {
 		return op.validateKind(kind, expectedValue, val)
 	}
@@ -152,9 +162,7 @@ func (op *filterOp) validateValue(f models.FilterField, expectedValue []reflect.
 	case models.FieldStringType:
 		return val, kind == reflect.String
 
-	case models.FieldReferenceType:
-		fallthrough
-	case models.FieldIntegerType:
+	case models.FieldReferenceType, models.FieldIntegerType:
 		if kind == reflect.Float64 {
 			return int(val.(float64)), true
 		}
@@ -203,6 +211,7 @@ func init() {
 		"_eq":  "=",
 		"_neq": "!=",
 	}
+
 	registerFilter(&filterOp{
 		unsupportedTypes: []string{models.FieldRelationType, models.FieldArrayType, models.FieldGeopointType},
 		query: func(q *orm.Query, f models.FilterField, op string, data interface{}) *orm.Query {
@@ -219,6 +228,7 @@ func init() {
 		"like":       "%s'",
 		"eq":         "%s",
 	}
+
 	registerFilter(&filterOp{
 		supportedTypes: []string{models.FieldStringType},
 		query: func(q *orm.Query, f models.FilterField, op string, data interface{}) *orm.Query {
@@ -280,6 +290,7 @@ func init() {
 		DistanceInKilometers float64 `mapstructure:"distance_in_kilometers" validate:"gte=0"`
 		DistanceInMiles      float64 `mapstructure:"distance_in_miles" validate:"gte=0"`
 	}
+
 	registerFilter(&filterOp{
 		expectedValue:  []reflect.Kind{reflect.Map},
 		supportedTypes: []string{models.FieldGeopointType},
@@ -367,5 +378,4 @@ func init() {
 		}},
 		"_is",
 	)
-
 }

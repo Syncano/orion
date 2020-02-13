@@ -65,22 +65,22 @@ func Auth(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-// RequireAPIKeyOrAdmin ...
 func RequireAPIKeyOrAdmin(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		if c.Get(settings.ContextAPIKeyKey) == nil && c.Get(settings.ContextAdminKey) == nil {
 			return api.NewPermissionDeniedError()
 		}
+
 		return next(c)
 	}
 }
 
-// RequireAdmin ...
 func RequireAdmin(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		if c.Get(settings.ContextAdminKey) == nil {
 			return api.NewPermissionDeniedError()
 		}
+
 		return next(c)
 	}
 }
@@ -104,12 +104,12 @@ func AuthUser(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-// RequireUser ...
 func RequireUser(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		if c.Get(settings.ContextUserKey) == nil {
 			return api.NewPermissionDeniedError()
 		}
+
 		return next(c)
 	}
 }
@@ -119,6 +119,7 @@ func createAuthToken(o *models.Instance, expiration time.Duration) string {
 	epoch := base62.Encode(time.Now().Unix() + int64(expiration.Seconds()))
 	key := fmt.Sprintf("%s:%s:%s", instanceID, epoch, settings.Common.SecretKey)
 	hash := hmac.New(sha1.New, []byte(key)).Sum(nil)
+
 	return fmt.Sprintf("%s:%s:%s", instanceID, epoch, hex.EncodeToString(hash))
 }
 
@@ -127,8 +128,10 @@ func verifyToken(token string) int64 {
 	if len(t) != 3 {
 		return -1
 	}
+
 	key := fmt.Sprintf("%s:%s:%s", t[0], t[1], settings.Common.SecretKey)
 	hash := hmac.New(sha1.New, []byte(key)).Sum(nil)
+
 	if hex.EncodeToString(hash) != t[2] {
 		return -1
 	}
@@ -141,5 +144,6 @@ func verifyToken(token string) int64 {
 	if err != nil {
 		return -1
 	}
+
 	return i
 }

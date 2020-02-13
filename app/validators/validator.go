@@ -48,13 +48,17 @@ func sqlFuncGetQuery(fl validator.FieldLevel) *orm.Query {
 	field := "id"
 	structquery := fl.StructFieldName() + "Q"
 	params := strings.Split(fl.Param(), " ")
+
 	if len(params) >= 1 && params[0] != "" {
 		field = params[0]
 	}
+
 	if len(params) >= 2 && params[1] != "" {
 		structquery = params[1]
 	}
+
 	q := fl.Parent().Elem().FieldByName(structquery).Interface().(*orm.Query)
+
 	return q.Where(fmt.Sprintf("?TableAlias.%s = ?", field), fl.Field().Interface())
 }
 
@@ -62,6 +66,7 @@ func sqlExistsFunc(fl validator.FieldLevel) bool {
 	if exists, err := sqlFuncGetQuery(fl).Exists(); err == nil {
 		return exists
 	}
+
 	return false
 }
 
@@ -73,6 +78,7 @@ func sqlNotExistsFunc(fl validator.FieldLevel) bool {
 	if exists, err := sqlFuncGetQuery(fl).Exists(); err == nil {
 		return !exists
 	}
+
 	return false
 }
 

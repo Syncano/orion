@@ -16,6 +16,7 @@ func main() {
 			logger.Panicf("Panic occurred! %q", r)
 		}
 	}()
+
 	if err := cmd.App.Run(os.Args); err != nil {
 		logger.Panicf("Fatal error! %q", err)
 	}

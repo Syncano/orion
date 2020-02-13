@@ -18,9 +18,12 @@ func FilterFunc(ctx context.Context, fullMethodName string) bool {
 
 	md, _ := metadata.FromIncomingContext(ctx)
 	sampled := md["x-b3-sampled"]
+
 	if sampled == nil {
 		return false
 	}
+
 	ret, _ := strconv.ParseBool(sampled[0])
+
 	return ret
 }

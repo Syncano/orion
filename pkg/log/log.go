@@ -37,10 +37,12 @@ func Init(dsn string, debug bool) error {
 	}
 
 	var err error
+
 	logger, err = config.Build()
 	if err != nil {
 		return err
 	}
+
 	sentryLogger, err = addSentryLogger(logger, dsn)
 
 	// Set grpc logger.
@@ -48,7 +50,9 @@ func Init(dsn string, debug bool) error {
 	if debug {
 		zapgrpcOpts = append(zapgrpcOpts, zapgrpc.WithDebug())
 	}
+
 	grpclog.SetLogger(zapgrpc.NewLogger(logger, zapgrpcOpts...)) // nolint: staticcheck
+
 	return err
 }
 
@@ -57,6 +61,7 @@ func addSentryLogger(log *zap.Logger, dsn string) (*zap.Logger, error) {
 		Level: zapcore.ErrorLevel,
 	}
 	core, err := zapsentry.NewCore(cfg, zapsentry.NewSentryClientFromDSN(dsn))
+
 	return zapsentry.AttachCoreToLogger(core, log), err
 }
 

@@ -11,7 +11,6 @@ import (
 	"github.com/Syncano/orion/pkg/cache"
 )
 
-// UserClassName ...
 const UserClassName = "user_profile"
 
 // Class represents Class model.
@@ -77,6 +76,7 @@ func (m *Class) GetStatus() string {
 	if m.IsLocked() {
 		return "migrating"
 	}
+
 	return "ready"
 }
 
@@ -92,6 +92,7 @@ func (m *Class) ComputedSchema() map[string]*DataObjectField {
 
 		for _, f := range m.Schema.Get().([]interface{}) {
 			m := f.(map[string]interface{})
+
 			field := &DataObjectField{TableAlias: tableAlias}
 			if mapstructure.Decode(m, field) == nil {
 				ret[field.FName] = field
@@ -109,13 +110,14 @@ func (m *Class) ComputedSchema() map[string]*DataObjectField {
 
 		m.computedSchema = ret
 	}
+
 	return m.computedSchema
 }
 
-// FilterFields ...
 func (m *Class) FilterFields() map[string]FilterField {
 	filterFields := make(map[string]FilterField)
 	def := defaultObjectFilterFields
+
 	if m.Name == UserClassName {
 		def = defaultUserFilterFields
 	}
@@ -123,18 +125,20 @@ func (m *Class) FilterFields() map[string]FilterField {
 	for name, field := range def {
 		filterFields[name] = field
 	}
+
 	for name, field := range m.ComputedSchema() {
 		if field.FilterIndex {
 			filterFields[name] = field
 		}
 	}
+
 	return filterFields
 }
 
-// OrderFields ...
 func (m *Class) OrderFields() map[string]OrderField {
 	orderFields := make(map[string]OrderField)
 	def := defaultObjectOrderFields
+
 	if m.Name == UserClassName {
 		def = defaultUserOrderFields
 	}
@@ -142,10 +146,12 @@ func (m *Class) OrderFields() map[string]OrderField {
 	for name, field := range def {
 		orderFields[name] = field
 	}
+
 	for name, field := range m.ComputedSchema() {
 		if field.OrderIndex {
 			orderFields[name] = field
 		}
 	}
+
 	return orderFields
 }
