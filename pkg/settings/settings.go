@@ -110,7 +110,8 @@ var Billing = &billing{
 }
 
 type api struct {
-	Host        string `env:"API_DOMAIN"`
+	Host        string `env:"API_HOST"`
+	SpaceHost   string `env:"SPACE_HOST"`
 	MediaPrefix string `env:"MEDIA_PREFIX"`
 
 	MaxPayloadSize int64 `env:"MAX_PAYLOAD_SIZE"`
@@ -130,6 +131,7 @@ type api struct {
 
 var API = &api{
 	Host:        "api.syncano.test",
+	SpaceHost:   "syncano.space",
 	MediaPrefix: "/media/",
 
 	MaxPayloadSize: 128 << 20,
@@ -159,7 +161,7 @@ type socket struct {
 var Socket = &socket{
 	DefaultTimeout: 30 * time.Second / 1e6,
 	DefaultAsync:   0,
-	DefaultMCPU:    250,
+	DefaultMCPU:    0,
 	MaxPayloadSize: 6 << 20,
 	MaxResultSize:  6 << 20,
 	YAML:           "socket.yml",
