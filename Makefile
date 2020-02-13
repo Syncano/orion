@@ -1,5 +1,5 @@
 ifndef DOCKERIMAGE
-DOCKERIMAGE := quay.io/syncano/orion
+DOCKERIMAGE := syncano/orion
 endif
 
 CURRENTPACKAGE := github.com/Syncano/orion

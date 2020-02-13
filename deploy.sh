@@ -2,7 +2,7 @@
 export APP=orion
 export VERSION="$2"
 
-export DOCKERIMAGE=${DOCKERIMAGE:-quay.io/syncano/orion}
+export DOCKERIMAGE=${DOCKERIMAGE:-syncano/orion}
 TARGET="$1"
 
 usage() { echo "* Usage: $0 <environment> <version> [--skip-push]" >&2; exit 1; }
@@ -58,6 +58,9 @@ if $PUSH; then
 	echo "* Pushing $DOCKERIMAGE:$VERSION."
 	docker push "$DOCKERIMAGE":"$VERSION"
 fi
+
+IMAGE="$DOCKERIMAGE":"$VERSION"
+export IMAGE
 
 
 # Create configmap.
