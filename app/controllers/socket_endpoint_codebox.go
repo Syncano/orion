@@ -242,6 +242,7 @@ func sendCodeboxRequest(ctx context.Context, c echo.Context, inst *models.Instan
 
 	if v, ok := call["async"]; ok {
 		async = uint32(v.(float64))
+		meta["async"] = async
 	}
 
 	if v, ok := call["timeout"]; ok {
