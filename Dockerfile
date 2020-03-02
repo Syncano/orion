@@ -14,7 +14,7 @@ RUN set -ex \
         unzip \
         # pdf rendering
         wkhtmltopdf \
-        ttf-freefont \
+        fonts-freefont-ttf \
     && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
     \
     # Install acme.sh

@@ -19,6 +19,7 @@ RUN set -ex \
         curl \
         # pdf rendering
         wkhtmltopdf \
+        ttf-freefont \
     \
     # Install acme.sh
     && wget https://github.com/Neilpang/acme.sh/archive/${ACME_VERSION}.zip \
