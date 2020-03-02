@@ -27,8 +27,8 @@ type common struct {
 
 // Common is a global struct with options filled by env.
 var Common = &common{
-	Location:          "stg",
-	Locations:         []string{"stg"},
+	Location:          "dev",
+	Locations:         []string{"dev"},
 	Debug:             false,
 	CacheVersion:      1,
 	CacheTimeout:      12 * time.Hour,
