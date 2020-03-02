@@ -19,8 +19,10 @@ import (
 
 // Context keys.
 const (
-	ContextRealBodyKey  = "real_body"
-	ContextRateLimitKey = "rate_limit"
+	ContextRealBodyKey          = "real_body"
+	ContextInstanceRateLimitKey = "instance_rate_limit"
+	ContextAdminRateLimitKey    = "admin_rate_limit"
+	ContextAnonRateLimitKey     = "anon_rate_limit"
 )
 
 var defaultErrors = map[int]string{
@@ -91,16 +93,38 @@ func rateLimitError(c echo.Context, delay time.Duration) error {
 	return NewGenericError(http.StatusTooManyRequests, "Too many requests.")
 }
 
+func checkLimit(limiter *redis_rate.Limiter, name string, rate *settings.RateData) (delay time.Duration, allowed bool) {
+	if rate.Limit < 0 {
+		allowed = true
+		return
+	}
+
+	_, delay, allowed = limiter.Allow(name, rate.Limit, rate.Duration)
+
+	return
+}
+
 // RateLimit handles rate limit.
-func RateLimit(limiter *redis_rate.Limiter, rateKey string, rateDur time.Duration, anonRateLimit bool) echo.MiddlewareFunc {
+func RateLimit(limiter *redis_rate.Limiter, instanceRateLimit, adminRateLimit, anonRateLimit *settings.RateData) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			authAdmin := c.Get(settings.ContextAdminKey)
 			authAPIKey := c.Get(settings.ContextAPIKeyKey)
 
-			if anonRateLimit && authAdmin == nil && authAPIKey == nil {
-				// If we are to check against anon rates and admin is not logged in - check against anon rate limit.
-				if _, delay, allowed := limiter.Allow(c.RealIP(), settings.API.AnonRateLimitS, time.Second); !allowed {
+			if authAdmin == nil && authAPIKey == nil {
+				// If admin is not logged in - check against anon rps limit.
+				var rate *settings.RateData
+
+				switch v := c.Get(ContextAnonRateLimitKey); {
+				case v != nil:
+					rate = v.(*settings.RateData)
+				case anonRateLimit != nil:
+					rate = anonRateLimit
+				default:
+					rate = settings.API.AnonRateLimit
+				}
+
+				if delay, allowed := checkLimit(limiter, c.RealIP(), rate); !allowed {
 					return rateLimitError(c, delay)
 				}
 				// No reason to check other cases.
@@ -118,23 +142,35 @@ func RateLimit(limiter *redis_rate.Limiter, rateKey string, rateDur time.Duratio
 						return next(c)
 					}
 
-					if _, delay, allowed := limiter.Allow("a="+strconv.Itoa(admin.ID), settings.API.AdminRateLimitS, time.Second); !allowed {
+					var rate *settings.RateData
+
+					switch v := c.Get(ContextAdminRateLimitKey); {
+					case v != nil:
+						rate = v.(*settings.RateData)
+					case adminRateLimit != nil:
+						rate = adminRateLimit
+					default:
+						rate = settings.API.AdminRateLimit
+					}
+
+					if delay, allowed := checkLimit(limiter, "a="+strconv.Itoa(admin.ID), rate); !allowed {
 						return rateLimitError(c, delay)
 					}
 				}
 			} else {
 				// If we are in instance scope - check against instance limits.
-				var rate int64
-				if rateKey == "" {
-					rateKey = ContextRateLimitKey
-				}
-				if v := c.Get(rateKey); v != nil {
-					rate = int64(v.(int))
-				} else {
-					rate = settings.API.InstanceRateLimitS
+				var rate *settings.RateData
+
+				switch v := c.Get(ContextInstanceRateLimitKey); {
+				case v != nil:
+					rate = v.(*settings.RateData)
+				case instanceRateLimit != nil:
+					rate = instanceRateLimit
+				default:
+					rate = settings.API.InstanceRateLimit
 				}
 
-				if _, delay, allowed := limiter.Allow("i="+strconv.Itoa(instance.(*models.Instance).ID), rate, rateDur); !allowed {
+				if delay, allowed := checkLimit(limiter, "i="+strconv.Itoa(instance.(*models.Instance).ID), rate); !allowed {
 					return rateLimitError(c, delay)
 				}
 			}

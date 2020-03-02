@@ -164,7 +164,7 @@ func dataObjectDeleteHook(c storage.DBContext, db orm.DB, i interface{}) error {
 	for k, v := range o.Files.Map {
 		fname := o.Data.Map[k]
 		util.Must(
-			storage.Data().Delete(context.Background(), settings.Storage.Bucket, fname.String),
+			storage.Default().Delete(context.Background(), settings.BucketData, fname.String),
 		)
 
 		if d, e := models.ValueFromString(models.FieldIntegerType, v.String); e == nil {
@@ -197,5 +197,5 @@ func uploadDataObjectFile(db orm.DB, instance *models.Instance, class *models.Cl
 
 	defer f.Close()
 
-	return storage.Data().SafeUpload(context.Background(), db, settings.Storage.Bucket, key, f)
+	return storage.Default().SafeUpload(context.Background(), db, settings.BucketData, key, f)
 }

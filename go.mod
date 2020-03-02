@@ -1,6 +1,6 @@
 module github.com/Syncano/orion
 
-go 1.13
+go 1.14
 
 require (
 	cloud.google.com/go v0.34.0
@@ -83,7 +83,7 @@ require (
 	golang.org/x/sys v0.0.0-20190318195719-6c81ef8f67ca // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
 	golang.org/x/tools v0.0.0-20190320160634-b6b7807791df
-	google.golang.org/api v0.2.0 // indirect
+	google.golang.org/api v0.2.0
 	google.golang.org/grpc v1.19.0
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/go-playground/validator.v9 v9.27.0
