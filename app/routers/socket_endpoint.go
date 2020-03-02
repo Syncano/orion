@@ -3,16 +3,15 @@ package routers
 import (
 	"github.com/labstack/echo"
 
-	"github.com/Syncano/orion/pkg/settings"
-
 	"github.com/Syncano/orion/app/controllers"
+	"github.com/Syncano/orion/pkg/settings"
 )
 
 // SocketEndpointRegister registers socket endpoint routes.
 func SocketEndpointRegister(r *echo.Group, m *middlewares) {
 	m = m.Copy()
 	m.RequireAuth = false
-	m.AnonRateLimit = false
+	m.AnonRateLimit = &settings.RateData{Limit: -1}
 	m.SizeLimit = settings.Socket.MaxPayloadSize
 	g := r.Group("", m.Get()...)
 

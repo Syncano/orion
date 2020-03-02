@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
+export DOCKERIMAGE=${DOCKERIMAGE:-syncano/orion}
 export APP=orion
 export VERSION="$2"
 
-export DOCKERIMAGE=${DOCKERIMAGE:-syncano/orion}
 TARGET="$1"
 
 usage() { echo "* Usage: $0 <environment> <version> [--skip-push]" >&2; exit 1; }

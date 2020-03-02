@@ -18,17 +18,23 @@ import (
 type s3Storage struct {
 	uploader *s3manager.Uploader
 	client   *s3.S3
+	buckets  map[settings.BucketKey]string
 }
 
-func newS3Storage() DataStorage {
-	sess := createS3Session(settings.Storage.AccessKeyID, settings.Storage.SecretAccessKey,
-		settings.Storage.Region, settings.Storage.Endpoint)
+func newS3Storage(loc string, buckets map[settings.BucketKey]string) DataStorage {
+	accessKeyID := settings.GetLocationEnv(loc, "S3_ACCESS_KEY_ID")
+	secretAccessKey := settings.GetLocationEnv(loc, "S3_SECRET_ACCESS_KEY")
+	region := settings.GetLocationEnv(loc, "S3_REGION")
+	endpoint := settings.GetLocationEnv(loc, "S3_ENDPOINT")
+
+	sess := createS3Session(accessKeyID, secretAccessKey, region, endpoint)
 	client := s3.New(sess)
 	uploader := s3manager.NewUploaderWithClient(client)
 
 	return &s3Storage{
 		uploader: uploader,
 		client:   client,
+		buckets:  buckets,
 	}
 }
 
@@ -49,7 +55,7 @@ func createS3Session(accessKeyID, secretAccessKey, region, endpoint string) *ses
 	return sess
 }
 
-func (s *s3Storage) SafeUpload(ctx context.Context, db orm.DB, bucket, key string, f io.Reader) error {
+func (s *s3Storage) SafeUpload(ctx context.Context, db orm.DB, bucket settings.BucketKey, key string, f io.Reader) error {
 	AddDBRollbackHook(db, func() error {
 		return s.Delete(ctx, bucket, key)
 	})
@@ -57,10 +63,10 @@ func (s *s3Storage) SafeUpload(ctx context.Context, db orm.DB, bucket, key strin
 	return s.Upload(ctx, bucket, key, f)
 }
 
-func (s *s3Storage) Upload(ctx context.Context, bucket, key string, f io.Reader) error {
+func (s *s3Storage) Upload(ctx context.Context, bucket settings.BucketKey, key string, f io.Reader) error {
 	_, err := s.uploader.UploadWithContext(ctx,
 		&s3manager.UploadInput{
-			Bucket: aws.String(bucket),
+			Bucket: aws.String(s.buckets[bucket]),
 			Key:    aws.String(key),
 			ACL:    aws.String("public-read"),
 			Body:   f,
@@ -69,11 +75,11 @@ func (s *s3Storage) Upload(ctx context.Context, bucket, key string, f io.Reader)
 	return err
 }
 
-func (s *s3Storage) Delete(ctx context.Context, bucket, key string) error {
+func (s *s3Storage) Delete(ctx context.Context, bucket settings.BucketKey, key string) error {
 	_, err := s.client.DeleteObjectWithContext(
 		ctx,
 		&s3.DeleteObjectInput{
-			Bucket: aws.String(bucket),
+			Bucket: aws.String(s.buckets[bucket]),
 			Key:    aws.String(key),
 		})
 
