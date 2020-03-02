@@ -70,11 +70,16 @@ func prepareSocketEndpointPayload(c echo.Context) (payload map[string]interface{
 	// FormData.
 	if f, err := c.MultipartForm(); err == nil {
 		for k, vals := range f.Value {
-			payload[k] = vals[0]
+			if len(vals) == 1 {
+				payload[k] = vals[0]
+			} else {
+				payload[k] = vals
+			}
 		}
 
 		for k, vals := range f.File {
 			file := vals[0]
+
 			if f, err := file.Open(); err == nil {
 				if buf, e := ioutil.ReadAll(f); e == nil {
 					files[k] = &socketEndpointFile{
