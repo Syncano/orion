@@ -30,7 +30,7 @@ func InstanceSubscriptionContext(next echo.HandlerFunc) echo.HandlerFunc {
 
 		c.Set(contextSubscriptionKey, o)
 		c.Set(contextAdminLimitKey, limit)
-		c.Set(api.ContextRateLimitKey, limit.RateLimit(o))
+		c.Set(api.ContextInstanceRateLimitKey, limit.RateLimit(o))
 
 		return next(c)
 	}

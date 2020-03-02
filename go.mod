@@ -1,10 +1,9 @@
 module github.com/Syncano/orion
 
-go 1.13
+go 1.14
 
 require (
 	cloud.google.com/go v0.34.0
-	github.com/0xAX/notificator v0.0.0-20181105090803-d81462e38c21 // indirect
 	github.com/Shopify/sarama v1.21.0 // indirect
 	github.com/TheZeroSlave/zapsentry v0.0.0-20180112122240-410ad1e37c78
 	github.com/alexandrevicenzi/unchained v0.0.0-20190214114102-ecd422680cf1
@@ -13,9 +12,8 @@ require (
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/caarlos0/env v3.5.0+incompatible
 	github.com/certifi/gocertifi v0.0.0-20180118203423-deb3ae2ef261 // indirect
+	github.com/cespare/reflex v0.2.0
 	github.com/cockroachdb/apd v1.1.0 // indirect
-	github.com/codegangsta/envy v0.0.0-20141216192214-4b78388c8ce4 // indirect
-	github.com/codegangsta/gin v0.0.0-20171026143024-cafe2ce98974
 	github.com/delicb/gstring v1.0.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/getsentry/raven-go v0.2.0
@@ -41,17 +39,18 @@ require (
 	github.com/jinzhu/inflection v0.0.0-20180308033659-04140366298a // indirect
 	github.com/jinzhu/now v1.0.0
 	github.com/json-iterator/go v1.1.6
+	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/labstack/gommon v0.2.8
 	github.com/leodido/go-urn v1.1.0 // indirect
-	github.com/mattn/go-colorable v0.1.1 // indirect
-	github.com/mattn/go-isatty v0.0.7 // indirect
-	github.com/mattn/go-shellwords v1.0.5 // indirect
+	github.com/mattn/go-colorable v0.1.4 // indirect
+	github.com/mattn/go-isatty v0.0.10 // indirect
 	github.com/mitchellh/hashstructure v1.0.0
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742 // indirect
+	github.com/ogier/pflag v0.0.1 // indirect
 	github.com/onsi/gomega v1.4.2 // indirect
 	github.com/opentracing-contrib/go-observer v0.0.0-20170622124052-a52f23424492 // indirect
 	github.com/opentracing/opentracing-go v1.0.2
@@ -80,14 +79,14 @@ require (
 	golang.org/x/lint v0.0.0-20190313153728-d0100b6bd8b3 // indirect
 	golang.org/x/net v0.0.0-20190320064053-1272bf9dcd53
 	golang.org/x/oauth2 v0.0.0-20190319182350-c85d3e98c914 // indirect
-	golang.org/x/sys v0.0.0-20190318195719-6c81ef8f67ca // indirect
+	golang.org/x/sys v0.0.0-20191110163157-d32e6e3b99c4 // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
 	golang.org/x/tools v0.0.0-20190320160634-b6b7807791df
-	google.golang.org/api v0.2.0 // indirect
+	google.golang.org/api v0.2.0
 	google.golang.org/grpc v1.19.0
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/go-playground/validator.v9 v9.27.0
-	gopkg.in/urfave/cli.v1 v1.20.0 // indirect
+	gopkg.in/yaml.v2 v2.2.4 // indirect
 	honnef.co/go/tools v0.0.0-20190315113450-95959eaf5e3c // indirect
 	kkn.fi/base62 v0.0.0-20180104155100-d6eb69b7ca5f
 	mellium.im/sasl v0.2.1 // indirect

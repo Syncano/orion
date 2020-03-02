@@ -6,18 +6,23 @@ import (
 
 	"cloud.google.com/go/storage"
 	"github.com/go-pg/pg/orm"
+	"google.golang.org/api/option"
+
+	"github.com/Syncano/orion/pkg/settings"
 )
 
 type gcloudStorage struct {
-	client *storage.Client
+	client  *storage.Client
+	buckets map[settings.BucketKey]string
 }
 
-func newGCloudStorage() (DataStorage, error) {
+func newGCloudStorage(loc string, buckets map[settings.BucketKey]string) (DataStorage, error) {
 	ctx := context.Background()
-	client, err := storage.NewClient(ctx)
+	client, err := storage.NewClient(ctx, option.WithCredentialsFile(settings.GetLocationEnv(loc, "GOOGLE_APPLICATION_CREDENTIALS")))
 
 	return &gcloudStorage{
-		client: client,
+		client:  client,
+		buckets: buckets,
 	}, err
 }
 
@@ -26,7 +31,7 @@ func (s *gcloudStorage) Client() interface{} {
 	return s.client
 }
 
-func (s *gcloudStorage) SafeUpload(ctx context.Context, db orm.DB, bucket, key string, f io.Reader) error {
+func (s *gcloudStorage) SafeUpload(ctx context.Context, db orm.DB, bucket settings.BucketKey, key string, f io.Reader) error {
 	AddDBRollbackHook(db, func() error {
 		return s.Delete(ctx, bucket, key)
 	})
@@ -34,8 +39,8 @@ func (s *gcloudStorage) SafeUpload(ctx context.Context, db orm.DB, bucket, key s
 	return s.Upload(ctx, bucket, key, f)
 }
 
-func (s *gcloudStorage) Upload(ctx context.Context, bucket, key string, f io.Reader) error {
-	wc := s.client.Bucket(bucket).Object(key).NewWriter(ctx)
+func (s *gcloudStorage) Upload(ctx context.Context, bucket settings.BucketKey, key string, f io.Reader) error {
+	wc := s.client.Bucket(s.buckets[bucket]).Object(key).NewWriter(ctx)
 	wc.PredefinedACL = "publicRead"
 
 	if _, err := io.Copy(wc, f); err != nil {
@@ -45,6 +50,6 @@ func (s *gcloudStorage) Upload(ctx context.Context, bucket, key string, f io.Rea
 	return wc.Close()
 }
 
-func (s *gcloudStorage) Delete(ctx context.Context, bucket, key string) error {
-	return s.client.Bucket(bucket).Object(key).Delete(ctx)
+func (s *gcloudStorage) Delete(ctx context.Context, bucket settings.BucketKey, key string) error {
+	return s.client.Bucket(s.buckets[bucket]).Object(key).Delete(ctx)
 }

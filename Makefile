@@ -40,7 +40,7 @@ lint: ## Run lint checks
 	echo "=== lint ==="
 	if ! which golangci-lint > /dev/null; then \
 		echo "Installing golangci-lint"; \
-		curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $$(go env GOPATH)/bin v1.22.2; \
+		curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $$(go env GOPATH)/bin v1.23.6; \
 	fi
 	golangci-lint run $(ARGS)
 
@@ -87,10 +87,10 @@ proto-python: ## Run protobuf compiler on all .proto files and generate python f
 	done
 
 build: ## Build
-	CGO_ENABLED=0 go build -ldflags "$(LDFLAGS)" -o ./build/$(EXECNAME)
+	go build -ldflags "$(LDFLAGS)" -o ./build/$(EXECNAME)
 
 build-in-docker: require-docker-compose ## Build in docker environment
-	docker-compose run --no-deps --rm app make build
+	docker-compose run --no-deps --rm -e CGO_ENABLED=0 app make build
 
 docker: require-docker ## Builds docker image for application (requires static version to be built first)
 	docker build -t $(DOCKERIMAGE) build
@@ -98,16 +98,16 @@ docker: require-docker ## Builds docker image for application (requires static v
 deploy-staging: require-kubectl ## Deploy application to staging
 	echo "=== deploying staging ==="
 	kubectl config use-context k8s.syncano.rocks
-	./deploy.sh staging stg-$(GITSHA) $(ARGS)
+	./deploy.sh staging $(GITSHA) $(ARGS)
 
 deploy-production: require-kubectl ## Deploy application to production
 	echo "=== deploying us1 ==="
 	kubectl config use-context k8s.syncano.io
-	./deploy.sh us1 prd-$(GITSHA) $(ARGS)
+	./deploy.sh us1 $(GITSHA) $(ARGS)
 
 	echo "=== deploying eu1 ==="
 	kubectl config use-context gke_pioner-syncano-prod-9cfb_europe-west1_syncano-eu1
-	./deploy.sh eu1 prd-$(GITSHA) --skip-push
+	./deploy.sh eu1 $(GITSHA) --skip-push
 
 encrypt: ## Encrypt unencrypted files (for secrets).
 	find deploy -name "*.unenc" -exec sh -c 'gpg --batch --yes --passphrase "$(ORION_VAULT_PASS)" --symmetric --cipher-algo AES256 -o "$${1%.unenc}.gpg" "$$1"' _ {} \;
@@ -119,7 +119,7 @@ start: require-docker-compose ## Run docker-compose of an app.
 	docker-compose -f build/docker-compose.yml up
 
 devserver: ## Run devserver
-	DEBUG=1 FORCE_TERM=1 go run github.com/codegangsta/gin --laddr 127.0.0.1 --port 8080 --bin build/$(EXECNAME) server
+	DEBUG=1 FORCE_TERM=1 go run github.com/cespare/reflex --glob='**/*.go' --inverse-glob='**/*_test.go' --start-service -- go run . server
 
 run-server: build ## Build and run server binary
 	./build/$(EXECNAME) $(ARGS) server

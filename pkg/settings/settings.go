@@ -27,8 +27,8 @@ type common struct {
 
 // Common is a global struct with options filled by env.
 var Common = &common{
-	Location:          "stg",
-	Locations:         []string{"stg"},
+	Location:          "dev",
+	Locations:         []string{"dev"},
 	Debug:             false,
 	CacheVersion:      1,
 	CacheTimeout:      12 * time.Hour,
@@ -38,23 +38,6 @@ var Common = &common{
 
 	SecretKey: "secret_key",
 }
-
-type storage struct {
-	Type          string `env:"STORAGE_TYPE"`
-	Bucket        string `env:"STORAGE_BUCKET"`
-	HostingBucket string `env:"STORAGE_HOSTING_BUCKET"`
-
-	AccessKeyID     string `env:"S3_ACCESS_KEY_ID"`
-	SecretAccessKey string `env:"S3_SECRET_ACCESS_KEY"`
-	Region          string `env:"S3_REGION"`
-	Endpoint        string `env:"S3_ENDPOINT"`
-}
-
-var (
-	Storage = &storage{
-		Type: "s3",
-	}
-)
 
 type social struct {
 	GithubClientID       string `env:"GITHUB_CLIENT_ID"`
@@ -124,14 +107,14 @@ type api struct {
 	ChannelWebSocketLimit   int
 	ChannelSubscribeTimeout time.Duration
 
-	AnonRateLimitS     int64
-	AdminRateLimitS    int64
-	InstanceRateLimitS int64
+	AnonRateLimit     *RateData
+	AdminRateLimit    *RateData
+	InstanceRateLimit *RateData
 }
 
 var API = &api{
 	Host:        "api.syncano.test",
-	SpaceHost:   "syncano.space",
+	SpaceHost:   "space.syncano.test",
 	MediaPrefix: "/media/",
 
 	MaxPayloadSize: 128 << 20,
@@ -144,9 +127,9 @@ var API = &api{
 	ChannelWebSocketLimit:   100,
 	ChannelSubscribeTimeout: 5 * time.Minute,
 
-	AnonRateLimitS:     7,
-	AdminRateLimitS:    15,
-	InstanceRateLimitS: 60,
+	AnonRateLimit:     &RateData{Limit: 7, Duration: time.Second},
+	AdminRateLimit:    &RateData{Limit: 15, Duration: time.Second},
+	InstanceRateLimit: &RateData{Limit: 60, Duration: time.Second},
 }
 
 type socket struct {
@@ -169,7 +152,6 @@ var Socket = &socket{
 
 func init() {
 	util.Must(env.Parse(Common))
-	util.Must(env.Parse(Storage))
 	util.Must(env.Parse(Social))
 	util.Must(env.Parse(Billing))
 	util.Must(env.Parse(API))

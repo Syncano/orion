@@ -67,14 +67,22 @@ func prepareSocketEndpointPayload(c echo.Context) (payload map[string]interface{
 	payload = make(map[string]interface{})
 	files = make(map[string]*socketEndpointFile)
 
+	if values, err := c.FormParams(); err == nil {
+		// Form.
+		for k, vals := range values {
+			if len(vals) == 1 {
+				payload[k] = vals[0]
+			} else {
+				payload[k] = vals
+			}
+		}
+	}
+
 	// FormData.
 	if f, err := c.MultipartForm(); err == nil {
-		for k, vals := range f.Value {
-			payload[k] = vals[0]
-		}
-
 		for k, vals := range f.File {
 			file := vals[0]
+
 			if f, err := file.Open(); err == nil {
 				if buf, e := ioutil.ReadAll(f); e == nil {
 					files[k] = &socketEndpointFile{
@@ -93,11 +101,6 @@ func prepareSocketEndpointPayload(c echo.Context) (payload map[string]interface{
 			}
 		} else if err != io.EOF {
 			return nil, nil, api.NewBadRequestError("Parsing payload failure: invalid JSON.")
-		}
-	} else if values, err := c.FormParams(); err == nil {
-		// Form.
-		for k, vals := range values {
-			payload[k] = vals[0]
 		}
 	}
 

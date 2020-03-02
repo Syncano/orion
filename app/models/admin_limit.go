@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/jackc/pgx/pgtype"
 
@@ -53,12 +54,18 @@ func (m *AdminLimit) StorageLimit(sub *Subscription) int {
 	return m.getLimit(sub, "storage", settings.Billing.StorageLimit)
 }
 
-func (m *AdminLimit) RateLimit(sub *Subscription) int {
-	return m.getLimit(sub, "rate", settings.Billing.RateLimit)
+func (m *AdminLimit) RateLimit(sub *Subscription) *settings.RateData {
+	return &settings.RateData{
+		Limit:    int64(m.getLimit(sub, "rate", settings.Billing.RateLimit)),
+		Duration: time.Second,
+	}
 }
 
-func (m *AdminLimit) PollRateLimit(sub *Subscription) int {
-	return m.getLimit(sub, "poll_rate", settings.Billing.PollRateLimit)
+func (m *AdminLimit) PollRateLimit(sub *Subscription) *settings.RateData {
+	return &settings.RateData{
+		Limit:    int64(m.getLimit(sub, "poll_rate", settings.Billing.PollRateLimit)),
+		Duration: time.Second,
+	}
 }
 
 func (m *AdminLimit) CodeboxConcurrency(sub *Subscription) int {

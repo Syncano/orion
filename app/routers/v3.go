@@ -1,8 +1,6 @@
 package routers
 
 import (
-	"time"
-
 	"github.com/go-redis/redis_rate"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
@@ -32,9 +30,9 @@ type middlewares struct {
 	RequireAdmin bool
 	RequireUser  bool
 
-	RateLimitKey      string
-	RateLimitDuration time.Duration
-	AnonRateLimit     bool
+	InstanceRateLimit *settings.RateData
+	AdminRateLimit    *settings.RateData
+	AnonRateLimit     *settings.RateData
 
 	DisableBody bool
 	SizeLimit   int64
@@ -75,7 +73,7 @@ func (m *middlewares) Get() []echo.MiddlewareFunc {
 		}
 	}
 
-	f = append(f, api.RateLimit(m.limiter, m.RateLimitKey, m.RateLimitDuration, m.AnonRateLimit))
+	f = append(f, api.RateLimit(m.limiter, m.InstanceRateLimit, m.AdminRateLimit, m.AnonRateLimit))
 
 	return f
 }
@@ -113,8 +111,9 @@ func standardMiddlewares(e *echo.Echo) *middlewares {
 		RequireAuth:  true,
 		RequireAdmin: true,
 
-		RateLimitDuration: time.Second,
-		AnonRateLimit:     true,
+		InstanceRateLimit: settings.API.InstanceRateLimit,
+		AdminRateLimit:    settings.API.AdminRateLimit,
+		AnonRateLimit:     settings.API.AnonRateLimit,
 
 		DisableBody: false,
 		SizeLimit:   settings.API.MaxPayloadSize,
