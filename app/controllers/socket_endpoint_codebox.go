@@ -70,10 +70,10 @@ func prepareSocketEndpointPayload(c echo.Context) (payload map[string]interface{
 	if values, err := c.FormParams(); err == nil {
 		// Form.
 		for k, vals := range values {
-			if len(vals) == 1 {
-				payload[k] = vals[0]
+			if len(k) > 2 && strings.HasSuffix(k, "[]") {
+				payload[k[:len(k)-2]] = vals
 			} else {
-				payload[k] = vals
+				payload[k] = vals[0]
 			}
 		}
 	}
