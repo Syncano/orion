@@ -49,6 +49,7 @@ func BindValidateAndExec(c echo.Context, i interface{}, fn func() error) error {
 		if err := c.Validate(i); err != nil {
 			return true, err
 		}
+
 		return false, fn()
 	})
 }
