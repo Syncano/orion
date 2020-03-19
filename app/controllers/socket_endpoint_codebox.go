@@ -37,7 +37,7 @@ var (
 	socketEndpointDisallowedMetaHeaders = map[string]empty{
 		"X-FORWARDED-FOR": {}, "X-FORWARDED-PROTO": {}, "X-FORWARDED-PORT": {}, "X-FORWARDED-HOST": {}, "X-ORIGINAL-FORWARDED-FOR": {}, "HTTP_X_SCHEME": {},
 		"X-USER-KEY": {}, "AUTHORIZATION": {}, "X-API-KEY": {}, "HOST-TYPE": {},
-		"X-REAL-IP": {}, "CF-VISITOR": {}, "CDN-LOOP": {}, "CF-RAY": {}, "CF-CONNECTING-IP": {},
+		"X-REAL-IP": {},
 	}
 
 	codeToStatus = map[int32]string{
