@@ -25,7 +25,7 @@ help:
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 require-%:
-	if ! which ${*} > /dev/null; then \
+	if ! hash ${*} 2>/dev/null; then \
 		echo "! ${*} not installed"; \
 		exit 1; \
 	fi
@@ -38,7 +38,7 @@ clean: ## Cleanup repository
 
 lint: ## Run lint checks
 	echo "=== lint ==="
-	if ! which golangci-lint > /dev/null; then \
+	if ! hash golangci-lint 2>/dev/null; then \
 		echo "Installing golangci-lint"; \
 		curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $$(go env GOPATH)/bin v1.23.6; \
 	fi
