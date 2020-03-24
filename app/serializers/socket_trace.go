@@ -79,10 +79,10 @@ func (s SocketTraceSerializer) Render(c echo.Context, i interface{}) error {
 	if r, ok := trace.Result["response"]; ok {
 		res := r.(map[string]interface{})
 
-		if res["header"] != nil {
+		if res["headers"] != nil {
 			h := c.Response().Header()
 
-			for k, v := range res["header"].(map[string]string) {
+			for k, v := range res["headers"].(map[string]string) {
 				h.Set(k, v)
 			}
 		}
