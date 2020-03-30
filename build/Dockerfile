@@ -8,7 +8,7 @@ ENV ACME_VERSION=2.8.3 \
 
 RUN set -ex \
     && addgroup -S orion \
-    && adduser -S -G orion orion \
+    && adduser -S -D -G orion orion \
     && apk --no-cache add \
         # env zip processing
         squashfs-tools \

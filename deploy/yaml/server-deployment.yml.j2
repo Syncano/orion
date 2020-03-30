@@ -22,12 +22,18 @@ spec:
       terminationGracePeriodSeconds: 360
       imagePullSecrets:
         - name: syncano-k8s-pull-secret
+      securityContext:
+        fsGroup: 101
       containers:
         - name: orion-server
           image: {{ IMAGE }}
           command:
             - "orion"
             - "server"
+          securityContext:
+            runAsGroup: 101
+            runAsNonRoot: true
+            runAsUser: 100
           resources:
             requests:
               memory: "256Mi"
@@ -37,7 +43,7 @@ spec:
               cpu: 500m
           ports:
             - name: http
-              containerPort: 80
+              containerPort: 8000
             - name: http-metrics
               containerPort: 9080
           env:
@@ -53,10 +59,6 @@ spec:
               path: /health
               port: 9080
             initialDelaySeconds: 5
-          lifecycle:
-            preStop:
-              exec:
-                command: ["/bin/sleep", "5"]
 
 {%- if GCP_LOCATIONS %}
           volumeMounts:
