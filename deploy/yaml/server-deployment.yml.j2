@@ -28,6 +28,11 @@ spec:
           command:
             - "orion"
             - "server"
+          securityContext:
+            runAsGroup: 101
+            runAsNonRoot: true
+            runAsUser: 100
+            fsGroup: 101
           resources:
             requests:
               memory: "256Mi"
