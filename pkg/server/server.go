@@ -55,8 +55,8 @@ func (s *Server) setupRouter() *echo.Echo {
 	}
 
 	// If MediaPrefix is set to local files - serve them.
-	if settings.API.MediaPrefix[0] == '/' {
-		e.Static(settings.API.MediaPrefix[:len(settings.API.MediaPrefix)-1], "media")
+	if settings.API.StorageURL[0] == '/' {
+		e.Static(settings.API.StorageURL[:len(settings.API.StorageURL)-1], "media")
 	}
 
 	e.HTTPErrorHandler = api.HTTPErrorHandler

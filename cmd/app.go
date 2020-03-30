@@ -94,7 +94,7 @@ func init() {
 			EnvVar: "DB_INSTANCES_PASS,DB_PASS", Value: "syncano", Destination: &dbInstancesOptions.Password,
 		},
 		cli.StringFlag{
-			Name: "db-instances-addr", Usage: "database address",
+			Name: "db-instances-host", Usage: "database address",
 			EnvVar: "DB_INSTANCES_ADDR,DB_ADDR", Value: "postgresql:5432", Destination: &dbInstancesOptions.Addr,
 		},
 
@@ -103,9 +103,9 @@ func init() {
 			Name: "zipkin-addr", Usage: "zipkin address",
 			EnvVar: "ZIPKIN_ADDR", Value: "zipkin",
 		},
-		cli.Uint64Flag{
-			Name: "zipkin-modulo", Usage: "zipkin sampler modulo",
-			EnvVar: "ZIPKIN_MODULO", Value: 1,
+		cli.Float64Flag{
+			Name: "tracing-sampling", Usage: "tracing sampling value",
+			EnvVar: "TRACING_SAMPLING", Value: 1,
 		},
 		cli.StringFlag{
 			Name: "service-name, n", Usage: "service name",
@@ -167,7 +167,7 @@ func init() {
 
 		tracer, err := zipkin.NewTracer(recorder,
 			zipkin.ClientServerSameSpan(false),
-			zipkin.WithSampler(zipkin.ModuloSampler(c.Uint64("zipkin-modulo"))),
+			zipkin.WithSampler(zipkin.ModuloSampler(uint64(1/c.Float64("tracing-sampling")))),
 		)
 		if err != nil {
 			return err

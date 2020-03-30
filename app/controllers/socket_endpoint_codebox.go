@@ -137,7 +137,10 @@ func prepareSocketEndpointMeta(c echo.Context, inst *models.Instance, sock *mode
 		"socket":      sock.Name,
 		"token":       createAuthToken(inst, socketEndpointTokenDuration),
 		"api_host":    settings.API.Host,
-		"space_host":  settings.API.SpaceHost,
+	}
+
+	if len(settings.API.SpaceHost) > 0 {
+		meta["space_host"] = settings.API.SpaceHost
 	}
 
 	for h, v := range req.Header {
