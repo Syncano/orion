@@ -76,7 +76,7 @@ func getLocalPath(path string) string {
 }
 
 func buildAbsoluteURL(path string) string {
-	url := settings.API.MediaPrefix + path
+	url := settings.API.StorageURL + path
 	if url[0] == '/' {
 		return fmt.Sprintf("http://%s%s", settings.API.Host, url)
 	}

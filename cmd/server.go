@@ -29,12 +29,12 @@ As there is no authentication, always run it in a private network.`,
 	Flags: []cli.Flag{
 		cli.IntFlag{
 			Name: "port", Usage: "port for web server",
-			EnvVar: "PORT", Value: 8080,
+			EnvVar: "PORT", Value: 80,
 		},
 
 		cli.StringFlag{
 			Name: "codebox-addr", Usage: "addr for codebox broker server",
-			EnvVar: "CODEBOX_ADDR", Value: "codebox-broker:9000",
+			EnvVar: "CODEBOX_ADDR", Value: "codebox-broker:80",
 		},
 	},
 	Action: func(c *cli.Context) error {
