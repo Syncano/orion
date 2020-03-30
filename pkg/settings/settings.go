@@ -93,9 +93,9 @@ var Billing = &billing{
 }
 
 type api struct {
-	Host        string `env:"API_HOST"`
-	SpaceHost   string `env:"SPACE_HOST"`
-	MediaPrefix string `env:"MEDIA_PREFIX"`
+	Host       string `env:"API_HOST"`
+	SpaceHost  string `env:"SPACE_HOST"`
+	StorageURL string `env:"STORAGE_URL"`
 
 	MaxPayloadSize int64 `env:"MAX_PAYLOAD_SIZE"`
 	MaxPageSize    int   `env:"MAX_PAGE_SIZE"`
@@ -113,9 +113,9 @@ type api struct {
 }
 
 var API = &api{
-	Host:        "api.syncano.test",
-	SpaceHost:   "space.syncano.test",
-	MediaPrefix: "/media/",
+	Host:       "api.syncano.test",
+	SpaceHost:  "space.syncano.test",
+	StorageURL: "/media/",
 
 	MaxPayloadSize: 128 << 20,
 	MaxPageSize:    500,
