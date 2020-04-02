@@ -30,7 +30,8 @@ RUN set -ex \
         --accountemail "${EMAIL}" --accountkey "/acme/config/account.key" \
     && ln -s ${LE_WORKING_DIR}/acme.sh /usr/bin/acme.sh \
     && cd .. \
-    && rm -rf ${ACME_VERSION}.zip acme.sh-${ACME_VERSION}
+    && rm -rf ${ACME_VERSION}.zip acme.sh-${ACME_VERSION} \
+    && chown orion:orion -R /acme
 
 COPY orion /usr/local/bin/orion
 

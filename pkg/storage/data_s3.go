@@ -18,10 +18,10 @@ import (
 type s3Storage struct {
 	uploader *s3manager.Uploader
 	client   *s3.S3
-	buckets  map[settings.BucketKey]string
+	buckets  map[settings.BucketKey]*bucketInfo
 }
 
-func newS3Storage(loc string, buckets map[settings.BucketKey]string) DataStorage {
+func newS3Storage(loc string, buckets map[settings.BucketKey]*bucketInfo) DataStorage {
 	accessKeyID := settings.GetLocationEnv(loc, "S3_ACCESS_KEY_ID")
 	secretAccessKey := settings.GetLocationEnv(loc, "S3_SECRET_ACCESS_KEY")
 	region := settings.GetLocationEnv(loc, "S3_REGION")
@@ -41,6 +41,10 @@ func newS3Storage(loc string, buckets map[settings.BucketKey]string) DataStorage
 // Client returns s3 client.
 func (s *s3Storage) Client() interface{} {
 	return s.client
+}
+
+func (s *s3Storage) URL(bucket settings.BucketKey, key string) string {
+	return s.buckets[bucket].URL + key
 }
 
 func createS3Session(accessKeyID, secretAccessKey, region, endpoint string) *session.Session {
@@ -66,7 +70,7 @@ func (s *s3Storage) SafeUpload(ctx context.Context, db orm.DB, bucket settings.B
 func (s *s3Storage) Upload(ctx context.Context, bucket settings.BucketKey, key string, f io.Reader) error {
 	_, err := s.uploader.UploadWithContext(ctx,
 		&s3manager.UploadInput{
-			Bucket: aws.String(s.buckets[bucket]),
+			Bucket: aws.String(s.buckets[bucket].Name),
 			Key:    aws.String(key),
 			ACL:    aws.String("public-read"),
 			Body:   f,
@@ -79,7 +83,7 @@ func (s *s3Storage) Delete(ctx context.Context, bucket settings.BucketKey, key s
 	_, err := s.client.DeleteObjectWithContext(
 		ctx,
 		&s3.DeleteObjectInput{
-			Bucket: aws.String(s.buckets[bucket]),
+			Bucket: aws.String(s.buckets[bucket].Name),
 			Key:    aws.String(key),
 		})
 
