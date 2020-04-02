@@ -15,7 +15,13 @@ type DataStorage interface {
 	SafeUpload(ctx context.Context, db orm.DB, bucket settings.BucketKey, key string, f io.Reader) error
 	Upload(ctx context.Context, bucket settings.BucketKey, key string, f io.Reader) error
 	Delete(ctx context.Context, bucket settings.BucketKey, key string) error
+	URL(bucket settings.BucketKey, key string) string
 	Client() interface{}
+}
+
+type bucketInfo struct {
+	Name string
+	URL  string
 }
 
 var storageCache map[string]DataStorage = make(map[string]DataStorage)
@@ -34,9 +40,12 @@ func Storage(loc string) DataStorage {
 		dataStorage DataStorage
 	)
 
-	buckets := make(map[settings.BucketKey]string, len(settings.Buckets))
+	buckets := make(map[settings.BucketKey]*bucketInfo, len(settings.Buckets))
 	for k, v := range settings.Buckets {
-		buckets[k] = settings.GetLocationEnv(loc, v)
+		buckets[k] = &bucketInfo{
+			Name: settings.GetLocationEnv(loc, v),
+			URL:  settings.GetLocationEnv(loc, v+"_URL"),
+		}
 	}
 
 	switch settings.GetLocationEnv(loc, "STORAGE") {
