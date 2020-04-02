@@ -13,10 +13,10 @@ import (
 
 type gcloudStorage struct {
 	client  *storage.Client
-	buckets map[settings.BucketKey]string
+	buckets map[settings.BucketKey]*bucketInfo
 }
 
-func newGCloudStorage(loc string, buckets map[settings.BucketKey]string) (DataStorage, error) {
+func newGCloudStorage(loc string, buckets map[settings.BucketKey]*bucketInfo) (DataStorage, error) {
 	ctx := context.Background()
 	client, err := storage.NewClient(ctx, option.WithCredentialsFile(settings.GetLocationEnv(loc, "GOOGLE_APPLICATION_CREDENTIALS")))
 
@@ -31,6 +31,10 @@ func (s *gcloudStorage) Client() interface{} {
 	return s.client
 }
 
+func (s *gcloudStorage) URL(bucket settings.BucketKey, key string) string {
+	return s.buckets[bucket].URL + key
+}
+
 func (s *gcloudStorage) SafeUpload(ctx context.Context, db orm.DB, bucket settings.BucketKey, key string, f io.Reader) error {
 	AddDBRollbackHook(db, func() error {
 		return s.Delete(ctx, bucket, key)
@@ -40,7 +44,7 @@ func (s *gcloudStorage) SafeUpload(ctx context.Context, db orm.DB, bucket settin
 }
 
 func (s *gcloudStorage) Upload(ctx context.Context, bucket settings.BucketKey, key string, f io.Reader) error {
-	wc := s.client.Bucket(s.buckets[bucket]).Object(key).NewWriter(ctx)
+	wc := s.client.Bucket(s.buckets[bucket].Name).Object(key).NewWriter(ctx)
 	wc.PredefinedACL = "publicRead"
 
 	if _, err := io.Copy(wc, f); err != nil {
@@ -51,5 +55,5 @@ func (s *gcloudStorage) Upload(ctx context.Context, bucket settings.BucketKey, k
 }
 
 func (s *gcloudStorage) Delete(ctx context.Context, bucket settings.BucketKey, key string) error {
-	return s.client.Bucket(s.buckets[bucket]).Object(key).Delete(ctx)
+	return s.client.Bucket(s.buckets[bucket].Name).Object(key).Delete(ctx)
 }
