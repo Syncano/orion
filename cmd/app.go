@@ -13,6 +13,7 @@ import (
 	opentracing "github.com/opentracing/opentracing-go"
 	zipkinot "github.com/openzipkin-contrib/zipkin-go-opentracing"
 	"github.com/openzipkin/zipkin-go"
+	"github.com/openzipkin/zipkin-go/reporter"
 	zipkinhttp "github.com/openzipkin/zipkin-go/reporter/http"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/urfave/cli/v2"
@@ -36,6 +37,7 @@ var (
 	dbInstancesOptions = storage.DefaultDBOptions()
 	redisOptions       = redis.Options{}
 	amqpChannel        *amqp.Channel
+	tracingReporter    reporter.Reporter
 )
 
 func init() {
@@ -160,8 +162,7 @@ func init() {
 		http.Handle("/metrics", promhttp.Handler())
 
 		// Initialize tracing.
-		reporter := zipkinhttp.NewReporter(fmt.Sprintf("http://%s:9411/api/v2/spans", c.String("zipkin-addr")))
-		defer reporter.Close()
+		tracingReporter = zipkinhttp.NewReporter(fmt.Sprintf("http://%s:9411/api/v2/spans", c.String("zipkin-addr")))
 
 		endpoint, err := zipkin.NewEndpoint(c.String("service-name"), "")
 		if err != nil {
@@ -169,7 +170,7 @@ func init() {
 		}
 
 		// Initialize tracer.
-		nativeTracer, err := zipkin.NewTracer(reporter,
+		nativeTracer, err := zipkin.NewTracer(tracingReporter,
 			zipkin.WithLocalEndpoint(endpoint),
 			zipkin.WithSampler(zipkin.NewModuloSampler(uint64(1/c.Float64("tracing-sampling")))),
 		)
@@ -217,6 +218,9 @@ func init() {
 
 		// Shutdown job system.
 		jobs.Shutdown()
+
+		// Close tracing reporter.
+		tracingReporter.Close()
 
 		return nil
 	}

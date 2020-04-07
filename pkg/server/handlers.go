@@ -8,7 +8,8 @@ import (
 
 	raven "github.com/getsentry/raven-go"
 	"github.com/labstack/echo/v4"
-	opentracing "github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go/ext"
 	zipkin "github.com/openzipkin-contrib/zipkin-go-opentracing"
 	"go.uber.org/zap"
 
@@ -122,7 +123,7 @@ func OpenTracing() echo.MiddlewareFunc {
 			opName := fmt.Sprintf("%s %s", req.Method, req.URL.Path)
 
 			wireContext, err := tracer.Extract(
-				opentracing.TextMap,
+				opentracing.HTTPHeaders,
 				opentracing.HTTPHeadersCarrier(req.Header))
 
 			if err != nil {
@@ -139,13 +140,13 @@ func OpenTracing() echo.MiddlewareFunc {
 
 			defer span.Finish()
 
-			span.SetTag("http.url", req.Host+req.RequestURI)
-			span.SetTag("http.method", req.Method)
+			ext.HTTPMethod.Set(span, req.Method)
+			ext.HTTPUrl.Set(span, req.Host+req.RequestURI)
 
 			err = next(c)
 
-			span.SetTag("error", err != nil)
-			span.SetTag("http.status_code", c.Response().Status)
+			ext.Error.Set(span, err != nil)
+			ext.HTTPStatusCode.Set(span, uint16(c.Response().Status))
 			c.SetRequest(req.WithContext(opentracing.ContextWithSpan(req.Context(), span)))
 
 			return err
