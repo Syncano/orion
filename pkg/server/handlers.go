@@ -142,12 +142,12 @@ func OpenTracing() echo.MiddlewareFunc {
 
 			ext.HTTPMethod.Set(span, req.Method)
 			ext.HTTPUrl.Set(span, req.Host+req.RequestURI)
+			c.SetRequest(req.WithContext(opentracing.ContextWithSpan(req.Context(), span)))
 
 			err = next(c)
 
 			ext.Error.Set(span, err != nil)
 			ext.HTTPStatusCode.Set(span, uint16(c.Response().Status))
-			c.SetRequest(req.WithContext(opentracing.ContextWithSpan(req.Context(), span)))
 
 			return err
 		}
