@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	"github.com/go-pg/pg/orm"
+	"github.com/go-pg/pg/v9/orm"
 
 	"github.com/Syncano/orion/pkg/settings"
 	"github.com/Syncano/orion/pkg/util"

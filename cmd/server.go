@@ -9,7 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
@@ -21,20 +21,20 @@ import (
 	"github.com/Syncano/orion/pkg/version"
 )
 
-var serverCmd = cli.Command{
+var serverCmd = &cli.Command{
 	Name:  "server",
 	Usage: "Starts server to serve as a front for load balancers.",
 	Description: `Servers pass workload in correct way to available load balancers.
 As there is no authentication, always run it in a private network.`,
 	Flags: []cli.Flag{
-		cli.IntFlag{
+		&cli.IntFlag{
 			Name: "port", Usage: "port for web server",
-			EnvVar: "PORT", Value: 8000,
+			EnvVars: []string{"PORT"}, Value: 8000,
 		},
 
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name: "codebox-addr", Usage: "addr for codebox broker server",
-			EnvVar: "CODEBOX_ADDR", Value: "codebox-broker:80",
+			EnvVars: []string{"CODEBOX_ADDR"}, Value: "codebox-broker:80",
 		},
 	},
 	Action: func(c *cli.Context) error {
@@ -57,7 +57,7 @@ As there is no authentication, always run it in a private network.`,
 		if err != nil {
 			return err
 		}
-		srv, err := server.NewServer(c.GlobalBool("debug"))
+		srv, err := server.NewServer(c.Bool("debug"))
 		if err != nil {
 			return err
 		}

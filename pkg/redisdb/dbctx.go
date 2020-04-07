@@ -8,7 +8,7 @@ import (
 
 	"github.com/Syncano/orion/pkg/util"
 
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v7"
 	"github.com/pkg/errors"
 )
 
@@ -105,7 +105,7 @@ func (c *DBCtx) listKeys(minPK, maxPK, limit int, isOrderAsc bool) ([]string, er
 		limit = l
 	}
 
-	opt := redis.ZRangeBy{Max: max, Min: min, Count: int64(limit)}
+	opt := &redis.ZRangeBy{Max: max, Min: min, Count: int64(limit)}
 
 	if isOrderAsc {
 		return c.redisCli.ZRangeByScore(listKey, opt).Result()
@@ -295,7 +295,7 @@ func (c *DBCtx) saveObject(pipe redis.Pipeliner, pk int, objectKey string, field
 	if !saved {
 		// Save to list if not added already.
 		listKey := c.getListKey()
-		pipe.ZAdd(listKey, redis.Z{Score: float64(pk), Member: objectKey})
+		pipe.ZAdd(listKey, &redis.Z{Score: float64(pk), Member: objectKey})
 
 		if ttl > 0 {
 			pipe.Expire(listKey, ttl)

@@ -19,10 +19,10 @@ func NewAPIKeyManager(c storage.DBContext) *APIKeyManager {
 }
 
 // OneByKey outputs object filtered by key.
-func (mgr *APIKeyManager) OneByKey(o *models.APIKey) error {
+func (m *APIKeyManager) OneByKey(o *models.APIKey) error {
 	return RequireOne(
-		cache.SimpleModelCache(mgr.DB(), o, fmt.Sprintf("k=%s", o.Key), func() (interface{}, error) {
-			return o, mgr.Query(o).Where("key = ?", o.Key).Select()
+		cache.SimpleModelCache(m.DB(), o, fmt.Sprintf("k=%s", o.Key), func() (interface{}, error) {
+			return o, m.Query(o).Where("key = ?", o.Key).Select()
 		}),
 	)
 }

@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/go-pg/pg/orm"
+	"github.com/go-pg/pg/v9/orm"
 	json "github.com/json-iterator/go"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 
 	"github.com/Syncano/orion/app/api"
 	"github.com/Syncano/orion/app/models"
 	"github.com/Syncano/orion/pkg/settings"
+	"github.com/Syncano/orion/pkg/storage"
 )
 
 func newQueryError(detail string) *api.Error {
@@ -46,7 +47,7 @@ func (doq *DataObjectQuery) Parse(c echo.Context, q *orm.Query) (*orm.Query, err
 	return doq.ParseMap(c, q, m)
 }
 
-func (doq *DataObjectQuery) ParseMap(c echo.Context, q *orm.Query, m map[string]interface{}) (*orm.Query, error) {
+func (doq *DataObjectQuery) ParseMap(c storage.DBContext, q *orm.Query, m map[string]interface{}) (*orm.Query, error) {
 	var (
 		f   models.FilterField
 		ok  bool
@@ -100,12 +101,12 @@ func (doq *DataObjectQuery) Validate(m map[string]interface{}, top bool) error {
 	return nil
 }
 
-func (doq *DataObjectQuery) fieldQuery(c echo.Context, q *orm.Query, f models.FilterField, lookup string, data interface{}) (*orm.Query, error) {
+func (doq *DataObjectQuery) fieldQuery(c storage.DBContext, q *orm.Query, f models.FilterField, lookup string, data interface{}) (*orm.Query, error) {
 	// Find supported filter.
 	if filts, ok := filters[lookup]; ok {
 		for _, filt := range filts {
 			if filt.Supports(f) {
-				return filt.Process(doq, c, q, f, lookup, data)
+				return filt.Process(c, doq, q, f, lookup, data)
 			}
 		}
 	}

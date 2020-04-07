@@ -3,7 +3,8 @@ package controllers
 import (
 	"net/http"
 
-	"github.com/labstack/echo"
+	"github.com/go-pg/pg/v9"
+	"github.com/labstack/echo/v4"
 
 	"github.com/Syncano/orion/app/api"
 	"github.com/Syncano/orion/app/models"
@@ -261,8 +262,12 @@ func UsersInGroupRetrieve(c echo.Context) error {
 	class := c.Get(contextUserClassKey).(*models.Class)
 	group := c.Get(contextUserGroupKey).(*models.UserGroup)
 
-	if query.NewUserManager(c).ForGroupByIDQ(class, group, o).Select() != nil {
-		return api.NewNotFoundError(o)
+	if err := query.NewUserManager(c).ForGroupByIDQ(class, group, o).Select(); err != nil {
+		if err == pg.ErrNoRows {
+			return api.NewNotFoundError(o)
+		}
+
+		return err
 	}
 
 	serializer := serializers.UserSerializer{Class: class}

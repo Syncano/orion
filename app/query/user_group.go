@@ -3,7 +3,7 @@ package query
 import (
 	"fmt"
 
-	"github.com/go-pg/pg/orm"
+	"github.com/go-pg/pg/v9/orm"
 
 	"github.com/Syncano/orion/app/models"
 	"github.com/Syncano/orion/pkg/cache"
@@ -21,31 +21,31 @@ func NewUserGroupManager(c storage.DBContext) *UserGroupManager {
 }
 
 // Q outputs objects query.
-func (mgr *UserGroupManager) Q(o interface{}) *orm.Query {
-	return mgr.Query(o)
+func (m *UserGroupManager) Q(o interface{}) *orm.Query {
+	return m.Query(o)
 }
 
 // ByIDQ outputs one object filtered by id.
-func (mgr *UserGroupManager) ByIDQ(o *models.UserGroup) *orm.Query {
-	return mgr.Q(o).Where("?TableAlias.id = ?", o.ID)
+func (m *UserGroupManager) ByIDQ(o *models.UserGroup) *orm.Query {
+	return m.Q(o).Where("?TableAlias.id = ?", o.ID)
 }
 
 // ForUserQ outputs objects filtered by user.
-func (mgr *UserGroupManager) ForUserQ(user *models.User, o interface{}) *orm.Query {
-	return mgr.Q(o).
+func (m *UserGroupManager) ForUserQ(user *models.User, o interface{}) *orm.Query {
+	return m.Q(o).
 		Join("JOIN ?schema.users_membership AS m ON m.group_id = ?TableAlias.id AND m.user_id = ?", user.ID)
 }
 
 // ForUserByIDQ outputs one object filtered by user and id.
-func (mgr *UserGroupManager) ForUserByIDQ(user *models.User, o *models.UserGroup) *orm.Query {
-	return mgr.ForUserQ(user, o).Where("?TableAlias.id = ?", o.ID)
+func (m *UserGroupManager) ForUserByIDQ(user *models.User, o *models.UserGroup) *orm.Query {
+	return m.ForUserQ(user, o).Where("?TableAlias.id = ?", o.ID)
 }
 
 // OneByID outputs object filtered by id.
-func (mgr *UserGroupManager) OneByID(o *models.UserGroup) error {
+func (m *UserGroupManager) OneByID(o *models.UserGroup) error {
 	return RequireOne(
-		cache.SimpleModelCache(mgr.DB(), o, fmt.Sprintf("i=%d", o.ID), func() (interface{}, error) {
-			return o, mgr.Query(o).Where("id = ?", o.ID).Select()
+		cache.SimpleModelCache(m.DB(), o, fmt.Sprintf("i=%d", o.ID), func() (interface{}, error) {
+			return o, m.Query(o).Where("id = ?", o.ID).Select()
 		}),
 	)
 }

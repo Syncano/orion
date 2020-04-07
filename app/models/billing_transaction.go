@@ -6,7 +6,7 @@ import (
 
 // Transaction represents billing transaction model.
 type Transaction struct {
-	tableName struct{} `sql:"billing_transaction" pg:",discard_unknown_columns"` // nolint
+	tableName struct{} `pg:"billing_transaction,discard_unknown_columns"` // nolint
 
 	ID           int
 	AdminID      int

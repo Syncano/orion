@@ -3,7 +3,7 @@ package serializers
 import (
 	"strconv"
 
-	"github.com/jackc/pgx/pgtype"
+	"github.com/jackc/pgtype"
 	geom "github.com/twpayne/go-geom"
 	"github.com/twpayne/go-geom/encoding/ewkbhex"
 

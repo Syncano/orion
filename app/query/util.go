@@ -1,8 +1,10 @@
 package query
 
 import (
-	"github.com/go-pg/pg"
-	"github.com/go-pg/pg/orm"
+	"context"
+
+	"github.com/go-pg/pg/v9"
+	"github.com/go-pg/pg/v9/orm"
 )
 
 // Lock performs query with locking of rows for update.
@@ -20,19 +22,19 @@ func RequireOne(err error) error {
 }
 
 // CountEstimate returns count estimate results for given query.
-func CountEstimate(db orm.DB, q *orm.Query, threshold int) (int, error) {
+func CountEstimate(ctx context.Context, db orm.DB, q orm.QueryAppender, threshold int) (int, error) {
 	type res struct {
 		ObjectsCount int
 	}
 
 	r := res{}
 
-	qq, err := q.AppendQuery(nil)
+	qq, err := q.AppendQuery(db.Formatter(), nil)
 	if err != nil {
 		return 0, err
 	}
 
-	return r.ObjectsCount, db.Model().
+	return r.ObjectsCount, db.ModelContext(ctx).
 		ColumnExpr(`?schema.count_estimate(?, ?) AS "objects_count"`, string(qq), threshold).
 		Select(&r)
 }

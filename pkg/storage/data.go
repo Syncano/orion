@@ -7,7 +7,7 @@ import (
 	"github.com/Syncano/orion/pkg/settings"
 	"github.com/Syncano/orion/pkg/util"
 
-	"github.com/go-pg/pg/orm"
+	"github.com/go-pg/pg/v9/orm"
 )
 
 // DataStorage defines common interface for aws and gcloud storage.

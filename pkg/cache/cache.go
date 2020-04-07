@@ -4,9 +4,9 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/go-redis/cache"
-	"github.com/go-redis/redis"
-	"github.com/vmihailenco/msgpack"
+	"github.com/go-redis/cache/v7"
+	"github.com/go-redis/redis/v7"
+	"github.com/vmihailenco/msgpack/v4"
 
 	"github.com/Syncano/orion/pkg/settings"
 	"github.com/Syncano/orion/pkg/util"

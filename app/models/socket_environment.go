@@ -1,12 +1,9 @@
 package models
 
 import (
+	"context"
 	"fmt"
 	"time"
-
-	"github.com/go-pg/pg/orm"
-
-	"github.com/Syncano/orion/pkg/cache"
 )
 
 // SocketEnvironmentStatus enum.
@@ -25,9 +22,9 @@ var SocketEnvironmentStatus = map[int]string{
 
 // SocketEnvironment represents socket environment model.
 type SocketEnvironment struct {
-	tableName struct{} `sql:"?schema.sockets_socketenvironment" pg:",discard_unknown_columns"` // nolint
+	tableName struct{} `pg:"?schema.sockets_socketenvironment,discard_unknown_columns"` // nolint
 
-	IsLive bool `sql:"_is_live"`
+	IsLive bool `pg:"_is_live"`
 
 	ID          int
 	Name        string
@@ -65,20 +62,8 @@ func (m *SocketEnvironment) StatusString() string {
 	return SocketEnvironmentStatus[m.Status]
 }
 
-// AfterUpdate hook.
-func (m *SocketEnvironment) AfterUpdate(db orm.DB) error {
-	cache.ModelCacheInvalidate(db, m)
-	return nil
-}
-
-// AfterDelete hook.
-func (m *SocketEnvironment) AfterDelete(db orm.DB) error {
-	cache.ModelCacheInvalidate(db, m)
-	return nil
-}
-
 // BeforeUpdate hook.
-func (m *SocketEnvironment) BeforeUpdate(db orm.DB) error {
+func (m *SocketEnvironment) BeforeUpdate(ctx context.Context) (context.Context, error) {
 	m.UpdatedAt.Set(time.Now()) // nolint: errcheck
-	return nil
+	return ctx, nil
 }

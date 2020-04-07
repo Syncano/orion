@@ -6,7 +6,7 @@ import (
 
 // AdminSocialProfile represents AdminSocialProfile model.
 type AdminSocialProfile struct {
-	tableName struct{} `sql:"admins_adminsocialprofile"` // nolint
+	tableName struct{} `pg:"admins_adminsocialprofile"` // nolint
 
 	ID       int
 	Backend  int

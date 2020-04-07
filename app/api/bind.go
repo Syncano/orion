@@ -11,7 +11,7 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 type Binder struct{}
@@ -68,7 +68,7 @@ func (b *Binder) Bind(i interface{}, c echo.Context) error {
 
 // ParsedData returns parsed map[string]interface from body.
 // Currently only parses JSON payload.
-func ParsedData(c echo.Context) (map[string]interface{}, error) {
+func ParsedData(c echo.Context) (map[string]interface{}, error) { // nolint: interfacer
 	data := c.Get(contextParsedDataKey)
 	if data != nil {
 		return data.(map[string]interface{}), nil

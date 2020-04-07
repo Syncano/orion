@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/go-pg/pg/orm"
-	validator "gopkg.in/go-playground/validator.v9"
+	"github.com/go-pg/pg/v9/orm"
+	"github.com/go-playground/validator/v10"
 )
 
 var validate = validator.New()

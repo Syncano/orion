@@ -7,7 +7,7 @@ import (
 
 // Event represents billing event model.
 type Event struct {
-	tableName struct{} `sql:"billing_event" pg:",discard_unknown_columns"` // nolint
+	tableName struct{} `pg:"billing_event,discard_unknown_columns"` // nolint
 
 	ID         int
 	ExternalID string

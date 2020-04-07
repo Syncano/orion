@@ -5,7 +5,7 @@ import (
 	"unsafe"
 
 	jsoniter "github.com/json-iterator/go"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 
 	"github.com/Syncano/orion/pkg/settings"
 )

@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	opentracing "github.com/opentracing/opentracing-go"
-	zipkin "github.com/openzipkin/zipkin-go-opentracing"
+	zipkin "github.com/openzipkin-contrib/zipkin-go-opentracing"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -13,7 +13,8 @@ import (
 func FilterFunc(ctx context.Context, fullMethodName string) bool {
 	spanCtx := opentracing.SpanFromContext(ctx)
 	if spanCtx != nil {
-		return spanCtx.Context().(zipkin.SpanContext).Sampled
+		zipkinCtx := spanCtx.Context().(zipkin.SpanContext)
+		return zipkinCtx.Sampled != nil && *zipkinCtx.Sampled
 	}
 
 	md, _ := metadata.FromIncomingContext(ctx)

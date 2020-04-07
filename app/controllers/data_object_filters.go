@@ -6,19 +6,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-pg/pg"
-	"github.com/go-pg/pg/orm"
+	"github.com/go-pg/pg/v9"
+	"github.com/go-pg/pg/v9/orm"
+	"github.com/go-playground/validator/v10"
 	"github.com/jinzhu/now"
 	json "github.com/json-iterator/go"
-	"github.com/labstack/echo"
 	"github.com/mitchellh/mapstructure"
 	geom "github.com/twpayne/go-geom"
 	"github.com/twpayne/go-geom/encoding/ewkb"
-	validator "gopkg.in/go-playground/validator.v9"
 
 	"github.com/Syncano/orion/app/models"
 	"github.com/Syncano/orion/app/query"
 	"github.com/Syncano/orion/pkg/settings"
+	"github.com/Syncano/orion/pkg/storage"
 )
 
 var filters = map[string][]*filterOp{}
@@ -40,8 +40,8 @@ type filterOp struct {
 	expectedValue     []reflect.Kind
 	expectList        bool
 	expectedListValue []reflect.Kind
-	query             func(*orm.Query, models.FilterField, string, interface{}) *orm.Query
-	validate          func(echo.Context, *filterOp, models.FilterField, interface{}) (interface{}, error)
+	query             func(c storage.DBContext, q *orm.Query, f models.FilterField, op string, data interface{}) *orm.Query
+	validate          func(c storage.DBContext, q *filterOp, f models.FilterField, val interface{}) (interface{}, error)
 }
 
 func (op *filterOp) Supports(f models.FilterField) bool {
@@ -68,7 +68,7 @@ func (op *filterOp) Supports(f models.FilterField) bool {
 	return true
 }
 
-func (op *filterOp) Process(doq *DataObjectQuery, c echo.Context, q *orm.Query, f models.FilterField, lookup string, data interface{}) (*orm.Query, error) {
+func (op *filterOp) Process(c storage.DBContext, doq *DataObjectQuery, q *orm.Query, f models.FilterField, lookup string, data interface{}) (*orm.Query, error) {
 	var ok bool
 
 	if op.expectList {
@@ -96,7 +96,7 @@ func (op *filterOp) Process(doq *DataObjectQuery, c echo.Context, q *orm.Query, 
 		return nil, newQueryError(fmt.Sprintf(`Validation of value provided "%s" lookup of field "%s" failed.`, lookup, f.Name()))
 	}
 
-	return op.query(q, f, lookup, data), nil
+	return op.query(c, q, f, lookup, data), nil
 }
 
 func (op *filterOp) validateKind(k reflect.Kind, expected []reflect.Kind, val interface{}) (interface{}, bool) {
@@ -192,7 +192,7 @@ func init() {
 	registerFilter(&filterOp{
 		expectedValue:    []reflect.Kind{reflect.Bool},
 		unsupportedTypes: []string{models.FieldArrayType},
-		query: func(q *orm.Query, f models.FilterField, op string, data interface{}) *orm.Query {
+		query: func(c storage.DBContext, q *orm.Query, f models.FilterField, op string, data interface{}) *orm.Query {
 			sqlOp := "IS NULL"
 			if data.(bool) {
 				sqlOp = "IS NOT NULL"
@@ -214,7 +214,7 @@ func init() {
 
 	registerFilter(&filterOp{
 		unsupportedTypes: []string{models.FieldRelationType, models.FieldArrayType, models.FieldGeopointType},
-		query: func(q *orm.Query, f models.FilterField, op string, data interface{}) *orm.Query {
+		query: func(c storage.DBContext, q *orm.Query, f models.FilterField, op string, data interface{}) *orm.Query {
 			return q.Where(fmt.Sprintf("%s %s ?", f.SQLName(), simpleLookups[op]), data)
 		}},
 		"_gt", "_gte", "_lt", "_lte", "_eq", "_neq",
@@ -231,7 +231,7 @@ func init() {
 
 	registerFilter(&filterOp{
 		supportedTypes: []string{models.FieldStringType},
-		query: func(q *orm.Query, f models.FilterField, op string, data interface{}) *orm.Query {
+		query: func(c storage.DBContext, q *orm.Query, f models.FilterField, op string, data interface{}) *orm.Query {
 			idx := 1
 			sqlOp := "LIKE"
 			if strings.HasPrefix(op, "_i") {
@@ -247,7 +247,7 @@ func init() {
 	registerFilter(&filterOp{
 		expectList:       true,
 		unsupportedTypes: []string{models.FieldRelationType, models.FieldArrayType, models.FieldGeopointType},
-		query: func(q *orm.Query, f models.FilterField, op string, data interface{}) *orm.Query {
+		query: func(c storage.DBContext, q *orm.Query, f models.FilterField, op string, data interface{}) *orm.Query {
 			sqlOp := "IN"
 			if op == "_nin" {
 				sqlOp = "NOT IN"
@@ -262,7 +262,7 @@ func init() {
 		expectList:        true,
 		expectedListValue: []reflect.Kind{reflect.Int},
 		supportedTypes:    []string{models.FieldRelationType},
-		query: func(q *orm.Query, f models.FilterField, op string, data interface{}) *orm.Query {
+		query: func(c storage.DBContext, q *orm.Query, f models.FilterField, op string, data interface{}) *orm.Query {
 			return q.Where(fmt.Sprintf("%s @> ?", f.SQLName()), pg.Array(data))
 		}},
 		"_contains",
@@ -273,7 +273,7 @@ func init() {
 		expectList:        true,
 		expectedListValue: []reflect.Kind{reflect.String, reflect.Bool, reflect.Float64, reflect.Int},
 		supportedTypes:    []string{models.FieldArrayType},
-		query: func(q *orm.Query, f models.FilterField, op string, data interface{}) *orm.Query {
+		query: func(c storage.DBContext, q *orm.Query, f models.FilterField, op string, data interface{}) *orm.Query {
 			arr, err := json.Marshal(data)
 			if err != nil {
 				panic(err)
@@ -294,7 +294,7 @@ func init() {
 	registerFilter(&filterOp{
 		expectedValue:  []reflect.Kind{reflect.Map},
 		supportedTypes: []string{models.FieldGeopointType},
-		validate: func(c echo.Context, op *filterOp, f models.FilterField, val interface{}) (interface{}, error) {
+		validate: func(c storage.DBContext, op *filterOp, f models.FilterField, val interface{}) (interface{}, error) {
 			l := &nearLookup{}
 			if mapstructure.Decode(val, l) != nil || validate.Struct(l) != nil {
 				return nil, nil
@@ -309,7 +309,7 @@ func init() {
 			return l, nil
 		},
 
-		query: func(q *orm.Query, f models.FilterField, op string, data interface{}) *orm.Query {
+		query: func(c storage.DBContext, q *orm.Query, f models.FilterField, op string, data interface{}) *orm.Query {
 			l := data.(*nearLookup)
 			return q.Where(fmt.Sprintf("ST_DWithin(%s, ST_GeomFromEWKB(?), ?)", f.SQLName()),
 				&ewkb.Point{Point: geom.NewPointFlat(geom.XY, []float64{l.Longitude, l.Latitude})}, l.DistanceInKilometers)
@@ -321,7 +321,7 @@ func init() {
 	registerFilter(&filterOp{
 		expectedValue:  []reflect.Kind{reflect.Map},
 		supportedTypes: []string{models.FieldReferenceType, models.FieldRelationType},
-		validate: func(c echo.Context, op *filterOp, f models.FilterField, val interface{}) (interface{}, error) {
+		validate: func(c storage.DBContext, op *filterOp, f models.FilterField, val interface{}) (interface{}, error) {
 			m, ok := val.(map[string]interface{})
 			if !ok {
 				return nil, nil
@@ -366,8 +366,8 @@ func init() {
 			return q.Limit(settings.API.DataObjectNestedQueryLimit), nil
 		},
 
-		query: func(q *orm.Query, f models.FilterField, op string, data interface{}) *orm.Query {
-			qq, err := data.(*orm.Query).AppendQuery(nil)
+		query: func(c storage.DBContext, q *orm.Query, f models.FilterField, op string, data interface{}) *orm.Query {
+			qq, err := data.(*orm.Query).AppendQuery(query.TenantDB(c).Formatter(), nil)
 			if err != nil {
 				panic(err)
 			}

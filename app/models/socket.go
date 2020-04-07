@@ -1,14 +1,12 @@
 package models
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"strings"
 	"time"
 
-	"github.com/go-pg/pg/orm"
-
-	"github.com/Syncano/orion/pkg/cache"
 	"github.com/Syncano/orion/pkg/settings"
 )
 
@@ -32,9 +30,9 @@ var SocketStatus = map[int]string{
 
 // Socket represents socket model.
 type Socket struct {
-	tableName struct{} `sql:"?schema.sockets_socket" pg:",discard_unknown_columns"` // nolint
+	tableName struct{} `pg:"?schema.sockets_socket,discard_unknown_columns"` // nolint
 
-	IsLive bool `sql:"_is_live"`
+	IsLive bool `pg:"_is_live"`
 
 	ID          int
 	Name        string
@@ -113,20 +111,8 @@ func (m *Socket) StatusString() string {
 	return SocketStatus[m.Status]
 }
 
-// AfterUpdate hook.
-func (m *Socket) AfterUpdate(db orm.DB) error {
-	cache.ModelCacheInvalidate(db, m)
-	return nil
-}
-
-// AfterDelete hook.
-func (m *Socket) AfterDelete(db orm.DB) error {
-	cache.ModelCacheInvalidate(db, m)
-	return nil
-}
-
 // BeforeUpdate hook.
-func (m *Socket) BeforeUpdate(db orm.DB) error {
+func (m *Socket) BeforeUpdate(ctx context.Context) (context.Context, error) {
 	m.UpdatedAt.Set(time.Now()) // nolint: errcheck
-	return nil
+	return ctx, nil
 }
