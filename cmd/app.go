@@ -109,7 +109,7 @@ func init() {
 		},
 		&cli.Float64Flag{
 			Name: "tracing-sampling", Usage: "tracing sampling value",
-			EnvVars: []string{"TRACING_SAMPLING"}, Value: 1,
+			EnvVars: []string{"TRACING_SAMPLING"}, Value: 0,
 		},
 		&cli.StringFlag{
 			Name: "service-name, n", Usage: "service name",

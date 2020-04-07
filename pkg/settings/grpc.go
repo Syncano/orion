@@ -6,8 +6,6 @@ import (
 	grpc_opentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
-
-	"github.com/Syncano/orion/cmd/otgrpc"
 )
 
 const (
@@ -23,10 +21,10 @@ var (
 	// DefaultGRPCServerOptions defines default grpc server options (duh).
 	DefaultGRPCServerOptions = []grpc.ServerOption{
 		grpc.UnaryInterceptor(
-			grpc_opentracing.UnaryServerInterceptor(grpc_opentracing.WithFilterFunc(otgrpc.FilterFunc)),
+			grpc_opentracing.UnaryServerInterceptor(),
 		),
 		grpc.StreamInterceptor(
-			grpc_opentracing.StreamServerInterceptor(grpc_opentracing.WithFilterFunc(otgrpc.FilterFunc)),
+			grpc_opentracing.StreamServerInterceptor(),
 		),
 		grpc.MaxRecvMsgSize(MaxGRPCMessageSize),
 		grpc.MaxSendMsgSize(MaxGRPCMessageSize),
@@ -41,10 +39,10 @@ var (
 		grpc.WithInsecure(),
 		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(MaxGRPCMessageSize)),
 		grpc.WithUnaryInterceptor(
-			grpc_opentracing.UnaryClientInterceptor(grpc_opentracing.WithFilterFunc(otgrpc.FilterFunc)),
+			grpc_opentracing.UnaryClientInterceptor(),
 		),
 		grpc.WithStreamInterceptor(
-			grpc_opentracing.StreamClientInterceptor(grpc_opentracing.WithFilterFunc(otgrpc.FilterFunc)),
+			grpc_opentracing.StreamClientInterceptor(),
 		),
 		grpc.WithKeepaliveParams(keepalive.ClientParameters{
 			Time:    KeepaliveParamsTime,
