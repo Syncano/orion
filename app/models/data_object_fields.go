@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-pg/pg/orm"
-	"github.com/jackc/pgx/pgtype"
+	"github.com/go-pg/pg/v9/orm"
+	"github.com/jackc/pgtype"
 	json "github.com/json-iterator/go"
 	geom "github.com/twpayne/go-geom"
 	"github.com/twpayne/go-geom/encoding/ewkbhex"

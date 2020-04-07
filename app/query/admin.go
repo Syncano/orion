@@ -19,19 +19,19 @@ func NewAdminManager(c storage.DBContext) *AdminManager {
 }
 
 // OneByID outputs object filtered by name.
-func (mgr *AdminManager) OneByID(o *models.Admin) error {
+func (m *AdminManager) OneByID(o *models.Admin) error {
 	return RequireOne(
-		cache.SimpleModelCache(mgr.DB(), o, fmt.Sprintf("id=%d", o.ID), func() (interface{}, error) {
-			return o, mgr.Query(o).Where("id = ?", o.ID).Select()
+		cache.SimpleModelCache(m.DB(), o, fmt.Sprintf("id=%d", o.ID), func() (interface{}, error) {
+			return o, m.Query(o).Where("id = ?", o.ID).Select()
 		}),
 	)
 }
 
 // OneByKey outputs object filtered by key.
-func (mgr *AdminManager) OneByKey(o *models.Admin) error {
+func (m *AdminManager) OneByKey(o *models.Admin) error {
 	return RequireOne(
-		cache.SimpleModelCache(mgr.DB(), o, fmt.Sprintf("k=%s", o.Key), func() (interface{}, error) {
-			return o, mgr.Query(o).Where("key = ?", o.Key).Select()
+		cache.SimpleModelCache(m.DB(), o, fmt.Sprintf("k=%s", o.Key), func() (interface{}, error) {
+			return o, m.Query(o).Where("key = ?", o.Key).Select()
 		}),
 	)
 }

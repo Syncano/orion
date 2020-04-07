@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"github.com/go-pg/pg/orm"
+	"github.com/go-pg/pg/v9/orm"
 
 	"github.com/Syncano/orion/app/api"
 	"github.com/Syncano/orion/app/models"

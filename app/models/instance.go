@@ -1,19 +1,16 @@
 package models
 
 import (
+	"context"
 	"fmt"
 	"time"
-
-	"github.com/go-pg/pg/orm"
-
-	"github.com/Syncano/orion/pkg/cache"
 )
 
 // Instance represents Instance (tenant) model.
 type Instance struct {
-	tableName struct{} `sql:"instances_instance" pg:",discard_unknown_columns"` // nolint
+	tableName struct{} `pg:"instances_instance,discard_unknown_columns"` // nolint
 
-	IsLive bool `sql:"_is_live"`
+	IsLive bool `pg:"_is_live"`
 
 	ID         int
 	Name       string
@@ -42,19 +39,7 @@ func (m *Instance) VerboseName() string {
 }
 
 // BeforeUpdate hook.
-func (m *Instance) BeforeUpdate(db orm.DB) error {
+func (m *Instance) BeforeUpdate(ctx context.Context) (context.Context, error) {
 	m.UpdatedAt.Set(time.Now()) // nolint: errcheck
-	return nil
-}
-
-// AfterUpdate hook.
-func (m *Instance) AfterUpdate(db orm.DB) error {
-	cache.ModelCacheInvalidate(db, m)
-	return nil
-}
-
-// AfterDelete hook.
-func (m *Instance) AfterDelete(db orm.DB) error {
-	cache.ModelCacheInvalidate(db, m)
-	return nil
+	return ctx, nil
 }

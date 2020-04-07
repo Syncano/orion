@@ -6,7 +6,7 @@ import (
 
 // UserMembership represents UserMembership model.
 type UserMembership struct {
-	tableName struct{} `sql:"?schema.users_membership" pg:",discard_unknown_columns"` // nolint
+	tableName struct{} `pg:"?schema.users_membership,discard_unknown_columns"` // nolint
 
 	ID      int
 	UserID  int

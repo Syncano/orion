@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"go.uber.org/zap"
 
 	"github.com/Syncano/orion/app/api"
@@ -40,6 +40,7 @@ func NewServer(debug bool) (*Server, error) {
 
 func (s *Server) setupRouter() *echo.Echo {
 	e := echo.New()
+	// Bottom up middlewares
 	e.Use(
 		Recovery(),
 		Logger(),

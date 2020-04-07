@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v7"
 
 	"github.com/Syncano/orion/pkg/redisdb"
 )

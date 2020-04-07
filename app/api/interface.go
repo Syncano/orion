@@ -1,6 +1,8 @@
 package api
 
-import "github.com/go-pg/pg"
+import (
+	"github.com/go-pg/pg/v9"
+)
 
 //go:generate go run github.com/vektra/mockery/cmd/mockery -inpkg -testonly -name Verboser
 type Verboser interface {

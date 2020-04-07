@@ -3,7 +3,7 @@ package controllers
 import (
 	"reflect"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 
 	"github.com/Syncano/orion/app/api"
 	"github.com/Syncano/orion/app/serializers"

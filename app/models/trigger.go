@@ -1,10 +1,9 @@
 package models
 
 import (
+	"context"
 	"fmt"
 	"time"
-
-	"github.com/go-pg/pg/orm"
 )
 
 // TriggerSignal enum.
@@ -16,7 +15,7 @@ const (
 
 // Trigger represents trigger model.
 type Trigger struct {
-	tableName struct{} `sql:"?schema.triggers_trigger" pg:",discard_unknown_columns"` // nolint
+	tableName struct{} `pg:"?schema.triggers_trigger,discard_unknown_columns"` // nolint
 
 	ID          int
 	Description string
@@ -42,7 +41,7 @@ func (m *Trigger) VerboseName() string {
 }
 
 // BeforeUpdate hook.
-func (m *Trigger) BeforeUpdate(db orm.DB) error {
+func (m *Trigger) BeforeUpdate(ctx context.Context) (context.Context, error) {
 	m.UpdatedAt.Set(time.Now()) // nolint: errcheck
-	return nil
+	return ctx, nil
 }

@@ -3,7 +3,7 @@ package settings
 import (
 	"time"
 
-	"github.com/caarlos0/env"
+	"github.com/caarlos0/env/v6"
 	"github.com/jinzhu/now"
 
 	"github.com/Syncano/orion/pkg/util"

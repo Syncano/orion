@@ -3,7 +3,7 @@ package query
 import (
 	"fmt"
 
-	"github.com/go-pg/pg"
+	"github.com/go-pg/pg/v9"
 	json "github.com/json-iterator/go"
 
 	"github.com/Syncano/orion/app/models"
@@ -23,7 +23,7 @@ func NewTriggerManager(c storage.DBContext) *TriggerManager {
 }
 
 // Match outputs one object within specific class filtered by id.
-func (mgr *TriggerManager) Match(instance *models.Instance, event map[string]string, signal string) ([]*models.Trigger, error) {
+func (m *TriggerManager) Match(instance *models.Instance, event map[string]string, signal string) ([]*models.Trigger, error) {
 	var o []*models.Trigger
 
 	eventSerialized, e := json.ConfigCompatibleWithStandardLibrary.Marshal(event)
@@ -36,7 +36,7 @@ func (mgr *TriggerManager) Match(instance *models.Instance, event map[string]str
 		ehstore := new(models.Hstore)
 		ehstore.Set(event) // nolint: errcheck
 
-		err := mgr.Query(&o).Where("event @> ?", ehstore).Where("signals @> ?", pg.Array([]string{signal})).Select()
+		err := m.Query(&o).Where("event @> ?", ehstore).Where("signals @> ?", pg.Array([]string{signal})).Select()
 		return o, err
 	})
 

@@ -18,7 +18,7 @@ var InstanceIndicatorType = map[int]string{
 
 // InstanceIndicator represents InstanceIndicator model.
 type InstanceIndicator struct {
-	tableName struct{} `sql:"instances_instanceindicator"` // nolint
+	tableName struct{} `pg:"instances_instanceindicator"` // nolint
 
 	ID         int
 	Type       int

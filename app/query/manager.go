@@ -1,8 +1,8 @@
 package query
 
 import (
-	"github.com/go-pg/pg"
-	"github.com/go-pg/pg/orm"
+	"github.com/go-pg/pg/v9"
+	"github.com/go-pg/pg/v9/orm"
 
 	"github.com/Syncano/orion/pkg/storage"
 )
@@ -44,13 +44,13 @@ func (m *Manager) SetDB(db orm.DB) {
 
 // Query returns all objects.
 func (m *Manager) Query(o interface{}) *orm.Query {
-	return m.DB().Model(o)
+	return m.DB().ModelContext(m.Context.Request().Context(), o)
 }
 
 // Insert creates object.
 func (m *Manager) Insert(model interface{}) error {
 	db := m.DB()
-	if err := db.Insert(model); err != nil {
+	if _, err := db.ModelContext(m.Context.Request().Context(), model).Insert(model); err != nil {
 		return err
 	}
 
@@ -60,7 +60,7 @@ func (m *Manager) Insert(model interface{}) error {
 // Update updates object.
 func (m *Manager) Update(model interface{}, fields ...string) error {
 	db := m.DB()
-	if _, err := db.Model(model).Column(fields...).WherePK().Update(); err != nil {
+	if _, err := db.ModelContext(m.Context.Request().Context(), model).Column(fields...).WherePK().Update(); err != nil {
 		return err
 	}
 
@@ -70,7 +70,7 @@ func (m *Manager) Update(model interface{}, fields ...string) error {
 // Delete deletes object.
 func (m *Manager) Delete(model interface{}) error {
 	db := m.DB()
-	if err := db.Delete(model); err != nil {
+	if _, err := db.ModelContext(m.Context.Request().Context(), model).Delete(); err != nil {
 		return err
 	}
 

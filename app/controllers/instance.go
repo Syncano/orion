@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-pg/pg"
-	"github.com/labstack/echo"
+	"github.com/go-pg/pg/v9"
+	"github.com/labstack/echo/v4"
 
 	"github.com/Syncano/orion/app/api"
 	"github.com/Syncano/orion/app/models"
@@ -108,8 +108,12 @@ func detailInstance(c echo.Context) *models.Instance {
 func InstanceRetrieve(c echo.Context) error {
 	o := detailInstance(c)
 
-	if query.NewInstanceManager(c).WithAccessByNameQ(o).Select() != nil {
-		return api.NewNotFoundError(o)
+	if err := query.NewInstanceManager(c).WithAccessByNameQ(o).Select(); err != nil {
+		if err == pg.ErrNoRows {
+			return api.NewNotFoundError(o)
+		}
+
+		return err
 	}
 
 	return api.Render(c, http.StatusOK, serializers.InstanceSerializer{}.Response(o))

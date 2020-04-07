@@ -3,7 +3,7 @@ package validators
 import (
 	"github.com/go-playground/locales/en"
 	ut "github.com/go-playground/universal-translator"
-	validator "gopkg.in/go-playground/validator.v9"
+	"github.com/go-playground/validator/v10"
 )
 
 var translator ut.Translator

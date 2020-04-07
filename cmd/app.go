@@ -9,11 +9,13 @@ import (
 	"time"
 
 	raven "github.com/getsentry/raven-go"
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v7"
 	opentracing "github.com/opentracing/opentracing-go"
-	zipkin "github.com/openzipkin/zipkin-go-opentracing"
+	zipkinot "github.com/openzipkin-contrib/zipkin-go-opentracing"
+	"github.com/openzipkin/zipkin-go"
+	zipkinhttp "github.com/openzipkin/zipkin-go/reporter/http"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
 
 	"github.com/Syncano/orion/cmd/amqp"
@@ -41,7 +43,7 @@ func init() {
 	App.Usage = "Application that enables running user provided unsecure code in a secure docker environment."
 	App.Compiled = version.Buildtime
 	App.Version = version.Current.String()
-	App.Authors = []cli.Author{
+	App.Authors = []*cli.Author{
 		{
 			Name:  "Robert Kopaczewski",
 			Email: "rk@23doors.com",
@@ -49,79 +51,79 @@ func init() {
 	}
 	App.Copyright = "(c) 2018 Syncano"
 	App.Flags = []cli.Flag{
-		cli.BoolFlag{
+		&cli.BoolFlag{
 			Name: "debug", Usage: "enable debug mode",
-			EnvVar: "DEBUG",
+			EnvVars: []string{"DEBUG"},
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name: "dsn", Usage: "enable sentry logging",
-			EnvVar: "SENTRY_DSN",
+			EnvVars: []string{"SENTRY_DSN"},
 		},
-		cli.IntFlag{
+		&cli.IntFlag{
 			Name: "port, p", Usage: "port for expvar server",
-			EnvVar: "METRIC_PORT", Value: 9080,
+			EnvVars: []string{"METRIC_PORT"}, Value: 9080,
 		},
 
 		// Database options.
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name: "db-name", Usage: "database name",
-			EnvVar: "DB_NAME", Value: "syncano", Destination: &dbOptions.Database,
+			EnvVars: []string{"DB_NAME"}, Value: "syncano", Destination: &dbOptions.Database,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name: "db-user", Usage: "database user",
-			EnvVar: "DB_USER", Value: "syncano", Destination: &dbOptions.User,
+			EnvVars: []string{"DB_USER"}, Value: "syncano", Destination: &dbOptions.User,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name: "db-pass", Usage: "database password",
-			EnvVar: "DB_PASS", Value: "syncano", Destination: &dbOptions.Password,
+			EnvVars: []string{"DB_PASS"}, Value: "syncano", Destination: &dbOptions.Password,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name: "db-addr", Usage: "database address",
-			EnvVar: "DB_ADDR", Value: "postgresql:5432", Destination: &dbOptions.Addr,
+			EnvVars: []string{"DB_ADDR"}, Value: "postgresql:5432", Destination: &dbOptions.Addr,
 		},
 
 		// Database instances options.
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name: "db-instances-name", Usage: "database name",
-			EnvVar: "DB_INSTANCES_NAME,DB_NAME", Value: "syncano", Destination: &dbInstancesOptions.Database,
+			EnvVars: []string{"DB_INSTANCES_NAME", "DB_NAME"}, Value: "syncano", Destination: &dbInstancesOptions.Database,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name: "db-instances-user", Usage: "database user",
-			EnvVar: "DB_INSTANCES_USER,DB_USER", Value: "syncano", Destination: &dbInstancesOptions.User,
+			EnvVars: []string{"DB_INSTANCES_USER", "DB_USER"}, Value: "syncano", Destination: &dbInstancesOptions.User,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name: "db-instances-pass", Usage: "database password",
-			EnvVar: "DB_INSTANCES_PASS,DB_PASS", Value: "syncano", Destination: &dbInstancesOptions.Password,
+			EnvVars: []string{"DB_INSTANCES_PASS", "DB_PASS"}, Value: "syncano", Destination: &dbInstancesOptions.Password,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name: "db-instances-host", Usage: "database address",
-			EnvVar: "DB_INSTANCES_ADDR,DB_ADDR", Value: "postgresql:5432", Destination: &dbInstancesOptions.Addr,
+			EnvVars: []string{"DB_INSTANCES_ADDR", "DB_ADDR"}, Value: "postgresql:5432", Destination: &dbInstancesOptions.Addr,
 		},
 
 		// Tracing options.
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name: "zipkin-addr", Usage: "zipkin address",
-			EnvVar: "ZIPKIN_ADDR", Value: "zipkin",
+			EnvVars: []string{"ZIPKIN_ADDR"}, Value: "zipkin",
 		},
-		cli.Float64Flag{
+		&cli.Float64Flag{
 			Name: "tracing-sampling", Usage: "tracing sampling value",
-			EnvVar: "TRACING_SAMPLING", Value: 1,
+			EnvVars: []string{"TRACING_SAMPLING"}, Value: 1,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name: "service-name, n", Usage: "service name",
-			EnvVar: "SERVICE_NAME", Value: "orion",
+			EnvVars: []string{"SERVICE_NAME"}, Value: "orion",
 		},
 
 		// Redis options.
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name: "redis-addr", Usage: "redis TCP address",
-			EnvVar: "REDIS_ADDR", Value: "redis:6379", Destination: &redisOptions.Addr,
+			EnvVars: []string{"REDIS_ADDR"}, Value: "redis:6379", Destination: &redisOptions.Addr,
 		},
 
 		// Broker options.
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name: "broker-url", Usage: "amqp broker url",
-			EnvVar: "BROKER_URL", Value: "amqp://admin:mypass@rabbitmq//",
+			EnvVars: []string{"BROKER_URL"}, Value: "amqp://admin:mypass@rabbitmq//",
 		},
 	}
 	App.Before = func(c *cli.Context) error {
@@ -158,20 +160,25 @@ func init() {
 		http.Handle("/metrics", promhttp.Handler())
 
 		// Initialize tracing.
-		collector, err := zipkin.NewHTTPCollector(fmt.Sprintf("http://%s:9411/api/v1/spans", c.String("zipkin-addr")))
+		reporter := zipkinhttp.NewReporter(fmt.Sprintf("http://%s:9411/api/v2/spans", c.String("zipkin-addr")))
+		defer reporter.Close()
+
+		endpoint, err := zipkin.NewEndpoint(c.String("service-name"), "")
 		if err != nil {
-			return err
+			logger.With(zap.Error(err)).Fatal("Unable to create local endpoint error")
 		}
 
-		recorder := zipkin.NewRecorder(collector, c.Bool("debug"), "0", c.String("service-name"))
-
-		tracer, err := zipkin.NewTracer(recorder,
-			zipkin.ClientServerSameSpan(false),
-			zipkin.WithSampler(zipkin.ModuloSampler(uint64(1/c.Float64("tracing-sampling")))),
+		// Initialize tracer.
+		nativeTracer, err := zipkin.NewTracer(reporter,
+			zipkin.WithLocalEndpoint(endpoint),
+			zipkin.WithSampler(zipkin.NewModuloSampler(uint64(1/c.Float64("tracing-sampling")))),
 		)
 		if err != nil {
-			return err
+			logger.With(zap.Error(err)).Fatal("Unable to create tracer")
 		}
+
+		// Use zipkin-go-opentracing to wrap our tracer.
+		tracer := zipkinot.Wrap(nativeTracer)
 
 		opentracing.SetGlobalTracer(tracer)
 

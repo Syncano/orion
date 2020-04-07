@@ -3,18 +3,15 @@ package models
 import (
 	"fmt"
 
-	"github.com/go-pg/pg/orm"
 	"github.com/shopspring/decimal"
-
-	"github.com/Syncano/orion/pkg/cache"
 )
 
 // Profile represents billing profile model.
 type Profile struct {
 	State
-	tableName struct{} `sql:"billing_profile" pg:",discard_unknown_columns"` // nolint
+	tableName struct{} `pg:"billing_profile,discard_unknown_columns"` // nolint
 
-	AdminID          int `sql:",pk"`
+	AdminID          int `pg:",pk"`
 	Admin            *Admin
 	CustomerID       string
 	SoftLimit        decimal.Decimal
@@ -41,16 +38,4 @@ func (m *Profile) String() string {
 // VerboseName returns verbose name for model.
 func (m *Profile) VerboseName() string {
 	return "Profile"
-}
-
-// AfterUpdate hook.
-func (m *Profile) AfterUpdate(db orm.DB) error {
-	cache.ModelCacheInvalidate(db, m)
-	return nil
-}
-
-// AfterDelete hook.
-func (m *Profile) AfterDelete(db orm.DB) error {
-	cache.ModelCacheInvalidate(db, m)
-	return nil
 }

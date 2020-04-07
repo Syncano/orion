@@ -40,7 +40,7 @@ lint: ## Run lint checks
 	echo "=== lint ==="
 	if ! hash golangci-lint 2>/dev/null; then \
 		echo "Installing golangci-lint"; \
-		curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $$(go env GOPATH)/bin v1.23.6; \
+		curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $$(go env GOPATH)/bin v1.24.0; \
 	fi
 	golangci-lint run $(ARGS)
 
@@ -75,7 +75,7 @@ test-in-docker: require-docker-compose ## Run full test suite in docker environm
 proto: ## Run protobuf compiler on all .proto files
 	for dir in $$(find . -name \*.proto -type f ! -path "./.*" -exec dirname {} \; | sort | uniq); do \
 		protoc -I. \
-			--gofast_out=plugins=grpc:$(GOPATH)/src \
+			--go_out=paths=source_relative,plugins=grpc:. \
 			$$dir/*.proto; \
 	done
 
@@ -119,7 +119,7 @@ start: require-docker-compose ## Run docker-compose of an app.
 	docker-compose -f build/docker-compose.yml up
 
 devserver: ## Run devserver
-	PORT=8080 DEBUG=1 FORCE_TERM=1 go run github.com/cespare/reflex --glob='**/*.go' --inverse-glob='**/*_test.go' --start-service -- go run . server
+	PORT=8080 DEBUG=1 FORCE_TERM=1 go run github.com/cespare/reflex --regex='\.go$$' --inverse-regex='_test\.go$$' --start-service -- go run . server
 
 run-server: build ## Build and run server binary
 	./build/$(EXECNAME) $(ARGS) server

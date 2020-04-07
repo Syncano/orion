@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	redis_cache "github.com/go-redis/cache"
+	redis_cache "github.com/go-redis/cache/v7"
 	jsoniter "github.com/json-iterator/go"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

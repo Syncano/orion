@@ -1,9 +1,9 @@
 package routers
 
 import (
-	"github.com/go-redis/redis_rate"
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
+	"github.com/go-redis/redis_rate/v7"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/bytes"
 
 	"github.com/Syncano/orion/app/api"

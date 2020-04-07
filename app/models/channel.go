@@ -1,12 +1,9 @@
 package models
 
 import (
+	"context"
 	"fmt"
 	"time"
-
-	"github.com/go-pg/pg/orm"
-
-	"github.com/Syncano/orion/pkg/cache"
 )
 
 // Channel constants.
@@ -29,9 +26,9 @@ var ChannelType = map[int]string{
 
 // Channel represents Channel model.
 type Channel struct {
-	tableName struct{} `sql:"?schema.channels_channel" pg:",discard_unknown_columns"` // nolint
+	tableName struct{} `pg:"?schema.channels_channel,discard_unknown_columns"` // nolint
 
-	IsLive bool `sql:"_is_live"`
+	IsLive bool `pg:"_is_live"`
 
 	ID          int
 	Name        string
@@ -51,20 +48,8 @@ func (m *Channel) VerboseName() string {
 	return "Channel"
 }
 
-// AfterUpdate hook.
-func (m *Channel) AfterUpdate(db orm.DB) error {
-	cache.ModelCacheInvalidate(db, m)
-	return nil
-}
-
-// AfterDelete hook.
-func (m *Channel) AfterDelete(db orm.DB) error {
-	cache.ModelCacheInvalidate(db, m)
-	return nil
-}
-
 // BeforeUpdate hook.
-func (m *Channel) BeforeUpdate(db orm.DB) error {
+func (m *Channel) BeforeUpdate(ctx context.Context) (context.Context, error) {
 	m.UpdatedAt.Set(time.Now()) // nolint: errcheck
-	return nil
+	return ctx, nil
 }

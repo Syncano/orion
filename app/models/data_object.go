@@ -1,30 +1,29 @@
 package models
 
 import (
+	"context"
 	"fmt"
 	"time"
-
-	"github.com/go-pg/pg/orm"
 )
 
 // DataObject represents DataObject model.
 type DataObject struct {
 	State
 
-	tableName struct{} `sql:"?schema.data_dataobject" pg:",discard_unknown_columns"` // nolint
+	tableName struct{} `pg:"?schema.data_dataobject,discard_unknown_columns"` // nolint
 
-	IsLive bool `sql:"_is_live"`
+	IsLive bool `pg:"_is_live"`
 
 	ID        int
-	Data      Hstore `sql:"_data" state:"virtual"`
-	Files     Hstore `sql:"_files"`
+	Data      Hstore `pg:"_data" state:"virtual"`
+	Files     Hstore `pg:"_files"`
 	Revision  int
 	CreatedAt Time
 	UpdatedAt Time
 
 	OwnerID int
 	Owner   *User
-	ClassID int    `sql:"_klass_id"`
+	ClassID int    `pg:"_klass_id"`
 	Class   *Class `pg:"fk:_klass_id"`
 }
 
@@ -53,7 +52,7 @@ func (m *DataObject) VerboseName() string {
 }
 
 // BeforeUpdate hook.
-func (m *DataObject) BeforeUpdate(db orm.DB) error {
+func (m *DataObject) BeforeUpdate(ctx context.Context) (context.Context, error) {
 	m.UpdatedAt.Set(time.Now()) // nolint: errcheck
-	return nil
+	return ctx, nil
 }

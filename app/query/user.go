@@ -3,7 +3,7 @@ package query
 import (
 	"fmt"
 
-	"github.com/go-pg/pg/orm"
+	"github.com/go-pg/pg/v9/orm"
 
 	"github.com/Syncano/orion/app/models"
 	"github.com/Syncano/orion/pkg/cache"
@@ -22,61 +22,61 @@ func NewUserManager(c storage.DBContext) *UserManager {
 }
 
 // Q outputs objects query.
-func (mgr *UserManager) Q(class *models.Class, o interface{}) *orm.Query {
-	return mgr.Query(o).Column("user.*", "Profile").
+func (m *UserManager) Q(class *models.Class, o interface{}) *orm.Query {
+	return m.Query(o).Column("user.*").Relation("Profile").
 		Where("profile._klass_id = ?", class.ID)
 }
 
 // ByIDQ outputs one object that entity has access to filtered by id.
-func (mgr *UserManager) ByIDQ(class *models.Class, o *models.User) *orm.Query {
-	return mgr.Q(class, o).Where("?TableAlias.id = ?", o.ID)
+func (m *UserManager) ByIDQ(class *models.Class, o *models.User) *orm.Query {
+	return m.Q(class, o).Where("?TableAlias.id = ?", o.ID)
 }
 
 // ForGroupQ outputs objects that entity has access to filtered by group.
-func (mgr *UserManager) ForGroupQ(class *models.Class, group *models.UserGroup, o interface{}) *orm.Query {
-	return mgr.Q(class, o).
+func (m *UserManager) ForGroupQ(class *models.Class, group *models.UserGroup, o interface{}) *orm.Query {
+	return m.Q(class, o).
 		Join("JOIN ?schema.users_membership AS m ON m.user_id = ?TableAlias.id AND m.group_id = ?", group.ID)
 }
 
 // ForGroupByIDQ outputs one object that entity has access to filtered by group and id.
-func (mgr *UserManager) ForGroupByIDQ(class *models.Class, group *models.UserGroup, o *models.User) *orm.Query {
-	return mgr.ForGroupQ(class, group, o).Where("?TableAlias.id = ?", o.ID)
+func (m *UserManager) ForGroupByIDQ(class *models.Class, group *models.UserGroup, o *models.User) *orm.Query {
+	return m.ForGroupQ(class, group, o).Where("?TableAlias.id = ?", o.ID)
 }
 
 // OneByID outputs object filtered by id.
-func (mgr *UserManager) OneByID(o *models.User) error {
+func (m *UserManager) OneByID(o *models.User) error {
 	return RequireOne(
-		cache.SimpleModelCache(mgr.DB(), o, fmt.Sprintf("i=%d", o.ID), func() (interface{}, error) {
-			return o, mgr.Query(o).Where("id = ?", o.ID).Select()
+		cache.SimpleModelCache(m.DB(), o, fmt.Sprintf("i=%d", o.ID), func() (interface{}, error) {
+			return o, m.Query(o).Where("id = ?", o.ID).Select()
 		}),
 	)
 }
 
 // OneByName outputs object filtered by name.
-func (mgr *UserManager) OneByName(o *models.User) error {
+func (m *UserManager) OneByName(o *models.User) error {
 	return RequireOne(
-		cache.SimpleModelCache(mgr.DB(), o, fmt.Sprintf("u=%s", o.Username), func() (interface{}, error) {
-			return o, mgr.Query(o).Where("username = ?", o.Username).Select()
+		cache.SimpleModelCache(m.DB(), o, fmt.Sprintf("u=%s", o.Username), func() (interface{}, error) {
+			return o, m.Query(o).Where("username = ?", o.Username).Select()
 		}),
 	)
 }
 
 // OneByKey outputs object filtered by key. Doesn't fetch profile nor groups.
-func (mgr *UserManager) OneByKey(o *models.User) error {
+func (m *UserManager) OneByKey(o *models.User) error {
 	return RequireOne(
-		cache.SimpleModelCache(mgr.DB(), o, fmt.Sprintf("k=%s", o.Key), func() (interface{}, error) {
-			return o, mgr.Query(o).Where("key = ?", o.Key).Select()
+		cache.SimpleModelCache(m.DB(), o, fmt.Sprintf("k=%s", o.Key), func() (interface{}, error) {
+			return o, m.Query(o).Where("key = ?", o.Key).Select()
 		}),
 	)
 }
 
 // FetchData outputs object filtered by name.
-func (mgr *UserManager) FetchData(class *models.Class, o *models.User) error {
-	return mgr.Query(o).Column("_", "Profile", "Groups").
+func (m *UserManager) FetchData(class *models.Class, o *models.User) error {
+	return m.Query(o).Column("_").Relation("Profile").Relation("Groups").
 		Where("profile._klass_id = ?", class.ID).WherePK().Select()
 }
 
 // CountEstimate returns count estimate for users list.
-func (mgr *UserManager) CountEstimate() (int, error) {
-	return CountEstimate(mgr.DB(), mgr.Query((*models.User)(nil)), settings.API.DataObjectEstimateThreshold)
+func (m *UserManager) CountEstimate() (int, error) {
+	return CountEstimate(m.Context.Request().Context(), m.DB(), m.Query((*models.User)(nil)), settings.API.DataObjectEstimateThreshold)
 }

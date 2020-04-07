@@ -7,9 +7,9 @@ import (
 	"time"
 
 	raven "github.com/getsentry/raven-go"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	opentracing "github.com/opentracing/opentracing-go"
-	zipkin "github.com/openzipkin/zipkin-go-opentracing"
+	zipkin "github.com/openzipkin-contrib/zipkin-go-opentracing"
 	"go.uber.org/zap"
 
 	"github.com/Syncano/orion/app/api"
@@ -132,7 +132,8 @@ func OpenTracing() echo.MiddlewareFunc {
 			}
 
 			// If we're not in a sampled context, return.
-			if !span.Context().(zipkin.SpanContext).Sampled {
+			spanCtx := span.Context().(zipkin.SpanContext)
+			if spanCtx.Sampled == nil || !*spanCtx.Sampled {
 				return next(c)
 			}
 
@@ -141,17 +142,13 @@ func OpenTracing() echo.MiddlewareFunc {
 			span.SetTag("http.url", req.Host+req.RequestURI)
 			span.SetTag("http.method", req.Method)
 
-			if err := next(c); err != nil {
-				span.SetTag("error", true)
-				c.Error(err)
-			}
+			err = next(c)
 
-			span.SetTag("error", false)
+			span.SetTag("error", err != nil)
 			span.SetTag("http.status_code", c.Response().Status)
-
 			c.SetRequest(req.WithContext(opentracing.ContextWithSpan(req.Context(), span)))
 
-			return nil
+			return err
 		}
 	}
 }

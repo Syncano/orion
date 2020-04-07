@@ -3,8 +3,8 @@ package controllers
 import (
 	"net/http"
 
-	"github.com/go-pg/pg"
-	"github.com/labstack/echo"
+	"github.com/go-pg/pg/v9"
+	"github.com/labstack/echo/v4"
 
 	"github.com/Syncano/orion/app/api"
 	"github.com/Syncano/orion/app/models"
@@ -53,8 +53,12 @@ func detailClass(c echo.Context) *models.Class {
 func ClassRetrieve(c echo.Context) error {
 	o := detailClass(c)
 
-	if query.NewClassManager(c).WithAccessByNameQ(o).Select() != nil {
-		return api.NewNotFoundError(o)
+	if err := query.NewClassManager(c).WithAccessByNameQ(o).Select(); err != nil {
+		if err == pg.ErrNoRows {
+			return api.NewNotFoundError(o)
+		}
+
+		return err
 	}
 
 	return api.Render(c, http.StatusOK, serializers.ClassSerializer{}.Response(o))
