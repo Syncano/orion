@@ -38,6 +38,7 @@ var (
 	redisOptions       = redis.Options{}
 	amqpChannel        *amqp.Channel
 	tracingReporter    reporter.Reporter
+	tracer             opentracing.Tracer
 )
 
 func init() {
@@ -162,7 +163,10 @@ func init() {
 		http.Handle("/metrics", promhttp.Handler())
 
 		// Initialize tracing.
-		tracingReporter = zipkinhttp.NewReporter(fmt.Sprintf("http://%s:9411/api/v2/spans", c.String("zipkin-addr")))
+		stdlog, _ := zap.NewStdLogAt(logger, zap.WarnLevel)
+		tracingReporter = zipkinhttp.NewReporter(fmt.Sprintf("http://%s:9411/api/v2/spans", c.String("zipkin-addr")),
+			zipkinhttp.Logger(stdlog),
+		)
 
 		endpoint, err := zipkin.NewEndpoint(c.String("service-name"), "")
 		if err != nil {
@@ -179,7 +183,7 @@ func init() {
 		}
 
 		// Use zipkin-go-opentracing to wrap our tracer.
-		tracer := zipkinot.Wrap(nativeTracer)
+		tracer = zipkinot.Wrap(nativeTracer)
 
 		opentracing.SetGlobalTracer(tracer)
 

@@ -10,7 +10,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
-	zipkin "github.com/openzipkin-contrib/zipkin-go-opentracing"
 	"go.uber.org/zap"
 
 	"github.com/Syncano/orion/app/api"
@@ -130,12 +129,6 @@ func OpenTracing() echo.MiddlewareFunc {
 				span = opentracing.StartSpan(opName)
 			} else {
 				span = opentracing.StartSpan(opName, opentracing.ChildOf(wireContext))
-			}
-
-			// If we're not in a sampled context, return.
-			spanCtx := span.Context().(zipkin.SpanContext)
-			if spanCtx.Sampled == nil || !*spanCtx.Sampled {
-				return next(c)
 			}
 
 			defer span.Finish()

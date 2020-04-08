@@ -25,11 +25,12 @@ type Server struct {
 
 // NewServer initializes new Web server.
 func NewServer(debug bool) (*Server, error) {
+	stdlog, _ := zap.NewStdLogAt(log.Logger(), zap.WarnLevel)
 	s := &Server{
 		srv: &http.Server{
 			ReadTimeout:  6 * time.Minute,
 			WriteTimeout: 6 * time.Minute,
-			ErrorLog:     zap.NewStdLog(log.Logger()),
+			ErrorLog:     stdlog,
 		},
 		debug: debug,
 	}
