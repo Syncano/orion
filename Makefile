@@ -67,10 +67,10 @@ goconvey: ## Run goconvey test server
 	go run github.com/smartystreets/goconvey -excludedDirs "dev,internal,mocks,proto,assets,deploy,build" -timeout 5s -depth 2
 
 lint-in-docker: require-docker-compose ## Run lint in docker environment
-	docker-compose run --no-deps --rm app make lint
+	docker-compose run --no-deps --rm server make lint
 
 test-in-docker: require-docker-compose ## Run full test suite in docker environment
-	docker-compose run --rm app make build test
+	docker-compose run --rm server make build test
 
 proto: ## Run protobuf compiler on all .proto files
 	for dir in $$(find . -name \*.proto -type f ! -path "./.*" -exec dirname {} \; | sort | uniq); do \
@@ -90,7 +90,7 @@ build: ## Build
 	go build -ldflags "$(LDFLAGS)" -o ./build/$(EXECNAME)
 
 build-in-docker: require-docker-compose ## Build in docker environment
-	docker-compose run --no-deps --rm -e CGO_ENABLED=0 app make build
+	docker-compose run --no-deps --rm -e CGO_ENABLED=0 server make build
 
 docker: require-docker ## Builds docker image for application (requires static version to be built first)
 	docker build -t $(DOCKERIMAGE) build
@@ -116,10 +116,10 @@ decrypt: ## Decrypt files.
 	find deploy -name "*.gpg" -exec sh -c 'gpg --batch --yes --passphrase "$(ORION_VAULT_PASS)" --decrypt -o "$${1%.gpg}.unenc" "$$1"' _ {} \;
 
 start: require-docker-compose ## Run docker-compose of an app.
-	docker-compose -f build/docker-compose.yml up
+	docker-compose -f docker-compose.yml -f build/docker-compose.yml up
 
 devserver: ## Run devserver
-	PORT=8080 DEBUG=1 FORCE_TERM=1 go run github.com/cespare/reflex --regex='\.go$$' --inverse-regex='_test\.go$$' --start-service -- go run . server
+	SERVICE_NAME=orion-server PORT=8080 DEBUG=1 FORCE_TERM=1 go run github.com/cespare/reflex --regex='\.go$$' --inverse-regex='_test\.go$$' --start-service -- go run . server
 
 run-server: build ## Build and run server binary
 	./build/$(EXECNAME) $(ARGS) server

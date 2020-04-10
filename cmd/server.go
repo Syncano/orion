@@ -9,8 +9,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	grpc_opentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
 	"github.com/urfave/cli/v2"
+	"go.opencensus.io/plugin/ocgrpc"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
@@ -50,12 +50,7 @@ As there is no authentication, always run it in a private network.`,
 		conn, err := grpc.Dial(c.String("codebox-addr"),
 			grpc.WithInsecure(),
 			grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(settings.MaxGRPCMessageSize)),
-			grpc.WithUnaryInterceptor(
-				grpc_opentracing.UnaryClientInterceptor(),
-			),
-			grpc.WithStreamInterceptor(
-				grpc_opentracing.StreamClientInterceptor(),
-			),
+			grpc.WithStatsHandler(&ocgrpc.ClientHandler{}),
 		)
 		if err != nil {
 			return err
