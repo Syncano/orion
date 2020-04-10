@@ -46,7 +46,7 @@ func (s *Server) setupRouter() *echo.Echo {
 		Recovery(),
 		Logger(),
 		middleware.CORSWithConfig(middleware.CORSConfig{MaxAge: 86400}),
-		OpenTracing(),
+		OpenCensus(),
 	)
 
 	// Register profiling if debug is on.

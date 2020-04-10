@@ -8,15 +8,15 @@ import (
 	"runtime"
 	"time"
 
+	"contrib.go.opencensus.io/exporter/jaeger"
+	"contrib.go.opencensus.io/exporter/prometheus"
 	raven "github.com/getsentry/raven-go"
 	"github.com/go-redis/redis/v7"
-	opentracing "github.com/opentracing/opentracing-go"
-	zipkinot "github.com/openzipkin-contrib/zipkin-go-opentracing"
-	"github.com/openzipkin/zipkin-go"
-	"github.com/openzipkin/zipkin-go/reporter"
-	zipkinhttp "github.com/openzipkin/zipkin-go/reporter/http"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/urfave/cli/v2"
+	"go.opencensus.io/plugin/ocgrpc"
+	"go.opencensus.io/plugin/ochttp"
+	"go.opencensus.io/stats/view"
+	"go.opencensus.io/trace"
 	"go.uber.org/zap"
 
 	"github.com/Syncano/orion/cmd/amqp"
@@ -37,8 +37,8 @@ var (
 	dbInstancesOptions = storage.DefaultDBOptions()
 	redisOptions       = redis.Options{}
 	amqpChannel        *amqp.Channel
-	tracingReporter    reporter.Reporter
-	tracer             opentracing.Tracer
+
+	jaegerExporter *jaeger.Exporter
 )
 
 func init() {
@@ -63,7 +63,7 @@ func init() {
 			EnvVars: []string{"SENTRY_DSN"},
 		},
 		&cli.IntFlag{
-			Name: "port, p", Usage: "port for expvar server",
+			Name: "port", Aliases: []string{"p"}, Usage: "port for expvar server",
 			EnvVars: []string{"METRIC_PORT"}, Value: 9080,
 		},
 
@@ -105,15 +105,15 @@ func init() {
 
 		// Tracing options.
 		&cli.StringFlag{
-			Name: "zipkin-addr", Usage: "zipkin address",
-			EnvVars: []string{"ZIPKIN_ADDR"}, Value: "zipkin",
+			Name: "jaeger-collector-endpoint", Usage: "jaeger collector endpoint",
+			EnvVars: []string{"JAEGER_COLLECTOR_ENDPOINT"}, Value: "http://jaeger:14268/api/traces",
 		},
 		&cli.Float64Flag{
-			Name: "tracing-sampling", Usage: "tracing sampling value",
+			Name: "tracing-sampling", Usage: "tracing sampling probability value",
 			EnvVars: []string{"TRACING_SAMPLING"}, Value: 0,
 		},
 		&cli.StringFlag{
-			Name: "service-name, n", Usage: "service name",
+			Name: "service-name", Aliases: []string{"n"}, Usage: "service name",
 			EnvVars: []string{"SERVICE_NAME"}, Value: "orion",
 		},
 
@@ -160,32 +160,42 @@ func init() {
 		}()
 
 		// Setup prometheus handler.
-		http.Handle("/metrics", promhttp.Handler())
+		exporter, err := prometheus.NewExporter(prometheus.Options{})
+		if err != nil {
+			logger.With(zap.Error(err)).Fatal("Prometheus exporter misconfiguration")
+		}
+
+		var views []*view.View
+		views = append(views, ochttp.DefaultClientViews...)
+		views = append(views, ochttp.DefaultServerViews...)
+		views = append(views, ocgrpc.DefaultClientViews...)
+		views = append(views, ocgrpc.DefaultServerViews...)
+
+		if err := view.Register(views...); err != nil {
+			logger.With(zap.Error(err)).Fatal("Opencensus views registration failed")
+		}
+
+		// Serve prometheus metrics.
+		http.Handle("/metrics", exporter)
 
 		// Initialize tracing.
-		stdlog, _ := zap.NewStdLogAt(logger, zap.WarnLevel)
-		tracingReporter = zipkinhttp.NewReporter(fmt.Sprintf("http://%s:9411/api/v2/spans", c.String("zipkin-addr")),
-			zipkinhttp.Logger(stdlog),
-		)
-
-		endpoint, err := zipkin.NewEndpoint(c.String("service-name"), "")
+		jaegerExporter, err = jaeger.NewExporter(jaeger.Options{
+			CollectorEndpoint: c.String("jaeger-collector-endpoint"),
+			Process: jaeger.Process{
+				ServiceName: c.String("service-name"),
+			},
+			OnError: func(err error) {
+				logger.With(zap.Error(err)).Warn("Jaeger tracing error")
+			},
+		})
 		if err != nil {
-			logger.With(zap.Error(err)).Fatal("Unable to create local endpoint error")
+			logger.With(zap.Error(err)).Fatal("Jaeger exporter misconfiguration")
 		}
 
-		// Initialize tracer.
-		nativeTracer, err := zipkin.NewTracer(tracingReporter,
-			zipkin.WithLocalEndpoint(endpoint),
-			zipkin.WithSampler(zipkin.NewModuloSampler(uint64(1/c.Float64("tracing-sampling")))),
-		)
-		if err != nil {
-			logger.With(zap.Error(err)).Fatal("Unable to create tracer")
-		}
-
-		// Use zipkin-go-opentracing to wrap our tracer.
-		tracer = zipkinot.Wrap(nativeTracer)
-
-		opentracing.SetGlobalTracer(tracer)
+		trace.RegisterExporter(jaegerExporter)
+		trace.ApplyConfig(trace.Config{
+			DefaultSampler: trace.ProbabilitySampler(c.Float64("tracing-sampling")),
+		})
 
 		// Initialize database client.
 		storage.InitDB(dbOptions, dbInstancesOptions, c.Bool("debug"))
@@ -224,7 +234,7 @@ func init() {
 		jobs.Shutdown()
 
 		// Close tracing reporter.
-		tracingReporter.Close()
+		jaegerExporter.Flush()
 
 		return nil
 	}

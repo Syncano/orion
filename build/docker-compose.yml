@@ -6,18 +6,26 @@ services:
     image: syncano/orion
     build: .
     ports:
-      - "80:80"
+      - "8080:8000"
+    depends_on:
+      - postgresql
+      - redis
+      - rabbitmq
     environment:
       - SERVICE_NAME=orion-server
-      - ZIPKIN_ADDR
-      - REDIS_ADDR
+      - DEV_STORAGE=s3
+      - TRACING_SAMPLING=1
 
   worker:
     command: orion --debug worker
     user: root
     image: syncano/orion
     build: .
+    depends_on:
+      - postgresql
+      - redis
+      - rabbitmq
     environment:
       - SERVICE_NAME=orion-worker
-      - ZIPKIN_ADDR
-      - REDIS_ADDR
+      - DEV_STORAGE=s3
+      - TRACING_SAMPLING=1
