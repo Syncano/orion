@@ -2,11 +2,10 @@ package storage
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"time"
 
-	"github.com/go-pg/pg"
+	"github.com/go-pg/pg/v9"
 	"go.uber.org/zap"
 
 	"github.com/Syncano/orion/pkg/log"
@@ -30,11 +29,15 @@ var (
 // DefaultDBOptions returns
 func DefaultDBOptions() *pg.Options {
 	return &pg.Options{
-		Dialer: func(network, addr string) (net.Conn, error) {
+		Dialer: func(ctx context.Context, network, addr string) (net.Conn, error) {
 			var conn net.Conn
+
 			return conn, util.Retry(dbConnRetries, dbConnRetrySleep, func() error {
-				var err error
-				conn, err = net.DialTimeout(network, addr, 3*time.Second)
+				var (
+					err error
+				)
+				d := net.Dialer{Timeout: 3 * time.Second}
+				conn, err = d.DialContext(ctx, network, addr)
 				return err
 			})
 		},
@@ -42,6 +45,7 @@ func DefaultDBOptions() *pg.Options {
 		IdleTimeout: 5 * time.Minute,
 		PoolTimeout: 30 * time.Second,
 		MaxConnAge:  15 * time.Minute,
+		MaxRetries:  1,
 	}
 }
 
@@ -55,23 +59,33 @@ func InitDB(opts, instancesOpts *pg.Options, debug bool) {
 	}
 }
 
+type debugHook struct {
+	logger *zap.Logger
+}
+
+func (*debugHook) BeforeQuery(ctx context.Context, ev *pg.QueryEvent) (context.Context, error) {
+	return ctx, nil
+}
+
+func (h *debugHook) AfterQuery(ctx context.Context, event *pg.QueryEvent) error {
+	query, err := event.FormattedQuery()
+	if err != nil {
+		panic(err)
+	}
+
+	h.logger.Debug("Query",
+		zap.String("query", query),
+		zap.Duration("took", time.Since(event.StartTime)),
+	)
+
+	return nil
+}
+
 func initDB(opts *pg.Options, debug bool) *pg.DB {
 	db := pg.Connect(opts)
 
 	if debug {
-		logger := log.Logger()
-
-		db.OnQueryProcessed(func(event *pg.QueryProcessedEvent) {
-			query, err := event.FormattedQuery()
-			if err != nil {
-				panic(err)
-			}
-
-			logger.With(
-				zap.String("query", query),
-				zap.Duration("took", time.Since(event.StartTime)),
-			).Debug(fmt.Sprintf("%s:%d", event.File, event.Line))
-		})
+		db.AddQueryHook(&debugHook{logger: log.Logger().WithOptions(zap.AddCallerSkip(8))})
 	}
 
 	return db
@@ -84,5 +98,5 @@ func DB() *pg.DB {
 
 // TenantDB returns database client.
 func TenantDB(schema string) *pg.DB {
-	return tenantDB.WithParam("schema", pg.F(schema)).WithContext(context.WithValue(context.Background(), KeySchema, schema))
+	return tenantDB.WithParam("schema", pg.Ident(schema)).WithContext(context.WithValue(context.Background(), KeySchema, schema))
 }

@@ -1,19 +1,16 @@
 package models
 
 import (
+	"context"
 	"fmt"
 	"time"
-
-	"github.com/go-pg/pg/orm"
-
-	"github.com/Syncano/orion/pkg/cache"
 )
 
 // Codebox represents codebox model.
 type Codebox struct {
-	tableName struct{} `sql:"?schema.codeboxes_codebox" pg:",discard_unknown_columns"` // nolint
+	tableName struct{} `pg:"?schema.codeboxes_codebox,discard_unknown_columns"` // nolint
 
-	IsLive bool `sql:"_is_live"`
+	IsLive bool `pg:"_is_live"`
 
 	ID          int
 	Description string
@@ -39,19 +36,7 @@ func (m *Codebox) VerboseName() string {
 }
 
 // BeforeUpdate hook.
-func (m *Codebox) BeforeUpdate(db orm.DB) error {
+func (m *Codebox) BeforeUpdate(ctx context.Context) (context.Context, error) {
 	m.UpdatedAt.Set(time.Now()) // nolint: errcheck
-	return nil
-}
-
-// AfterUpdate hook.
-func (m *Codebox) AfterUpdate(db orm.DB) error {
-	cache.ModelCacheInvalidate(db, m)
-	return nil
-}
-
-// AfterDelete hook.
-func (m *Codebox) AfterDelete(db orm.DB) error {
-	cache.ModelCacheInvalidate(db, m)
-	return nil
+	return ctx, nil
 }

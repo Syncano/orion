@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"cloud.google.com/go/storage"
-	"github.com/go-pg/pg/orm"
+	"github.com/go-pg/pg/v9/orm"
 	"google.golang.org/api/option"
 
 	"github.com/Syncano/orion/pkg/settings"

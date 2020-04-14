@@ -8,12 +8,15 @@ import (
 	"runtime"
 	"time"
 
+	"contrib.go.opencensus.io/exporter/jaeger"
+	"contrib.go.opencensus.io/exporter/prometheus"
 	raven "github.com/getsentry/raven-go"
-	"github.com/go-redis/redis"
-	opentracing "github.com/opentracing/opentracing-go"
-	zipkin "github.com/openzipkin/zipkin-go-opentracing"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/urfave/cli"
+	"github.com/go-redis/redis/v7"
+	"github.com/urfave/cli/v2"
+	"go.opencensus.io/plugin/ocgrpc"
+	"go.opencensus.io/plugin/ochttp"
+	"go.opencensus.io/stats/view"
+	"go.opencensus.io/trace"
 	"go.uber.org/zap"
 
 	"github.com/Syncano/orion/cmd/amqp"
@@ -34,6 +37,8 @@ var (
 	dbInstancesOptions = storage.DefaultDBOptions()
 	redisOptions       = redis.Options{}
 	amqpChannel        *amqp.Channel
+
+	jaegerExporter *jaeger.Exporter
 )
 
 func init() {
@@ -41,7 +46,7 @@ func init() {
 	App.Usage = "Application that enables running user provided unsecure code in a secure docker environment."
 	App.Compiled = version.Buildtime
 	App.Version = version.Current.String()
-	App.Authors = []cli.Author{
+	App.Authors = []*cli.Author{
 		{
 			Name:  "Robert Kopaczewski",
 			Email: "rk@23doors.com",
@@ -49,79 +54,79 @@ func init() {
 	}
 	App.Copyright = "(c) 2018 Syncano"
 	App.Flags = []cli.Flag{
-		cli.BoolFlag{
+		&cli.BoolFlag{
 			Name: "debug", Usage: "enable debug mode",
-			EnvVar: "DEBUG",
+			EnvVars: []string{"DEBUG"},
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name: "dsn", Usage: "enable sentry logging",
-			EnvVar: "SENTRY_DSN",
+			EnvVars: []string{"SENTRY_DSN"},
 		},
-		cli.IntFlag{
-			Name: "port, p", Usage: "port for expvar server",
-			EnvVar: "METRIC_PORT", Value: 9080,
+		&cli.IntFlag{
+			Name: "port", Aliases: []string{"p"}, Usage: "port for expvar server",
+			EnvVars: []string{"METRIC_PORT"}, Value: 9080,
 		},
 
 		// Database options.
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name: "db-name", Usage: "database name",
-			EnvVar: "DB_NAME", Value: "syncano", Destination: &dbOptions.Database,
+			EnvVars: []string{"DB_NAME"}, Value: "syncano", Destination: &dbOptions.Database,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name: "db-user", Usage: "database user",
-			EnvVar: "DB_USER", Value: "syncano", Destination: &dbOptions.User,
+			EnvVars: []string{"DB_USER"}, Value: "syncano", Destination: &dbOptions.User,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name: "db-pass", Usage: "database password",
-			EnvVar: "DB_PASS", Value: "syncano", Destination: &dbOptions.Password,
+			EnvVars: []string{"DB_PASS"}, Value: "syncano", Destination: &dbOptions.Password,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name: "db-addr", Usage: "database address",
-			EnvVar: "DB_ADDR", Value: "postgresql:5432", Destination: &dbOptions.Addr,
+			EnvVars: []string{"DB_ADDR"}, Value: "postgresql:5432", Destination: &dbOptions.Addr,
 		},
 
 		// Database instances options.
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name: "db-instances-name", Usage: "database name",
-			EnvVar: "DB_INSTANCES_NAME,DB_NAME", Value: "syncano", Destination: &dbInstancesOptions.Database,
+			EnvVars: []string{"DB_INSTANCES_NAME", "DB_NAME"}, Value: "syncano", Destination: &dbInstancesOptions.Database,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name: "db-instances-user", Usage: "database user",
-			EnvVar: "DB_INSTANCES_USER,DB_USER", Value: "syncano", Destination: &dbInstancesOptions.User,
+			EnvVars: []string{"DB_INSTANCES_USER", "DB_USER"}, Value: "syncano", Destination: &dbInstancesOptions.User,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name: "db-instances-pass", Usage: "database password",
-			EnvVar: "DB_INSTANCES_PASS,DB_PASS", Value: "syncano", Destination: &dbInstancesOptions.Password,
+			EnvVars: []string{"DB_INSTANCES_PASS", "DB_PASS"}, Value: "syncano", Destination: &dbInstancesOptions.Password,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name: "db-instances-host", Usage: "database address",
-			EnvVar: "DB_INSTANCES_ADDR,DB_ADDR", Value: "postgresql:5432", Destination: &dbInstancesOptions.Addr,
+			EnvVars: []string{"DB_INSTANCES_ADDR", "DB_ADDR"}, Value: "postgresql:5432", Destination: &dbInstancesOptions.Addr,
 		},
 
 		// Tracing options.
-		cli.StringFlag{
-			Name: "zipkin-addr", Usage: "zipkin address",
-			EnvVar: "ZIPKIN_ADDR", Value: "zipkin",
+		&cli.StringFlag{
+			Name: "jaeger-collector-endpoint", Usage: "jaeger collector endpoint",
+			EnvVars: []string{"JAEGER_COLLECTOR_ENDPOINT"}, Value: "http://jaeger:14268/api/traces",
 		},
-		cli.Float64Flag{
-			Name: "tracing-sampling", Usage: "tracing sampling value",
-			EnvVar: "TRACING_SAMPLING", Value: 1,
+		&cli.Float64Flag{
+			Name: "tracing-sampling", Usage: "tracing sampling probability value",
+			EnvVars: []string{"TRACING_SAMPLING"}, Value: 0,
 		},
-		cli.StringFlag{
-			Name: "service-name, n", Usage: "service name",
-			EnvVar: "SERVICE_NAME", Value: "orion",
+		&cli.StringFlag{
+			Name: "service-name", Aliases: []string{"n"}, Usage: "service name",
+			EnvVars: []string{"SERVICE_NAME"}, Value: "orion",
 		},
 
 		// Redis options.
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name: "redis-addr", Usage: "redis TCP address",
-			EnvVar: "REDIS_ADDR", Value: "redis:6379", Destination: &redisOptions.Addr,
+			EnvVars: []string{"REDIS_ADDR"}, Value: "redis:6379", Destination: &redisOptions.Addr,
 		},
 
 		// Broker options.
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name: "broker-url", Usage: "amqp broker url",
-			EnvVar: "BROKER_URL", Value: "amqp://admin:mypass@rabbitmq//",
+			EnvVars: []string{"BROKER_URL"}, Value: "amqp://admin:mypass@rabbitmq//",
 		},
 	}
 	App.Before = func(c *cli.Context) error {
@@ -155,25 +160,42 @@ func init() {
 		}()
 
 		// Setup prometheus handler.
-		http.Handle("/metrics", promhttp.Handler())
+		exporter, err := prometheus.NewExporter(prometheus.Options{})
+		if err != nil {
+			logger.With(zap.Error(err)).Fatal("Prometheus exporter misconfiguration")
+		}
+
+		var views []*view.View
+		views = append(views, ochttp.DefaultClientViews...)
+		views = append(views, ochttp.DefaultServerViews...)
+		views = append(views, ocgrpc.DefaultClientViews...)
+		views = append(views, ocgrpc.DefaultServerViews...)
+
+		if err := view.Register(views...); err != nil {
+			logger.With(zap.Error(err)).Fatal("Opencensus views registration failed")
+		}
+
+		// Serve prometheus metrics.
+		http.Handle("/metrics", exporter)
 
 		// Initialize tracing.
-		collector, err := zipkin.NewHTTPCollector(fmt.Sprintf("http://%s:9411/api/v1/spans", c.String("zipkin-addr")))
+		jaegerExporter, err = jaeger.NewExporter(jaeger.Options{
+			CollectorEndpoint: c.String("jaeger-collector-endpoint"),
+			Process: jaeger.Process{
+				ServiceName: c.String("service-name"),
+			},
+			OnError: func(err error) {
+				logger.With(zap.Error(err)).Warn("Jaeger tracing error")
+			},
+		})
 		if err != nil {
-			return err
+			logger.With(zap.Error(err)).Fatal("Jaeger exporter misconfiguration")
 		}
 
-		recorder := zipkin.NewRecorder(collector, c.Bool("debug"), "0", c.String("service-name"))
-
-		tracer, err := zipkin.NewTracer(recorder,
-			zipkin.ClientServerSameSpan(false),
-			zipkin.WithSampler(zipkin.ModuloSampler(uint64(1/c.Float64("tracing-sampling")))),
-		)
-		if err != nil {
-			return err
-		}
-
-		opentracing.SetGlobalTracer(tracer)
+		trace.RegisterExporter(jaegerExporter)
+		trace.ApplyConfig(trace.Config{
+			DefaultSampler: trace.ProbabilitySampler(c.Float64("tracing-sampling")),
+		})
 
 		// Initialize database client.
 		storage.InitDB(dbOptions, dbInstancesOptions, c.Bool("debug"))
@@ -210,6 +232,9 @@ func init() {
 
 		// Shutdown job system.
 		jobs.Shutdown()
+
+		// Close tracing reporter.
+		jaegerExporter.Flush()
 
 		return nil
 	}

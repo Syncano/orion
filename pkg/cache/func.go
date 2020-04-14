@@ -3,7 +3,7 @@ package cache
 import (
 	"fmt"
 
-	"github.com/go-pg/pg/orm"
+	"github.com/go-pg/pg/v9/orm"
 
 	"github.com/Syncano/orion/pkg/settings"
 	"github.com/Syncano/orion/pkg/storage"

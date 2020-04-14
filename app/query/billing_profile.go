@@ -30,7 +30,7 @@ func NewProfileManager(c storage.DBContext) *ProfileManager {
 }
 
 // GetBillingStatus returns status string for subscription.
-func (mgr *ProfileManager) GetBillingStatus(sub *models.Subscription) (string, error) {
+func (m *ProfileManager) GetBillingStatus(sub *models.Subscription) (string, error) {
 	if sub == nil {
 		return BillingStatusNoActiveSubscription, nil
 	}
@@ -39,8 +39,8 @@ func (mgr *ProfileManager) GetBillingStatus(sub *models.Subscription) (string, e
 
 	o := &models.Profile{AdminID: sub.AdminID}
 	n := time.Now()
-	err := cache.ModelCache(mgr.DB(), o, &ret, fmt.Sprintf("billing;a=%d;t=%s", o.AdminID, n.Format("06-01")), func() (interface{}, error) {
-		if b, err := mgr.Query(o).Where("admin_id = ? AND hard_limit_reached >= ?", o.AdminID, now.BeginningOfMonth()).Exists(); err != nil {
+	err := cache.ModelCache(m.DB(), o, &ret, fmt.Sprintf("billing;a=%d;t=%s", o.AdminID, n.Format("06-01")), func() (interface{}, error) {
+		if b, err := m.Query(o).Where("admin_id = ? AND hard_limit_reached >= ?", o.AdminID, now.BeginningOfMonth()).Exists(); err != nil {
 			return "", err
 		} else if b {
 			if !sub.Plan.PaidPlan {
@@ -49,7 +49,7 @@ func (mgr *ProfileManager) GetBillingStatus(sub *models.Subscription) (string, e
 			return BillingStatusHardLimitExceeded, nil
 		}
 
-		if b, err := mgr.Query((*models.Invoice)(nil)).
+		if b, err := m.Query((*models.Invoice)(nil)).
 			Where("admin_id = ? AND due_date <= ? AND status = ?", o.AdminID, n, models.InvoiceStatusPaymentFailed).Exists(); err != nil {
 			return "", err
 		} else if b {

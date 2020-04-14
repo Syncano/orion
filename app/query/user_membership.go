@@ -1,7 +1,7 @@
 package query
 
 import (
-	"github.com/go-pg/pg/orm"
+	"github.com/go-pg/pg/v9/orm"
 
 	"github.com/Syncano/orion/app/models"
 	"github.com/Syncano/orion/pkg/storage"
@@ -18,21 +18,21 @@ func NewUserMembershipManager(c storage.DBContext) *UserMembershipManager {
 }
 
 // Q outputs objects query.
-func (mgr *UserMembershipManager) Q(o interface{}) *orm.Query {
-	return mgr.Query(o)
+func (m *UserMembershipManager) Q(o interface{}) *orm.Query {
+	return m.Query(o)
 }
 
 // ForUserQ outputs objects query filtered by user.
-func (mgr *UserMembershipManager) ForUserQ(user *models.User, o interface{}) *orm.Query {
-	return mgr.Q(o).Where("user_id = ?", user.ID)
+func (m *UserMembershipManager) ForUserQ(user *models.User, o interface{}) *orm.Query {
+	return m.Q(o).Where("user_id = ?", user.ID)
 }
 
 // ForGroupQ outputs objects query filtered by group.
-func (mgr *UserMembershipManager) ForGroupQ(group *models.UserGroup, o interface{}) *orm.Query {
-	return mgr.Q(o).Where("group_id = ?", group.ID)
+func (m *UserMembershipManager) ForGroupQ(group *models.UserGroup, o interface{}) *orm.Query {
+	return m.Q(o).Where("group_id = ?", group.ID)
 }
 
 // ForUserAndGroupQ outputs objects query filtered by user and group.
-func (mgr *UserMembershipManager) ForUserAndGroupQ(o *models.UserMembership) *orm.Query {
-	return mgr.Q(o).Where("user_id = ?", o.UserID).Where("group_id = ?", o.GroupID)
+func (m *UserMembershipManager) ForUserAndGroupQ(o *models.UserMembership) *orm.Query {
+	return m.Q(o).Where("user_id = ?", o.UserID).Where("group_id = ?", o.GroupID)
 }

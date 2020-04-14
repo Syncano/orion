@@ -6,7 +6,7 @@ import (
 
 // SocketHandler represents socket handler model.
 type SocketHandler struct {
-	tableName struct{} `sql:"?schema.sockets_sockethandler" pg:",discard_unknown_columns"` // nolint
+	tableName struct{} `pg:"?schema.sockets_sockethandler,discard_unknown_columns"` // nolint
 
 	ID          int
 	Metadata    JSON

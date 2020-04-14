@@ -16,7 +16,7 @@ import (
 // options -- For each possible Metric Sources value we define a list of allowed option value.
 // Example: {"api": ["20", ... ], "cbx": ["5", ... ]}
 type PricingPlan struct {
-	tableName struct{} `sql:"billing_pricingplan" pg:",discard_unknown_columns"` // nolint
+	tableName struct{} `pg:"billing_pricingplan,discard_unknown_columns"` // nolint
 
 	ID               int
 	Name             string

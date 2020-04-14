@@ -4,18 +4,16 @@ import (
 	"fmt"
 
 	"github.com/alexandrevicenzi/unchained"
-	"github.com/go-pg/pg/orm"
 
-	"github.com/Syncano/orion/pkg/cache"
 	"github.com/Syncano/orion/pkg/util"
 )
 
 // Admin represents Admin model.
 type Admin struct {
 	State
-	tableName struct{} `sql:"admins_admin" pg:",discard_unknown_columns"` // nolint
+	tableName struct{} `pg:"admins_admin,discard_unknown_columns"` // nolint
 
-	IsLive bool `sql:"_is_live"`
+	IsLive bool `pg:"_is_live"`
 
 	ID        int
 	Email     string
@@ -40,18 +38,6 @@ func (m *Admin) String() string {
 // VerboseName returns verbose name for model.
 func (m *Admin) VerboseName() string {
 	return "Admin"
-}
-
-// AfterUpdate hook.
-func (m *Admin) AfterUpdate(db orm.DB) error {
-	cache.ModelCacheInvalidate(db, m)
-	return nil
-}
-
-// AfterDelete hook.
-func (m *Admin) AfterDelete(db orm.DB) error {
-	cache.ModelCacheInvalidate(db, m)
-	return nil
 }
 
 // SetPassword sets encrypted password on object.

@@ -6,9 +6,9 @@ import (
 
 // UserGroup represents User Group model.
 type UserGroup struct {
-	tableName struct{} `sql:"?schema.users_group" pg:",discard_unknown_columns"` // nolint
+	tableName struct{} `pg:"?schema.users_group,discard_unknown_columns"` // nolint
 
-	IsLive bool `sql:"_is_live"`
+	IsLive bool `pg:"_is_live"`
 
 	ID          int
 	Name        string

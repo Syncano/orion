@@ -3,7 +3,7 @@ package query
 import (
 	"fmt"
 
-	"github.com/go-pg/pg/orm"
+	"github.com/go-pg/pg/v9/orm"
 
 	"github.com/Syncano/orion/app/models"
 	"github.com/Syncano/orion/pkg/cache"
@@ -21,15 +21,15 @@ func NewSocketEnvironmentManager(c storage.DBContext) *SocketEnvironmentManager 
 }
 
 // OneByID outputs object filtered by ID.
-func (mgr *SocketEnvironmentManager) OneByID(o *models.SocketEnvironment) error {
+func (m *SocketEnvironmentManager) OneByID(o *models.SocketEnvironment) error {
 	return RequireOne(
-		cache.SimpleModelCache(mgr.DB(), o, fmt.Sprintf("i=%d", o.ID), func() (interface{}, error) {
-			return o, mgr.Query(o).Where("id = ?", o.ID).Select()
+		cache.SimpleModelCache(m.DB(), o, fmt.Sprintf("i=%d", o.ID), func() (interface{}, error) {
+			return o, m.Query(o).Where("id = ?", o.ID).Select()
 		}),
 	)
 }
 
 // WithAccessQ outputs objects that entity has access to.
-func (mgr *SocketEnvironmentManager) WithAccessQ(o interface{}) *orm.Query {
-	return mgr.Query(o)
+func (m *SocketEnvironmentManager) WithAccessQ(o interface{}) *orm.Query {
+	return m.Query(o)
 }

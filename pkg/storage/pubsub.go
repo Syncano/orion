@@ -3,7 +3,7 @@ package storage
 import (
 	"sync"
 
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v7"
 )
 
 type PubSub struct {

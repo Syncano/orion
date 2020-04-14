@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"go.uber.org/zap"
 
 	"github.com/Syncano/orion/app/api"
@@ -25,11 +25,12 @@ type Server struct {
 
 // NewServer initializes new Web server.
 func NewServer(debug bool) (*Server, error) {
+	stdlog, _ := zap.NewStdLogAt(log.Logger(), zap.WarnLevel)
 	s := &Server{
 		srv: &http.Server{
 			ReadTimeout:  6 * time.Minute,
 			WriteTimeout: 6 * time.Minute,
-			ErrorLog:     zap.NewStdLog(log.Logger()),
+			ErrorLog:     stdlog,
 		},
 		debug: debug,
 	}
@@ -40,11 +41,12 @@ func NewServer(debug bool) (*Server, error) {
 
 func (s *Server) setupRouter() *echo.Echo {
 	e := echo.New()
+	// Bottom up middlewares
 	e.Use(
 		Recovery(),
 		Logger(),
 		middleware.CORSWithConfig(middleware.CORSConfig{MaxAge: 86400}),
-		OpenTracing(),
+		OpenCensus(),
 	)
 
 	// Register profiling if debug is on.

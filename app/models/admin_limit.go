@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/jackc/pgx/pgtype"
+	"github.com/jackc/pgtype"
 
 	"github.com/Syncano/orion/pkg/settings"
 )
@@ -14,9 +14,9 @@ const freePlanName = "free"
 
 // AdminLimit represents admin limit model.
 type AdminLimit struct {
-	tableName struct{} `sql:"billing_adminlimit" pg:",discard_unknown_columns"` // nolint
+	tableName struct{} `pg:"billing_adminlimit,discard_unknown_columns"` // nolint
 
-	AdminID int `sql:",pk"`
+	AdminID int `pg:",pk"`
 	Admin   *Admin
 	Limits  Hstore
 }

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/go-pg/pg/orm"
+	"github.com/go-pg/pg/v9/orm"
 
 	"github.com/Syncano/orion/app/models"
 	"github.com/Syncano/orion/pkg/cache"
@@ -23,15 +23,15 @@ func NewClassManager(c storage.DBContext) *ClassManager {
 }
 
 // OneByName outputs object filtered by name.
-func (mgr *ClassManager) OneByName(o *models.Class) error {
+func (m *ClassManager) OneByName(o *models.Class) error {
 	o.Name = strings.ToLower(o.Name)
 	if o.Name == "user" {
 		o.Name = models.UserClassName
 	}
 
 	return RequireOne(
-		cache.SimpleModelCache(mgr.DB(), o, fmt.Sprintf("n=%s", o.Name), func() (interface{}, error) {
-			return o, mgr.Query(o).
+		cache.SimpleModelCache(m.DB(), o, fmt.Sprintf("n=%s", o.Name), func() (interface{}, error) {
+			return o, m.Query(o).
 				Where("name = ?", o.Name).
 				Select()
 		}),
@@ -39,8 +39,8 @@ func (mgr *ClassManager) OneByName(o *models.Class) error {
 }
 
 // WithAccessQ outputs objects that entity has access to.
-func (mgr *ClassManager) WithAccessQ(o interface{}) *orm.Query {
-	q := mgr.Query(o).
+func (m *ClassManager) WithAccessQ(o interface{}) *orm.Query {
+	q := m.Query(o).
 		Where("visible IS TRUE").
 		Column("class.*").
 		ColumnExpr(`?schema.count_estimate('SELECT id FROM ?schema.data_dataobject WHERE _klass_id=' || "class"."id", ?) AS "objects_count"`,
@@ -50,7 +50,7 @@ func (mgr *ClassManager) WithAccessQ(o interface{}) *orm.Query {
 }
 
 // WithAccessByNameQ returns one object that entity has access to filtered by name.
-func (mgr *ClassManager) WithAccessByNameQ(o *models.Class) *orm.Query {
-	return mgr.WithAccessQ(o).
+func (m *ClassManager) WithAccessByNameQ(o *models.Class) *orm.Query {
+	return m.WithAccessQ(o).
 		Where("?TableAlias.name = ?", o.Name)
 }

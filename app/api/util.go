@@ -3,9 +3,9 @@ package api
 import (
 	"net/http"
 
-	"github.com/go-pg/pg"
-	"github.com/go-pg/pg/orm"
-	"github.com/labstack/echo"
+	"github.com/go-pg/pg/v9"
+	"github.com/go-pg/pg/v9/orm"
+	"github.com/labstack/echo/v4"
 
 	"github.com/Syncano/orion/app/query"
 	"github.com/Syncano/orion/pkg/util"

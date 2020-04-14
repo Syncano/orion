@@ -3,7 +3,7 @@ package models
 import (
 	"reflect"
 
-	"github.com/go-pg/pg/orm"
+	"github.com/go-pg/pg/v9/orm"
 	"github.com/mitchellh/hashstructure"
 )
 

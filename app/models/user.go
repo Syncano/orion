@@ -4,9 +4,7 @@ import (
 	"fmt"
 
 	"github.com/alexandrevicenzi/unchained"
-	"github.com/go-pg/pg/orm"
 
-	"github.com/Syncano/orion/pkg/cache"
 	"github.com/Syncano/orion/pkg/util"
 )
 
@@ -14,9 +12,9 @@ import (
 type User struct {
 	State
 
-	tableName struct{} `sql:"?schema.users_user" pg:",discard_unknown_columns"` // nolint
+	tableName struct{} `pg:"?schema.users_user,discard_unknown_columns"` // nolint
 
-	IsLive bool `sql:"_is_live"`
+	IsLive bool `pg:"_is_live"`
 
 	ID        int
 	Username  string
@@ -35,18 +33,6 @@ func (m *User) String() string {
 // VerboseName returns verbose name for model.
 func (m *User) VerboseName() string {
 	return "User"
-}
-
-// AfterUpdate hook.
-func (m *User) AfterUpdate(db orm.DB) error {
-	cache.ModelCacheInvalidate(db, m)
-	return nil
-}
-
-// AfterDelete hook.
-func (m *User) AfterDelete(db orm.DB) error {
-	cache.ModelCacheInvalidate(db, m)
-	return nil
 }
 
 // SetPassword sets encrypted password on object.

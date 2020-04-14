@@ -19,8 +19,8 @@ func NewAdminLimitManager(c storage.DBContext) *AdminLimitManager {
 }
 
 // OneForAdmin returns admin limit for specified o.AdminID.
-func (mgr *AdminLimitManager) OneForAdmin(o *models.AdminLimit) error {
-	return cache.SimpleModelCache(mgr.DB(), o, fmt.Sprintf("a=%d", o.AdminID), func() (interface{}, error) {
-		return o, mgr.Query(o).Where("admin_id = ?", o.AdminID).Select()
+func (m *AdminLimitManager) OneForAdmin(o *models.AdminLimit) error {
+	return cache.SimpleModelCache(m.DB(), o, fmt.Sprintf("a=%d", o.AdminID), func() (interface{}, error) {
+		return o, m.Query(o).Where("admin_id = ?", o.AdminID).Select()
 	})
 }

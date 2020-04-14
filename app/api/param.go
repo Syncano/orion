@@ -3,7 +3,7 @@ package api
 import (
 	"strconv"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 func IntParam(c echo.Context, name string) (int, bool) {

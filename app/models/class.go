@@ -1,14 +1,12 @@
 package models
 
 import (
+	"context"
 	"fmt"
 	"time"
 
-	"github.com/go-pg/pg/orm"
-	"github.com/jackc/pgx/pgtype"
+	"github.com/jackc/pgtype"
 	"github.com/mitchellh/mapstructure"
-
-	"github.com/Syncano/orion/pkg/cache"
 )
 
 const UserClassName = "user_profile"
@@ -16,9 +14,9 @@ const UserClassName = "user_profile"
 // Class represents Class model.
 type Class struct {
 	State
-	tableName struct{} `sql:"?schema.data_klass" pg:",discard_unknown_columns"` // nolint
+	tableName struct{} `pg:"?schema.data_klass,discard_unknown_columns"` // nolint
 
-	IsLive bool `sql:"_is_live"`
+	IsLive bool `pg:"_is_live"`
 
 	ID              int
 	Name            string
@@ -35,7 +33,7 @@ type Class struct {
 	Description     string
 
 	computedSchema map[string]*DataObjectField
-	ObjectsCount   int           `sql:"-" msgpack:"-"`
+	ObjectsCount   int           `pg:"-" msgpack:"-"`
 	Objects        []*DataObject `pg:"fk:_klass_id" msgpack:"-"`
 }
 
@@ -49,21 +47,9 @@ func (m *Class) VerboseName() string {
 }
 
 // BeforeUpdate hook.
-func (m *Class) BeforeUpdate(db orm.DB) error {
+func (m *Class) BeforeUpdate(ctx context.Context) (context.Context, error) {
 	m.UpdatedAt.Set(time.Now()) // nolint: errcheck
-	return nil
-}
-
-// AfterUpdate hook.
-func (m *Class) AfterUpdate(db orm.DB) error {
-	cache.ModelCacheInvalidate(db, m)
-	return nil
-}
-
-// AfterDelete hook.
-func (m *Class) AfterDelete(db orm.DB) error {
-	cache.ModelCacheInvalidate(db, m)
-	return nil
+	return ctx, nil
 }
 
 // IsLocked returns true if object is locked.

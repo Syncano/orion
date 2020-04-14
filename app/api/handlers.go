@@ -8,9 +8,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/go-redis/redis_rate"
-	"github.com/labstack/echo"
-	validator "gopkg.in/go-playground/validator.v9"
+	"github.com/go-playground/validator/v10"
+	"github.com/go-redis/redis_rate/v7"
+	"github.com/labstack/echo/v4"
 
 	"github.com/Syncano/orion/app/models"
 	"github.com/Syncano/orion/app/validators"

@@ -1,7 +1,7 @@
 package query
 
 import (
-	"github.com/go-pg/pg"
+	"github.com/go-pg/pg/v9"
 
 	"github.com/Syncano/orion/pkg/storage"
 )

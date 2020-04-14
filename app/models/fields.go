@@ -7,7 +7,7 @@ import (
 
 	"github.com/Syncano/orion/pkg/settings"
 
-	"github.com/jackc/pgx/pgtype"
+	"github.com/jackc/pgtype"
 	json "github.com/json-iterator/go"
 )
 

@@ -1,10 +1,10 @@
 package models
 
 import (
+	"context"
 	"fmt"
 	"time"
 
-	"github.com/go-pg/pg/orm"
 	"github.com/shopspring/decimal"
 )
 
@@ -34,7 +34,7 @@ var InvoiceStatus = map[int]string{
 
 // Invoice represents billing invoice model.
 type Invoice struct {
-	tableName struct{} `sql:"billing_invoice" pg:",discard_unknown_columns"` // nolint
+	tableName struct{} `pg:"billing_invoice,discard_unknown_columns"` // nolint
 
 	ID            int
 	AdminID       int
@@ -67,9 +67,9 @@ func (m *Invoice) StatusString() string {
 }
 
 // BeforeUpdate hook.
-func (m *Invoice) BeforeUpdate(db orm.DB) error {
+func (m *Invoice) BeforeUpdate(ctx context.Context) (context.Context, error) {
 	m.UpdatedAt.Set(time.Now()) // nolint: errcheck
-	return nil
+	return ctx, nil
 }
 
 // InvoiceItemSource enum.
@@ -88,7 +88,7 @@ var InvoiceItemSource = map[string]string{
 
 // InvoiceItem represents billing invoice item model.
 type InvoiceItem struct {
-	tableName struct{} `sql:"billing_invoiceitem" pg:",discard_unknown_columns"` // nolint
+	tableName struct{} `pg:"billing_invoiceitem,discard_unknown_columns"` // nolint
 
 	ID           int
 	InvoiceID    int
