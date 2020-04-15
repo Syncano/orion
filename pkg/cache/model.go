@@ -34,7 +34,7 @@ func getSchemaKey(db orm.DB) string {
 func ModelCacheInvalidate(db orm.DB, m interface{}) {
 	storage.AddDBCommitHook(db, func() error {
 		table := orm.GetTable(reflect.TypeOf(m).Elem())
-		tableName := table.Name
+		tableName := string(table.FullName)
 		schema := getSchemaKey(db)
 		versionKey := createModelVersionCacheKey(schema, tableName, table.PKs[0].Value(reflect.ValueOf(m).Elem()).Interface())
 
@@ -45,14 +45,13 @@ func ModelCacheInvalidate(db orm.DB, m interface{}) {
 func ModelCache(db orm.DB, keyModel, val interface{}, lookup string,
 	compute func() (interface{}, error), validate func(interface{}) bool) error {
 	table := orm.GetTable(reflect.TypeOf(keyModel).Elem())
-	n := strings.Split(table.Name, ".")
+	n := strings.Split(string(table.FullName), ".")
 	tableName := n[len(n)-1]
 	schema := getSchemaKey(db)
 	modelKey := createModelCacheKey(schema, tableName, lookup)
 
 	return VersionedCache(modelKey, lookup, val,
 		func() string {
-			fmt.Println("GET", createModelVersionCacheKey(schema, tableName, table.PKs[0].Value(reflect.ValueOf(keyModel).Elem())))
 			return createModelVersionCacheKey(schema, tableName, table.PKs[0].Value(reflect.ValueOf(keyModel).Elem()))
 		},
 		compute, validate, settings.Common.CacheTimeout)

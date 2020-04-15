@@ -63,7 +63,7 @@ func cacheDeleteHook(c storage.DBContext, db orm.DB, m interface{}) error {
 
 func liveObjectSoftDeleteHook(c storage.DBContext, db orm.DB, m interface{}) error {
 	table := orm.GetTable(reflect.TypeOf(m).Elem())
-	n := strings.Split(table.Name, ".")
+	n := strings.Split(string(table.FullName), ".")
 	modelName := strings.ReplaceAll(n[len(n)-1], "_", ".")
 
 	objectPK := table.PKs[0].Value(reflect.ValueOf(m).Elem()).Interface()
