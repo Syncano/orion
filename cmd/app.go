@@ -200,8 +200,8 @@ func init() {
 		// Initialize database client.
 		storage.InitDB(dbOptions, dbInstancesOptions, c.Bool("debug"))
 
-		// Initialize s3 client.
-		storage.InitData()
+		// Validate default storage client.
+		storage.Default()
 
 		// Initialize redis client.
 		storage.InitRedis(&redisOptions)

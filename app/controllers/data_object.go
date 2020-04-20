@@ -182,7 +182,7 @@ func dataObjectDeleteHook(c storage.DBContext, db orm.DB, i interface{}) error {
 	return nil
 }
 
-func uploadDataObjectFile(db orm.DB, instance *models.Instance, class *models.Class, fh *multipart.FileHeader) error { // nolint - ignore that it is unused for now
+func uploadDataObjectFile(ctx context.Context, db orm.DB, instance *models.Instance, class *models.Class, fh *multipart.FileHeader) error { // nolint - ignore that it is unused for now
 	key := fmt.Sprintf("%s/%d/%s%s",
 		instance.StoragePrefix,
 		class.ID,
@@ -197,5 +197,5 @@ func uploadDataObjectFile(db orm.DB, instance *models.Instance, class *models.Cl
 
 	defer f.Close()
 
-	return storage.Default().SafeUpload(context.Background(), db, settings.BucketData, key, f)
+	return storage.SafeUpload(ctx, storage.Default(), db, settings.BucketData, key, f)
 }
