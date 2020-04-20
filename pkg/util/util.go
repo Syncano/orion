@@ -120,7 +120,7 @@ func RetryNotCancelled(attempts int, sleep time.Duration, f func() error) (bool,
 	return canceled, err
 }
 
-func checkError(err error, target error, code codes.Code) bool {
+func checkError(err, target error, code codes.Code) bool {
 	if errors.Is(err, target) {
 		return true
 	}

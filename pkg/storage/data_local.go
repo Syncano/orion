@@ -29,6 +29,10 @@ func (s *localStorage) URL(bucket settings.BucketKey, key string) string {
 
 func (s *localStorage) Upload(ctx context.Context, bucket settings.BucketKey, key string, f io.Reader) error {
 	of, err := os.Create(filepath.Join(s.basePath, key))
+	if err != nil {
+		return err
+	}
+
 	_, err = io.Copy(of, f)
 
 	return err
