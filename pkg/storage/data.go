@@ -54,7 +54,7 @@ func Storage(loc string) DataStorage {
 		}
 	}
 
-	switch settings.GetLocationEnv(loc, "STORAGE") {
+	switch settings.GetLocationEnvDefault(loc, "STORAGE", "local") {
 	case "s3":
 		dataStorage = newS3Storage(loc, buckets)
 	case "local":
