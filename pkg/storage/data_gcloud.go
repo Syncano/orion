@@ -5,7 +5,6 @@ import (
 	"io"
 
 	"cloud.google.com/go/storage"
-	"github.com/go-pg/pg/v9/orm"
 	"google.golang.org/api/option"
 
 	"github.com/Syncano/orion/pkg/settings"
@@ -33,14 +32,6 @@ func (s *gcloudStorage) Client() interface{} {
 
 func (s *gcloudStorage) URL(bucket settings.BucketKey, key string) string {
 	return s.buckets[bucket].URL + key
-}
-
-func (s *gcloudStorage) SafeUpload(ctx context.Context, db orm.DB, bucket settings.BucketKey, key string, f io.Reader) error {
-	AddDBRollbackHook(db, func() error {
-		return s.Delete(ctx, bucket, key)
-	})
-
-	return s.Upload(ctx, bucket, key, f)
 }
 
 func (s *gcloudStorage) Upload(ctx context.Context, bucket settings.BucketKey, key string, f io.Reader) error {

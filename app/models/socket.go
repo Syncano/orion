@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Syncano/orion/pkg/settings"
+	"github.com/Syncano/orion/pkg/storage"
 )
 
 // SocketStatus enum.
@@ -73,17 +74,9 @@ func getLocalPath(path string) string {
 	return path
 }
 
-func buildAbsoluteURL(path string) string {
-	url := settings.API.StorageURL + path
-	if url[0] == '/' {
-		return fmt.Sprintf("http://%s%s", settings.API.Host, url)
-	}
-
-	return url
-}
-
 func (m *Socket) Files() map[string]string {
 	f := make(map[string]string)
+	s := storage.Default()
 
 	for path, data := range m.FileList.Get().(map[string]interface{}) {
 		if path == settings.Socket.YAML {
@@ -91,7 +84,7 @@ func (m *Socket) Files() map[string]string {
 		}
 
 		url := data.(map[string]interface{})["file"].(string)
-		f[buildAbsoluteURL(url)] = getLocalPath(path)
+		f[s.URL(settings.BucketData, url)] = getLocalPath(path)
 	}
 
 	return f

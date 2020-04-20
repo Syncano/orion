@@ -392,7 +392,7 @@ func (c *DBCtx) Update(pk int, updated, expected map[string]interface{}) error {
 		watch = append(watch, objectKey)
 	}
 
-	return util.RetryWithCritical(updateRetries, 0, func() (bool, error) {
+	_, err := util.RetryWithCritical(updateRetries, 0, func() (bool, error) {
 		err := c.redisCli.Watch(func(tx *redis.Tx) error {
 			var (
 				cur string
@@ -444,4 +444,6 @@ func (c *DBCtx) Update(pk int, updated, expected map[string]interface{}) error {
 		}
 		return true, err
 	})
+
+	return err
 }

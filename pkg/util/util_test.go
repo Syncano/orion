@@ -70,13 +70,15 @@ func TestRetry(t *testing.T) {
 
 		Convey("RetryWithCritical returns error after X attempts", func() {
 			mo.On("f2").Return(false, err).Times(10)
-			e := RetryWithCritical(10, 0, mo.f2)
+			critical, e := RetryWithCritical(10, 0, mo.f2)
 			So(e, ShouldEqual, err)
+			So(critical, ShouldBeFalse)
 		})
 		Convey("RetryWithCritical returns error on critical", func() {
 			mo.On("f2").Return(true, err).Once()
-			e := RetryWithCritical(10, 0, mo.f2)
+			critical, e := RetryWithCritical(10, 0, mo.f2)
 			So(e, ShouldEqual, err)
+			So(critical, ShouldBeTrue)
 		})
 		mo.AssertExpectations(t)
 	})

@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 	"time"
+
+	"github.com/Syncano/orion/pkg/settings"
+	"github.com/Syncano/orion/pkg/storage"
 )
 
 // SocketEnvironmentStatus enum.
@@ -49,7 +52,7 @@ func (m *SocketEnvironment) Hash() string {
 }
 
 func (m *SocketEnvironment) URL() string {
-	return buildAbsoluteURL(m.FsFile)
+	return storage.Default().URL(settings.BucketData, m.FsFile)
 }
 
 // VerboseName returns verbose name for model.

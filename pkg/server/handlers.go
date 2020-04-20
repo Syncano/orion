@@ -12,6 +12,7 @@ import (
 
 	"github.com/Syncano/orion/app/api"
 	"github.com/Syncano/orion/pkg/log"
+	"github.com/Syncano/orion/pkg/util"
 )
 
 const (
@@ -19,7 +20,7 @@ const (
 	traceSkipFrames   = 2
 )
 
-func logg(c echo.Context, start time.Time, path string, l *zap.Logger) {
+func logg(c echo.Context, start time.Time, path string, l *zap.Logger, err error) {
 	res := c.Response()
 	code := res.Status
 	end := time.Now()
@@ -37,7 +38,11 @@ func logg(c echo.Context, start time.Time, path string, l *zap.Logger) {
 	)
 	msg := c.Request().Method + " " + path
 
-	if code > 499 {
+	if err != nil {
+		l = l.With(zap.Error(err))
+	}
+
+	if code > 499 && !util.IsCancellation(err) {
 		l.Error(msg)
 	} else {
 		l.Info(msg)
@@ -65,7 +70,7 @@ func Recovery() echo.MiddlewareFunc {
 						raven.NewStacktrace(traceSkipFrames, traceContextLines, nil)),
 						raven.NewHttp(req))
 					c.Error(api.NewGenericError(http.StatusInternalServerError, "Internal server error."))
-					logg(c, start, path, logger.With(zap.String("panic", rvalStr)))
+					logg(c, start, path, logger.With(zap.String("panic", rvalStr)), nil)
 				}
 			}()
 
@@ -83,9 +88,10 @@ func Logger() echo.MiddlewareFunc {
 			start := time.Now()
 			req := c.Request()
 			path := req.URL.Path
-			l := logger
 
-			if err := next(c); err != nil {
+			err := next(c)
+
+			if err != nil {
 				c.Error(err)
 
 				// Send to sentry on status >499.
@@ -98,11 +104,9 @@ func Logger() echo.MiddlewareFunc {
 						raven.NewStacktrace(traceSkipFrames, traceContextLines, nil)),
 						raven.NewHttp(req))
 				}
-
-				l = logger.With(zap.Error(err))
 			}
 
-			logg(c, start, path, l)
+			logg(c, start, path, logger, err)
 
 			return nil
 		}

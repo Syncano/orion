@@ -12,16 +12,22 @@ import (
 
 // DataStorage defines common interface for aws and gcloud storage.
 type DataStorage interface {
-	SafeUpload(ctx context.Context, db orm.DB, bucket settings.BucketKey, key string, f io.Reader) error
 	Upload(ctx context.Context, bucket settings.BucketKey, key string, f io.Reader) error
 	Delete(ctx context.Context, bucket settings.BucketKey, key string) error
 	URL(bucket settings.BucketKey, key string) string
-	Client() interface{}
 }
 
 type bucketInfo struct {
 	Name string
 	URL  string
+}
+
+func SafeUpload(ctx context.Context, storage DataStorage, db orm.DB, bucket settings.BucketKey, key string, f io.Reader) error {
+	AddDBRollbackHook(db, func() error {
+		return storage.Delete(ctx, bucket, key)
+	})
+
+	return storage.Upload(ctx, bucket, key, f)
 }
 
 var storageCache map[string]DataStorage = make(map[string]DataStorage)
@@ -51,6 +57,8 @@ func Storage(loc string) DataStorage {
 	switch settings.GetLocationEnv(loc, "STORAGE") {
 	case "s3":
 		dataStorage = newS3Storage(loc, buckets)
+	case "local":
+		dataStorage = newLocalStorage(loc, buckets)
 	case "gcs":
 		dataStorage, err = newGCloudStorage(loc, buckets)
 	default:
@@ -62,9 +70,4 @@ func Storage(loc string) DataStorage {
 	storageCache[loc] = dataStorage
 
 	return dataStorage
-}
-
-// InitData sets up a data storage.
-func InitData() {
-	Default()
 }
