@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	grpc_retry "github.com/grpc-ecosystem/go-grpc-middleware/retry"
 	"github.com/urfave/cli/v2"
 	"go.opencensus.io/plugin/ocgrpc"
 	"go.uber.org/zap"
@@ -33,6 +34,11 @@ As there is no authentication, always run it in a private network.`,
 			EnvVars: []string{"PORT"}, Value: 8000,
 		},
 
+		// Codebox settings.
+		&cli.UintFlag{
+			Name: "codebox-retry", Usage: "max retry for codebox grpc calls",
+			EnvVars: []string{"CODEBOX_RETRY"}, Value: 2,
+		},
 		&cli.StringFlag{
 			Name: "codebox-addr", Usage: "addr for codebox broker server",
 			EnvVars: []string{"CODEBOX_ADDR"}, Value: "codebox-broker:80",
@@ -50,6 +56,12 @@ As there is no authentication, always run it in a private network.`,
 		conn, err := grpc.Dial(c.String("codebox-addr"),
 			grpc.WithInsecure(),
 			grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(settings.MaxGRPCMessageSize)),
+			grpc.WithUnaryInterceptor(
+				grpc_retry.UnaryClientInterceptor(grpc_retry.WithMax(c.Uint("codebox-retry"))),
+			),
+			grpc.WithStreamInterceptor(
+				grpc_retry.StreamClientInterceptor(grpc_retry.WithMax(c.Uint("codebox-retry"))),
+			),
 			grpc.WithStatsHandler(&ocgrpc.ClientHandler{}),
 		)
 		if err != nil {

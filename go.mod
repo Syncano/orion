@@ -27,6 +27,7 @@ require (
 	github.com/golang/protobuf v1.3.5
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
 	github.com/gorilla/websocket v1.4.2
+	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
 	github.com/hnakamur/zap-ltsv v0.0.0-20170731143423-10a3dd1d839c
 	github.com/jackc/pgtype v1.3.0
 	github.com/jackc/pgx/v4 v4.6.0 // indirect
