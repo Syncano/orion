@@ -45,13 +45,15 @@ func BindValidateAndExec(c echo.Context, i interface{}, fn func() error) error {
 		return err
 	}
 
-	return util.RetryWithCritical(validationRetries, 0, func() (bool, error) {
+	_, err := util.RetryWithCritical(validationRetries, 0, func() (bool, error) {
 		if err := c.Validate(i); err != nil {
 			return true, err
 		}
 
 		return false, fn()
 	})
+
+	return err
 }
 
 // SimpleDelete selects for update and deletes object, returning 201 if everything went fine.

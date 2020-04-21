@@ -9,7 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	"github.com/go-pg/pg/v9/orm"
 
 	"github.com/Syncano/orion/pkg/settings"
 	"github.com/Syncano/orion/pkg/util"
@@ -57,14 +56,6 @@ func createS3Session(accessKeyID, secretAccessKey, region, endpoint string) *ses
 	util.Must(err)
 
 	return sess
-}
-
-func (s *s3Storage) SafeUpload(ctx context.Context, db orm.DB, bucket settings.BucketKey, key string, f io.Reader) error {
-	AddDBRollbackHook(db, func() error {
-		return s.Delete(ctx, bucket, key)
-	})
-
-	return s.Upload(ctx, bucket, key, f)
 }
 
 func (s *s3Storage) Upload(ctx context.Context, bucket settings.BucketKey, key string, f io.Reader) error {
