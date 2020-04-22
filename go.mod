@@ -12,11 +12,10 @@ require (
 	github.com/aws/aws-sdk-go v1.30.4
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/caarlos0/env/v6 v6.2.1
-	github.com/certifi/gocertifi v0.0.0-20200211180108-c7c1fbc02894 // indirect
 	github.com/cespare/reflex v0.2.0
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/delicb/gstring v1.0.0
-	github.com/getsentry/raven-go v0.2.0
+	github.com/getsentry/sentry-go v0.5.0
 	github.com/go-pg/pg/v9 v9.1.5
 	github.com/go-playground/locales v0.13.0
 	github.com/go-playground/universal-translator v0.17.0

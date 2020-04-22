@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -24,7 +25,7 @@ func newLocalStorage(loc string, buckets map[settings.BucketKey]*bucketInfo) Dat
 }
 
 func (s *localStorage) URL(bucket settings.BucketKey, key string) string {
-	return s.buckets[bucket].URL + key
+	return fmt.Sprintf("http://%s%s%s", settings.API.Host, settings.API.StorageURL, key)
 }
 
 func (s *localStorage) Upload(ctx context.Context, bucket settings.BucketKey, key string, f io.Reader) error {

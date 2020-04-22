@@ -14,7 +14,10 @@ type UserAuthForm struct {
 type UserInGroupForm struct {
 	UserQ       *orm.Query
 	MembershipQ *orm.Query
-	User        int `form:"user" validate:"required,sql_select,sql_notexists=user_id MembershipQ"`
+	// Validate:
+	// sql_select: make sure UserQ.Where(id=this_value).Select() returns no error
+	// sql_notexists: make sure ! MembershipQ.Where(user_id=this_value).Exists()
+	User int `form:"user" validate:"required,sql_select,sql_notexists=user_id MembershipQ"`
 }
 
 func (f *UserInGroupForm) Bind(m *models.UserMembership) {
@@ -24,7 +27,9 @@ func (f *UserInGroupForm) Bind(m *models.UserMembership) {
 type GroupInUserForm struct {
 	GroupQ      *orm.Query
 	MembershipQ *orm.Query
-	Group       int `form:"group" validate:"required,sql_select,sql_notexists=group_id MembershipQ"`
+	// sql_select: make sure UserQ.Where(id=this_value).Select() returns no error
+	// sql_notexists: make sure ! MembershipQ.Where(group_id=this_value).Exists()
+	Group int `form:"group" validate:"required,sql_select,sql_notexists=group_id MembershipQ"`
 }
 
 func (f *GroupInUserForm) Bind(m *models.UserMembership) {
