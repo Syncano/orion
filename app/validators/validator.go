@@ -11,6 +11,11 @@ import (
 
 var validate = validator.New()
 
+// sql_select/notexists/exists: optional param1: field (default "id"), optional param2: structquery (default: structfield+"Q")
+// sql_select: make sure <structquery>.Where(<field>=this_value).Select() returns no error
+// sql_exists: make sure <structquery>.Where(<field>=this_value).Exists() returns true
+// sql_notexists: make sure <structquery>.Where(<field>=this_value).Exists() returns false
+
 func init() {
 	initTranslator()
 	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {

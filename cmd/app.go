@@ -10,7 +10,7 @@ import (
 
 	"contrib.go.opencensus.io/exporter/jaeger"
 	"contrib.go.opencensus.io/exporter/prometheus"
-	raven "github.com/getsentry/raven-go"
+	"github.com/getsentry/sentry-go"
 	"github.com/go-redis/redis/v7"
 	"github.com/urfave/cli/v2"
 	"go.opencensus.io/plugin/ocgrpc"
@@ -57,10 +57,6 @@ func init() {
 		&cli.BoolFlag{
 			Name: "debug", Usage: "enable debug mode",
 			EnvVars: []string{"DEBUG"},
-		},
-		&cli.StringFlag{
-			Name: "dsn", Usage: "enable sentry logging",
-			EnvVars: []string{"SENTRY_DSN"},
 		},
 		&cli.IntFlag{
 			Name: "port", Aliases: []string{"p"}, Usage: "port for expvar server",
@@ -137,11 +133,11 @@ func init() {
 		runtime.GOMAXPROCS(numCPUs + 1) // numCPUs hot threads + one for async tasks.
 
 		// Initialize logging.
-		if err := log.Init(c.String("dsn"), c.Bool("debug")); err != nil {
+		if err := log.Init(c.Bool("debug")); err != nil {
 			return err
 		}
 
-		if err := raven.SetDSN(c.String("dsn")); err != nil {
+		if err := sentry.Init(sentry.ClientOptions{}); err != nil {
 			return err
 		}
 
@@ -235,6 +231,9 @@ func init() {
 
 		// Close tracing reporter.
 		jaegerExporter.Flush()
+
+		// Flush remaining sentry events.
+		sentry.Flush(10 * time.Second)
 
 		return nil
 	}

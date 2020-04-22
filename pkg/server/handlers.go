@@ -1,23 +1,17 @@
 package server
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"time"
 
-	raven "github.com/getsentry/raven-go"
+	sentryecho "github.com/getsentry/sentry-go/echo"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 
 	"github.com/Syncano/orion/app/api"
 	"github.com/Syncano/orion/pkg/log"
 	"github.com/Syncano/orion/pkg/util"
-)
-
-const (
-	traceContextLines = 3
-	traceSkipFrames   = 2
 )
 
 func logg(c echo.Context, start time.Time, path string, l *zap.Logger, err error) {
@@ -61,14 +55,8 @@ func Recovery() echo.MiddlewareFunc {
 
 			defer func() {
 				if rval := recover(); rval != nil {
-					flags := map[string]string{
-						"endpoint": req.RequestURI,
-					}
-
 					rvalStr := fmt.Sprint(rval)
-					raven.CaptureMessage(rvalStr, flags, raven.NewException(errors.New(rvalStr),
-						raven.NewStacktrace(traceSkipFrames, traceContextLines, nil)),
-						raven.NewHttp(req))
+
 					c.Error(api.NewGenericError(http.StatusInternalServerError, "Internal server error."))
 					logg(c, start, path, logger.With(zap.String("panic", rvalStr)), nil)
 				}
@@ -91,18 +79,15 @@ func Logger() echo.MiddlewareFunc {
 
 			err := next(c)
 
+			fmt.Println(c.Get("sentry"))
+
 			if err != nil {
 				c.Error(err)
 
 				// Send to sentry on status >499.
-				if c.Response().Status > 499 {
-					flags := map[string]string{
-						"endpoint": req.RequestURI,
-					}
-
-					raven.CaptureMessage(err.Error(), flags, raven.NewException(err,
-						raven.NewStacktrace(traceSkipFrames, traceContextLines, nil)),
-						raven.NewHttp(req))
+				if c.Response().Status > 499 && !util.IsCancellation(err) {
+					hub := sentryecho.GetHubFromContext(c)
+					hub.CaptureException(err)
 				}
 			}
 

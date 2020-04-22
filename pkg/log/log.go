@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/TheZeroSlave/zapsentry"
+	"github.com/getsentry/sentry-go"
 	ltsv "github.com/hnakamur/zap-ltsv"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -17,7 +18,7 @@ var (
 )
 
 // Init sets up a logger.
-func Init(dsn string, debug bool) error {
+func Init(debug bool) error {
 	var config zap.Config
 
 	if os.Getenv("FORCE_TERM") == "1" || terminal.IsTerminal(int(os.Stdout.Fd())) {
@@ -43,7 +44,7 @@ func Init(dsn string, debug bool) error {
 		return err
 	}
 
-	sentryLogger, err = addSentryLogger(logger, dsn)
+	sentryLogger, err = addSentryLogger(logger)
 
 	// Set grpc logger.
 	var zapgrpcOpts []zapgrpc.Option
@@ -56,11 +57,11 @@ func Init(dsn string, debug bool) error {
 	return err
 }
 
-func addSentryLogger(log *zap.Logger, dsn string) (*zap.Logger, error) {
+func addSentryLogger(log *zap.Logger) (*zap.Logger, error) {
 	cfg := zapsentry.Configuration{
 		Level: zapcore.ErrorLevel,
 	}
-	core, err := zapsentry.NewCore(cfg, zapsentry.NewSentryClientFromDSN(dsn))
+	core, err := zapsentry.NewCore(cfg, zapsentry.NewSentryClientFromClient(sentry.CurrentHub().Client()))
 
 	return zapsentry.AttachCoreToLogger(core, log), err
 }
