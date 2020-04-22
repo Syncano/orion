@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	sentryecho "github.com/getsentry/sentry-go/echo"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"go.uber.org/zap"
@@ -45,6 +46,9 @@ func (s *Server) setupRouter() *echo.Echo {
 	e.Use(
 		Recovery(),
 		Logger(),
+		sentryecho.New(sentryecho.Options{
+			Repanic: true,
+		}),
 		middleware.CORSWithConfig(middleware.CORSConfig{MaxAge: 86400}),
 		OpenCensus(),
 	)
