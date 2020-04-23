@@ -18,7 +18,7 @@ var (
 )
 
 // Init sets up a logger.
-func Init(debug bool) error {
+func Init(debug bool, sc *sentry.Client) error {
 	var config zap.Config
 
 	if os.Getenv("FORCE_TERM") == "1" || terminal.IsTerminal(int(os.Stdout.Fd())) {
@@ -44,7 +44,7 @@ func Init(debug bool) error {
 		return err
 	}
 
-	sentryLogger, err = addSentryLogger(logger)
+	sentryLogger, err = addSentryLogger(logger, sc)
 
 	// Set grpc logger.
 	var zapgrpcOpts []zapgrpc.Option
@@ -57,11 +57,11 @@ func Init(debug bool) error {
 	return err
 }
 
-func addSentryLogger(log *zap.Logger) (*zap.Logger, error) {
+func addSentryLogger(log *zap.Logger, sc *sentry.Client) (*zap.Logger, error) {
 	cfg := zapsentry.Configuration{
 		Level: zapcore.ErrorLevel,
 	}
-	core, err := zapsentry.NewCore(cfg, zapsentry.NewSentryClientFromClient(sentry.CurrentHub().Client()))
+	core, err := zapsentry.NewCore(cfg, zapsentry.NewSentryClientFromClient(sc))
 
 	return zapsentry.AttachCoreToLogger(core, log), err
 }
