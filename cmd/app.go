@@ -133,11 +133,11 @@ func init() {
 		runtime.GOMAXPROCS(numCPUs + 1) // numCPUs hot threads + one for async tasks.
 
 		// Initialize logging.
-		if err := log.Init(c.Bool("debug")); err != nil {
+		if err := sentry.Init(sentry.ClientOptions{}); err != nil {
 			return err
 		}
 
-		if err := sentry.Init(sentry.ClientOptions{}); err != nil {
+		if err := log.Init(c.Bool("debug"), sentry.CurrentHub().Client()); err != nil {
 			return err
 		}
 
@@ -233,7 +233,7 @@ func init() {
 		jaegerExporter.Flush()
 
 		// Flush remaining sentry events.
-		sentry.Flush(10 * time.Second)
+		sentry.Flush(5 * time.Second)
 
 		return nil
 	}
