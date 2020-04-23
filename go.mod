@@ -7,7 +7,7 @@ require (
 	cloud.google.com/go/storage v1.6.0
 	contrib.go.opencensus.io/exporter/jaeger v0.2.0
 	contrib.go.opencensus.io/exporter/prometheus v0.1.0
-	github.com/TheZeroSlave/zapsentry v1.3.0
+	github.com/TheZeroSlave/zapsentry v1.4.0
 	github.com/alexandrevicenzi/unchained v1.3.0
 	github.com/aws/aws-sdk-go v1.30.4
 	github.com/blang/semver v3.5.1+incompatible
@@ -15,7 +15,7 @@ require (
 	github.com/cespare/reflex v0.2.0
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/delicb/gstring v1.0.0
-	github.com/getsentry/sentry-go v0.5.0
+	github.com/getsentry/sentry-go v0.6.0
 	github.com/go-pg/pg/v9 v9.1.5
 	github.com/go-playground/locales v0.13.0
 	github.com/go-playground/universal-translator v0.17.0
