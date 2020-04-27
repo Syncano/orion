@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/delicb/gstring"
+	"github.com/go-pg/pg/v9"
 	"github.com/go-pg/pg/v9/orm"
 	"github.com/labstack/echo/v4"
 
@@ -48,8 +49,12 @@ func SocketEndpointList(c echo.Context) error {
 	if socketName != "" {
 		s := &models.Socket{Name: socketName}
 
-		if query.NewSocketManager(c).OneByName(s) != nil {
-			return api.NewNotFoundError(s)
+		if err := query.NewSocketManager(c).OneByName(s); err != nil {
+			if err == pg.ErrNoRows {
+				return api.NewNotFoundError(s)
+			}
+
+			return err
 		}
 
 		q = mgr.ForSocketQ(s, &o)
@@ -175,8 +180,12 @@ func SocketEndpointMap(c echo.Context) error {
 		Name: name,
 	}
 
-	if query.NewSocketEndpointManager(c).OneByName(o) != nil {
-		return api.NewNotFoundError(o)
+	if err := query.NewSocketEndpointManager(c).OneByName(o); err != nil {
+		if err == pg.ErrNoRows {
+			return api.NewNotFoundError(o)
+		}
+
+		return err
 	}
 
 	c.Set(contextSocketEndpointKey, o)
@@ -201,8 +210,12 @@ func socketEndpointChannel(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		// Add channel to context for channel socket endpoint type.
 		ch := &models.Channel{Name: models.ChannelDefaultName}
-		if query.NewChannelManager(c).OneByName(ch) != nil {
-			return api.NewNotFoundError(ch)
+		if err := query.NewChannelManager(c).OneByName(ch); err != nil {
+			if err == pg.ErrNoRows {
+				return api.NewNotFoundError(ch)
+			}
+
+			return err
 		}
 
 		c.Set(contextChannelKey, ch)
@@ -247,8 +260,12 @@ func SocketEndpointTraceRetrieve(c echo.Context) error {
 		return api.NewNotFoundError(o)
 	}
 
-	if createSocketTraceDBCtx(c, o).Find(v) != nil {
-		return api.NewNotFoundError(o)
+	if err := createSocketTraceDBCtx(c, o).Find(v); err != nil {
+		if err == redisdb.ErrNotFound {
+			return api.NewNotFoundError(o)
+		}
+
+		return err
 	}
 
 	return api.Render(c, http.StatusOK, serializers.SocketTraceSerializer{}.Response(o))
@@ -262,8 +279,12 @@ func SocketEndpointInvalidate(c echo.Context) error {
 	endpoint := c.Get(contextSocketEndpointKey).(*models.SocketEndpoint)
 	s := &models.Socket{ID: endpoint.SocketID}
 
-	if query.NewSocketManager(c).OneByID(s) != nil {
-		return api.NewNotFoundError(s)
+	if err := query.NewSocketManager(c).OneByID(s); err != nil {
+		if err == pg.ErrNoRows {
+			return api.NewNotFoundError(s)
+		}
+
+		return err
 	}
 
 	cacheKey := createEndpointCacheKey(c.Get(settings.ContextInstanceKey).(*models.Instance).ID, endpoint.Name, s.Hash())

@@ -97,8 +97,12 @@ func DataObjectRetrieve(c echo.Context) error {
 
 	class := c.Get(contextClassKey).(*models.Class)
 
-	if query.NewDataObjectManager(c).ForClassByIDQ(class, o).Select() != nil {
-		return api.NewNotFoundError(o)
+	if err := query.NewDataObjectManager(c).ForClassByIDQ(class, o).Select(); err != nil {
+		if err == pg.ErrNoRows {
+			return api.NewNotFoundError(o)
+		}
+
+		return err
 	}
 
 	serializer := serializers.DataObjectSerializer{Class: class}
@@ -125,8 +129,12 @@ func DataObjectUpdate(c echo.Context) error {
 	}
 
 	if err := mgr.RunInTransaction(func(tx *pg.Tx) error {
-		if query.Lock(mgr.ForClassByIDQ(class, o)) != nil {
-			return api.NewNotFoundError(o)
+		if err := query.Lock(mgr.ForClassByIDQ(class, o)); err != nil {
+			if err == pg.ErrNoRows {
+				return api.NewNotFoundError(o)
+			}
+
+			return err
 		}
 		o.Snapshot(o, virt)
 		o.ID = 1

@@ -35,8 +35,12 @@ func UserGroupContext(next echo.HandlerFunc) echo.HandlerFunc {
 			return api.NewNotFoundError(o)
 		}
 
-		if query.NewUserGroupManager(c).OneByID(o) != nil {
-			return api.NewNotFoundError(o)
+		if err := query.NewUserGroupManager(c).OneByID(o); err != nil {
+			if err == pg.ErrNoRows {
+				return api.NewNotFoundError(o)
+			}
+
+			return err
 		}
 
 		c.Set(contextUserGroupKey, o)
@@ -71,8 +75,12 @@ func UserGroupRetrieve(c echo.Context) error {
 		return api.NewNotFoundError(o)
 	}
 
-	if query.NewUserGroupManager(c).ByIDQ(o).Select() != nil {
-		return api.NewNotFoundError(o)
+	if err := query.NewUserGroupManager(c).ByIDQ(o).Select(); err != nil {
+		if err == pg.ErrNoRows {
+			return api.NewNotFoundError(o)
+		}
+
+		return err
 	}
 
 	return api.Render(c, http.StatusOK, serializers.UserGroupSerializer{}.Response(o))

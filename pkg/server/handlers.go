@@ -79,8 +79,6 @@ func Logger() echo.MiddlewareFunc {
 
 			err := next(c)
 
-			fmt.Println(c.Get("sentry"))
-
 			if err != nil {
 				c.Error(err)
 

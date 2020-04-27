@@ -39,8 +39,9 @@ func (b *Binder) Bind(i interface{}, c echo.Context) error {
 		}
 
 		if err = b.bindData(c, i, params, "form"); err != nil {
-			if _, ok := err.(*Error); ok {
-				return err
+			var e *Error
+			if errors.As(err, &e) {
+				return e
 			}
 
 			return echo.NewHTTPError(http.StatusBadRequest, "Error parsing data").SetInternal(err)
