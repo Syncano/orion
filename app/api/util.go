@@ -59,8 +59,12 @@ func BindValidateAndExec(c echo.Context, i interface{}, fn func() error) error {
 // SimpleDelete selects for update and deletes object, returning 201 if everything went fine.
 func SimpleDelete(c echo.Context, mgr Deleter, q *orm.Query, v Verboser) error {
 	if err := mgr.RunInTransaction(func(tx *pg.Tx) error {
-		if query.Lock(q) != nil {
-			return NewNotFoundError(v)
+		if err := query.Lock(q); err != nil {
+			if err == pg.ErrNoRows {
+				return NewNotFoundError(v)
+			}
+
+			return err
 		}
 		return mgr.Delete(v)
 	}); err != nil {

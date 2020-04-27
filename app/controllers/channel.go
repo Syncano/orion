@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/go-pg/pg/v9"
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 
@@ -54,8 +55,12 @@ func changeList(c echo.Context, room string) error {
 }
 
 func changeRetrieve(c echo.Context, room string, o *models.Change) error {
-	if createChangeDBCtx(c, room, o).Find(o.ID) != nil {
-		return api.NewNotFoundError(o)
+	if err := createChangeDBCtx(c, room, o).Find(o.ID); err != nil {
+		if err == pg.ErrNoRows {
+			return api.NewNotFoundError(o)
+		}
+
+		return err
 	}
 
 	return api.Render(c, http.StatusOK, serializers.ChangeSerializer{}.Response(o))

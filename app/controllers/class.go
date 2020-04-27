@@ -17,8 +17,12 @@ const contextClassKey = "class"
 func ClassContext(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		o := &models.Class{Name: c.Param("class_name")}
-		if query.NewClassManager(c).OneByName(o) != nil || !o.Visible {
-			return api.NewNotFoundError(o)
+		if err := query.NewClassManager(c).OneByName(o); err != nil || !o.Visible {
+			if err == pg.ErrNoRows {
+				return api.NewNotFoundError(o)
+			}
+
+			return err
 		}
 
 		c.Set(contextClassKey, o)
@@ -70,11 +74,12 @@ func ClassUpdate(c echo.Context) error {
 	o := detailClass(c)
 
 	if err := mgr.RunInTransaction(func(*pg.Tx) error {
-		if query.Lock(mgr.WithAccessByNameQ(o)) != nil {
+		err := query.Lock(mgr.WithAccessByNameQ(o))
+		if err == pg.ErrNoRows {
 			return api.NewNotFoundError(o)
 		}
 
-		return nil
+		return err
 	}); err != nil {
 		return err
 	}

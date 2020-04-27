@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -40,26 +41,35 @@ func HTTPErrorHandler(err error, c echo.Context) {
 	}
 
 	// Process API errors.
-	if e, ok := err.(*Error); ok {
+	var e *Error
+
+	if errors.As(err, &e) {
 		Render(c, e.Code, e.Data) // nolint: errcheck
+
 		return
 	}
 
 	// Process echo errors.
-	if e, ok := err.(*echo.HTTPError); ok {
-		message := e.Message
-		if m, ok := defaultErrors[e.Code]; ok {
+	var he *echo.HTTPError
+
+	if errors.As(err, &he) {
+		message := he.Message
+
+		if m, ok := defaultErrors[he.Code]; ok {
 			message = m
 		}
 
-		Render(c, e.Code, map[string]interface{}{"detail": fmt.Sprintf("%s.", message)}) // nolint: errcheck
+		Render(c, he.Code, map[string]interface{}{"detail": fmt.Sprintf("%s.", message)}) // nolint: errcheck
 
 		return
 	}
 
 	// Process validation errors.
-	if e, ok := err.(validator.ValidationErrors); ok {
-		Render(c, http.StatusBadRequest, validators.TranslateErrors(e)) // nolint: errcheck
+	var ve validator.ValidationErrors
+
+	if errors.As(err, &ve) {
+		Render(c, http.StatusBadRequest, validators.TranslateErrors(ve)) // nolint: errcheck
+
 		return
 	}
 

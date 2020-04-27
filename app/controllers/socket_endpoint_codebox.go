@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-pg/pg/v9"
 	redis_cache "github.com/go-redis/cache/v7"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/labstack/echo/v4"
@@ -197,8 +198,12 @@ func sendCodeboxRequest(ctx context.Context, c echo.Context, inst *models.Instan
 
 	if sock.EnvironmentID != 0 {
 		environment := &models.SocketEnvironment{ID: sock.EnvironmentID}
-		if query.NewSocketEnvironmentManager(c).OneByID(environment) != nil {
-			return nil, nil, api.NewNotFoundError(environment)
+		if err := query.NewSocketEnvironmentManager(c).OneByID(environment); err != nil {
+			if err == pg.ErrNoRows {
+				return nil, nil, api.NewNotFoundError(endpoint)
+			}
+
+			return nil, nil, err
 		}
 
 		environmentHash = environment.Hash()
@@ -380,8 +385,12 @@ func SocketEndpointCodeboxRun(c echo.Context) error {
 	call := c.Get(contextSocketEndpointCallKey).(map[string]interface{})
 	socket := &models.Socket{ID: endpoint.SocketID}
 
-	if query.NewSocketManager(c).OneByID(socket) != nil {
-		return api.NewNotFoundError(socket)
+	if err := query.NewSocketManager(c).OneByID(socket); err != nil {
+		if err == pg.ErrNoRows {
+			return api.NewNotFoundError(socket)
+		}
+
+		return err
 	}
 
 	var (
