@@ -17,8 +17,12 @@ import (
 func InstanceContext(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		o := &models.Instance{Name: c.Param("instance_name")}
-		if query.NewInstanceManager(c).OneByName(o) != nil {
-			return api.NewNotFoundError(o)
+		if err := query.NewInstanceManager(c).OneByName(o); err != nil {
+			if err == pg.ErrNoRows {
+				return api.NewNotFoundError(o)
+			}
+
+			return err
 		}
 
 		if o.Location != settings.Common.Location {
@@ -39,8 +43,12 @@ func InstanceContext(next echo.HandlerFunc) echo.HandlerFunc {
 
 		if owner == nil {
 			owner = &models.Admin{ID: o.OwnerID}
-			if adminMgr.OneByID(owner) != nil {
-				return api.NewNotFoundError(o)
+			if err := adminMgr.OneByID(owner); err != nil {
+				if err == pg.ErrNoRows {
+					return api.NewNotFoundError(o)
+				}
+
+				return err
 			}
 		}
 
@@ -125,10 +133,12 @@ func InstanceUpdate(c echo.Context) error {
 	o := detailInstance(c)
 
 	if err := mgr.RunInTransaction(func(*pg.Tx) error {
-		if query.Lock(mgr.WithAccessByNameQ(o)) != nil {
+		err := query.Lock(mgr.WithAccessByNameQ(o))
+		if err == pg.ErrNoRows {
 			return api.NewNotFoundError(o)
 		}
-		return nil
+
+		return err
 	}); err != nil {
 		return err
 	}

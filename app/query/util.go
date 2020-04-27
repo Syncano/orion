@@ -5,6 +5,8 @@ import (
 
 	"github.com/go-pg/pg/v9"
 	"github.com/go-pg/pg/v9/orm"
+
+	"github.com/Syncano/orion/pkg/util"
 )
 
 // Lock performs query with locking of rows for update.
@@ -14,7 +16,7 @@ func Lock(q *orm.Query) error {
 
 // RequireOne panics on unexpected errors.
 func RequireOne(err error) error {
-	if err == nil || err == pg.ErrNoRows {
+	if err == nil || err == pg.ErrNoRows || err == pg.ErrMultiRows || util.IsContextError(err) {
 		return err
 	}
 

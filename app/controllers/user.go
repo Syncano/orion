@@ -39,8 +39,12 @@ func UserContext(next echo.HandlerFunc) echo.HandlerFunc {
 			return api.NewNotFoundError(o)
 		}
 
-		if query.NewUserManager(c).OneByID(o) != nil {
-			return api.NewNotFoundError(o)
+		if err := query.NewUserManager(c).OneByID(o); err != nil {
+			if err == pg.ErrNoRows {
+				return api.NewNotFoundError(o)
+			}
+
+			return err
 		}
 
 		c.Set(contextUserKey, o)
@@ -52,8 +56,12 @@ func UserContext(next echo.HandlerFunc) echo.HandlerFunc {
 func UserClassContext(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		o := &models.Class{Name: models.UserClassName}
-		if query.NewClassManager(c).OneByName(o) != nil {
-			return api.NewNotFoundError(o)
+		if err := query.NewClassManager(c).OneByName(o); err != nil {
+			if err == pg.ErrNoRows {
+				return api.NewNotFoundError(o)
+			}
+
+			return err
 		}
 
 		c.Set(contextUserClassKey, o)
@@ -116,8 +124,12 @@ func UserRetrieve(c echo.Context) error {
 
 	class := c.Get(contextUserClassKey).(*models.Class)
 
-	if query.NewUserManager(c).ByIDQ(class, o).Select() != nil {
-		return api.NewNotFoundError(o)
+	if err := query.NewUserManager(c).ByIDQ(class, o).Select(); err != nil {
+		if err == pg.ErrNoRows {
+			return api.NewNotFoundError(o)
+		}
+
+		return err
 	}
 
 	serializer := serializers.UserSerializer{Class: class}
