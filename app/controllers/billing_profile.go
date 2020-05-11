@@ -10,10 +10,10 @@ import (
 	"github.com/Syncano/orion/app/query"
 )
 
-func BillingCheck(next echo.HandlerFunc) echo.HandlerFunc {
+func (ctr *Controller) BillingCheck(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		sub := c.Get(contextSubscriptionKey).(*models.Subscription)
-		mgr := query.NewProfileManager(c)
+		mgr := ctr.q.NewProfileManager(c)
 
 		status, err := mgr.GetBillingStatus(sub)
 		if err != nil {

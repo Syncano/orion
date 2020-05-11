@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Syncano/orion/pkg/settings"
+	"github.com/Syncano/orion/app/settings"
 	"github.com/Syncano/orion/pkg/storage"
 )
 
@@ -51,8 +51,8 @@ func (m *SocketEnvironment) Hash() string {
 	return fmt.Sprintf("E:%s", m.Checksum)
 }
 
-func (m *SocketEnvironment) URL() string {
-	return storage.Default().URL(settings.BucketData, m.FsFile)
+func (m *SocketEnvironment) URL(s storage.DataStorage) string {
+	return s.URL(settings.BucketData, m.FsFile)
 }
 
 // VerboseName returns verbose name for model.

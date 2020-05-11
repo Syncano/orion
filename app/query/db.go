@@ -9,12 +9,12 @@ import (
 const ContextSchemaKey = "schema"
 
 // DB returns base db for context.
-func DB(c storage.DBContext) *pg.DB {
-	return storage.DB()
+func DB(db storage.Databaser, c storage.DBContext) *pg.DB {
+	return db.DB()
 }
 
 // TenantDB returns base tenant db for context.
-func TenantDB(c storage.DBContext) *pg.DB {
+func TenantDB(db storage.Databaser, c storage.DBContext) *pg.DB {
 	schema := c.Get(ContextSchemaKey).(string)
-	return storage.TenantDB(schema)
+	return db.TenantDB(schema)
 }

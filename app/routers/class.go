@@ -7,20 +7,20 @@ import (
 )
 
 // ClassRegister registers class routes.
-func ClassRegister(r *echo.Group, m *middlewares) {
-	g := r.Group("", m.Get()...)
+func ClassRegister(ctr *controllers.Controller, r *echo.Group, m *middlewares) {
+	g := r.Group("", m.Get(ctr)...)
 
 	// List routes.
-	g.GET("/", controllers.ClassList)
-	g.POST("/", controllers.ClassCreate)
+	g.GET("/", ctr.ClassList)
+	g.POST("/", ctr.ClassCreate)
 
 	// Detail routes.
 	d := g.Group("/:class_name")
-	d.GET("/", controllers.ClassRetrieve)
-	d.PATCH("/", controllers.ClassUpdate)
-	d.DELETE("/", controllers.ClassDelete)
+	d.GET("/", ctr.ClassRetrieve)
+	d.PATCH("/", ctr.ClassUpdate)
+	d.DELETE("/", ctr.ClassDelete)
 
 	// Sub routes.
 	sub := r.Group("/:class_name")
-	DataObjectRegister(sub.Group("/objects"), m.Add(controllers.ClassContext))
+	DataObjectRegister(ctr, sub.Group("/objects"), m.Add(ctr.ClassContext))
 }

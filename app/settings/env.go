@@ -1,9 +1,7 @@
 package settings
 
 import (
-	"fmt"
-	"os"
-	"strings"
+	"github.com/Syncano/orion/pkg/util"
 )
 
 func GetCurrentLocationEnv(key string) string {
@@ -15,14 +13,9 @@ func GetCurrentLocationEnvDefault(key, defval string) string {
 }
 
 func GetLocationEnv(loc, key string) string {
-	return os.Getenv(fmt.Sprintf("%s_%s", strings.ToUpper(loc), key))
+	return util.GetPrefixEnv(loc, key)
 }
 
 func GetLocationEnvDefault(loc, key, defval string) string {
-	val, ok := os.LookupEnv(fmt.Sprintf("%s_%s", strings.ToUpper(loc), key))
-	if ok {
-		return val
-	}
-
-	return defval
+	return util.GetPrefixEnvDefault(loc, key, defval)
 }

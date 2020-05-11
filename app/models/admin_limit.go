@@ -7,7 +7,7 @@ import (
 
 	"github.com/jackc/pgtype"
 
-	"github.com/Syncano/orion/pkg/settings"
+	"github.com/Syncano/orion/app/settings"
 )
 
 const freePlanName = "free"

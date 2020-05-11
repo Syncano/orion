@@ -21,7 +21,7 @@ func (a obj) MarshalJSON() ([]byte, error) {
 func TestCelery(t *testing.T) {
 	amqpCh := new(mocks.AMQPChannel)
 	queue := "queue"
-	Init(amqpCh)
+	cel := New(amqpCh)
 
 	Convey("NewTask works with nil args and kwargs", t, func() {
 		task := NewTask("sometask", queue, nil, nil)
@@ -30,13 +30,13 @@ func TestCelery(t *testing.T) {
 
 		Convey("Publish publishes task to amqp", func() {
 			amqpCh.On("Publish", mock.Anything, queue, mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
-			e := task.Publish()
+			e := task.Publish(cel)
 			So(e, ShouldBeNil)
 			amqpCh.AssertExpectations(t)
 		})
 		Convey("Publish propagates json marshal error", func() {
 			task.Args = []interface{}{obj(0)}
-			e := task.Publish()
+			e := task.Publish(cel)
 			So(e, ShouldNotBeNil)
 			So(e.Error(), ShouldContainSubstring, err.Error())
 			amqpCh.AssertExpectations(t)

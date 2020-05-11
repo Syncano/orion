@@ -4,19 +4,18 @@ import (
 	"github.com/go-pg/pg/v9/orm"
 
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/orion/app/query"
 	"github.com/Syncano/orion/app/serializers"
+	"github.com/Syncano/orion/app/settings"
 	"github.com/Syncano/orion/app/tasks"
-	"github.com/Syncano/orion/pkg/settings"
 	"github.com/Syncano/orion/pkg/storage"
 )
 
-func dataObjectSoftDeleteTriggerHook(c storage.DBContext, db orm.DB, i interface{}) error {
-	launchDataObjectTrigger(c, db, i.(*models.DataObject), models.TriggerSignalDelete)
+func (ctr *Controller) dataObjectSoftDeleteTriggerHook(c storage.DBContext, db orm.DB, i interface{}) error {
+	ctr.launchDataObjectTrigger(c, db, i.(*models.DataObject), models.TriggerSignalDelete)
 	return nil
 }
 
-func launchDataObjectTrigger(c storage.DBContext, db orm.DB, o *models.DataObject, signal string) {
+func (ctr *Controller) launchDataObjectTrigger(c storage.DBContext, db orm.DB, o *models.DataObject, signal string) {
 	var (
 		changes []string
 	)
@@ -27,16 +26,16 @@ func launchDataObjectTrigger(c storage.DBContext, db orm.DB, o *models.DataObjec
 		changes = o.SQLChangesVirtual()
 	}
 
-	launchTrigger(c, db, o, map[string]string{"source": "dataobject", "class": class.Name}, signal, serializers.DataObjectSerializer{Class: class}, changes)
+	ctr.launchTrigger(c, db, o, map[string]string{"source": "dataobject", "class": class.Name}, signal, serializers.DataObjectSerializer{Class: class}, changes)
 }
 
-func launchTrigger(c storage.DBContext, db orm.DB, o interface{}, event map[string]string, signal string, serializer serializers.Serializer, changes []string) {
+func (ctr *Controller) launchTrigger(c storage.DBContext, db orm.DB, o interface{}, event map[string]string, signal string, serializer serializers.Serializer, changes []string) {
 	var (
 		data map[string]interface{}
 	)
 
 	instance := c.Get(settings.ContextInstanceKey).(*models.Instance)
-	if t, _ := query.NewTriggerManager(c).Match(instance, event, signal); len(t) == 0 {
+	if t, _ := ctr.q.NewTriggerManager(c).Match(instance, event, signal); len(t) == 0 {
 		return
 	}
 
@@ -55,10 +54,10 @@ func launchTrigger(c storage.DBContext, db orm.DB, o interface{}, event map[stri
 		data = dtemp
 	}
 
-	storage.AddDBCommitHook(db, func() error {
+	ctr.db.AddDBCommitHook(db, func() error {
 		return tasks.NewCeleryHandleTriggerEventTask(
 			instance.ID,
 			event, signal, data, map[string]interface{}{"changes": changes},
-		).Publish()
+		).Publish(ctr.cel)
 	})
 }

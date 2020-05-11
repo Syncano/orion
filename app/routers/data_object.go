@@ -7,16 +7,16 @@ import (
 )
 
 // DataObjectRegister registers data object routes.
-func DataObjectRegister(r *echo.Group, m *middlewares) {
-	g := r.Group("", m.Get()...)
+func DataObjectRegister(ctr *controllers.Controller, r *echo.Group, m *middlewares) {
+	g := r.Group("", m.Get(ctr)...)
 
 	// List routes.
-	g.GET("/", controllers.DataObjectList)
-	g.POST("/", controllers.DataObjectCreate)
+	g.GET("/", ctr.DataObjectList)
+	g.POST("/", ctr.DataObjectCreate)
 
 	// Detail routes.
 	d := g.Group("/:object_id")
-	d.GET("/", controllers.DataObjectRetrieve)
-	d.PATCH("/", controllers.DataObjectUpdate)
-	d.DELETE("/", controllers.DataObjectDelete)
+	d.GET("/", ctr.DataObjectRetrieve)
+	d.PATCH("/", ctr.DataObjectUpdate)
+	d.DELETE("/", ctr.DataObjectDelete)
 }

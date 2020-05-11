@@ -7,7 +7,6 @@ import (
 	"github.com/go-pg/pg/v9/orm"
 
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/orion/pkg/cache"
 	"github.com/Syncano/orion/pkg/storage"
 )
 
@@ -17,8 +16,8 @@ type ChannelManager struct {
 }
 
 // NewChannelManager creates and returns new Channel manager.
-func NewChannelManager(c storage.DBContext) *ChannelManager {
-	return &ChannelManager{LiveManager: NewLiveTenantManager(c)}
+func (q *Factory) NewChannelManager(c storage.DBContext) *ChannelManager {
+	return &ChannelManager{LiveManager: q.NewLiveTenantManager(c)}
 }
 
 // OneByName outputs object filtered by name.
@@ -26,7 +25,7 @@ func (m *ChannelManager) OneByName(o *models.Channel) error {
 	o.Name = strings.ToLower(o.Name)
 
 	return RequireOne(
-		cache.SimpleModelCache(m.DB(), o, fmt.Sprintf("n=%s", o.Name), func() (interface{}, error) {
+		m.c.SimpleModelCache(m.DB(), o, fmt.Sprintf("n=%s", o.Name), func() (interface{}, error) {
 			return o, m.Query(o).Where("name = ?", o.Name).Select()
 		}),
 	)

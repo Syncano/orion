@@ -8,7 +8,6 @@ import (
 
 	"github.com/Syncano/orion/app/api"
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/orion/app/query"
 	"github.com/Syncano/orion/app/serializers"
 	"github.com/Syncano/orion/app/validators"
 )
@@ -28,14 +27,14 @@ func detailUserGroup(c echo.Context) *models.UserGroup {
 	return o
 }
 
-func UserGroupContext(next echo.HandlerFunc) echo.HandlerFunc {
+func (ctr *Controller) UserGroupContext(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		o := detailUserGroup(c)
 		if o == nil {
 			return api.NewNotFoundError(o)
 		}
 
-		if err := query.NewUserGroupManager(c).OneByID(o); err != nil {
+		if err := ctr.q.NewUserGroupManager(c).OneByID(o); err != nil {
 			if err == pg.ErrNoRows {
 				return api.NewNotFoundError(o)
 			}
@@ -49,16 +48,16 @@ func UserGroupContext(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func UserGroupCreate(c echo.Context) error {
+func (ctr *Controller) UserGroupCreate(c echo.Context) error {
 	// TODO: #15 Users updates/deletes
 	return api.NewPermissionDeniedError()
 }
 
-func UserGroupList(c echo.Context) error {
+func (ctr *Controller) UserGroupList(c echo.Context) error {
 	var o []*models.UserGroup
 
 	props := make(map[string]interface{})
-	paginator := &PaginatorDB{Query: query.NewUserGroupManager(c).Q(&o)}
+	paginator := &PaginatorDB{Query: ctr.q.NewUserGroupManager(c).Q(&o)}
 	cursor := paginator.CreateCursor(c, true)
 
 	r, err := Paginate(c, cursor, (*models.UserGroup)(nil), serializers.UserGroupSerializer{}, paginator)
@@ -69,13 +68,13 @@ func UserGroupList(c echo.Context) error {
 	return api.Render(c, http.StatusOK, serializers.CreatePage(c, r, props))
 }
 
-func UserGroupRetrieve(c echo.Context) error {
+func (ctr *Controller) UserGroupRetrieve(c echo.Context) error {
 	o := detailUserGroup(c)
 	if o == nil {
 		return api.NewNotFoundError(o)
 	}
 
-	if err := query.NewUserGroupManager(c).ByIDQ(o).Select(); err != nil {
+	if err := ctr.q.NewUserGroupManager(c).ByIDQ(o).Select(); err != nil {
 		if err == pg.ErrNoRows {
 			return api.NewNotFoundError(o)
 		}
@@ -86,12 +85,12 @@ func UserGroupRetrieve(c echo.Context) error {
 	return api.Render(c, http.StatusOK, serializers.UserGroupSerializer{}.Response(o))
 }
 
-func UserGroupUpdate(c echo.Context) error {
+func (ctr *Controller) UserGroupUpdate(c echo.Context) error {
 	// TODO: #15 Users updates/deletes
 	return api.NewPermissionDeniedError()
 }
 
-func UserGroupDelete(c echo.Context) error {
+func (ctr *Controller) UserGroupDelete(c echo.Context) error {
 	// TODO: #15 Users updates/deletes
 	// user := detailUserObject(c)
 	// if user == nil {
@@ -106,13 +105,13 @@ func UserGroupDelete(c echo.Context) error {
 	return api.NewPermissionDeniedError()
 }
 
-func GroupsInUserCreate(c echo.Context) error {
+func (ctr *Controller) GroupsInUserCreate(c echo.Context) error {
 	user := c.Get(contextUserKey).(*models.User)
 	group := &models.UserGroup{}
 	o := &models.UserMembership{UserID: user.ID}
-	mgr := query.NewUserMembershipManager(c)
+	mgr := ctr.q.NewUserMembershipManager(c)
 	v := &validators.GroupInUserForm{
-		GroupQ:      query.NewUserGroupManager(c).Q(group),
+		GroupQ:      ctr.q.NewUserGroupManager(c).Q(group),
 		MembershipQ: mgr.ForUserQ(user, (*models.UserMembership)(nil)),
 	}
 
@@ -126,12 +125,12 @@ func GroupsInUserCreate(c echo.Context) error {
 	return api.Render(c, http.StatusCreated, serializers.UserGroupSerializer{}.Response(group))
 }
 
-func GroupsInUserList(c echo.Context) error {
+func (ctr *Controller) GroupsInUserList(c echo.Context) error {
 	var o []*models.UserGroup
 
 	props := make(map[string]interface{})
 	user := c.Get(contextUserKey).(*models.User)
-	paginator := &PaginatorDB{Query: query.NewUserGroupManager(c).ForUserQ(user, &o)}
+	paginator := &PaginatorDB{Query: ctr.q.NewUserGroupManager(c).ForUserQ(user, &o)}
 	cursor := paginator.CreateCursor(c, true)
 
 	r, err := Paginate(c, cursor, (*models.UserGroup)(nil), serializers.UserGroupSerializer{}, paginator)
@@ -142,14 +141,14 @@ func GroupsInUserList(c echo.Context) error {
 	return api.Render(c, http.StatusOK, serializers.CreatePage(c, r, props))
 }
 
-func GroupsInUserRetrieve(c echo.Context) error {
+func (ctr *Controller) GroupsInUserRetrieve(c echo.Context) error {
 	o := detailUserGroup(c)
 	if o == nil {
 		return api.NewNotFoundError(o)
 	}
 
 	user := c.Get(contextUserKey).(*models.User)
-	if err := query.NewUserGroupManager(c).ForUserByIDQ(user, o).Select(); err != nil {
+	if err := ctr.q.NewUserGroupManager(c).ForUserByIDQ(user, o).Select(); err != nil {
 		if err == pg.ErrNoRows {
 			return api.NewNotFoundError(o)
 		}
@@ -160,13 +159,13 @@ func GroupsInUserRetrieve(c echo.Context) error {
 	return api.Render(c, http.StatusOK, serializers.UserGroupSerializer{}.Response(o))
 }
 
-func GroupsInUserDelete(c echo.Context) error {
+func (ctr *Controller) GroupsInUserDelete(c echo.Context) error {
 	group := detailUserGroup(c)
 	if group == nil {
 		return api.NewNotFoundError(group)
 	}
 
-	mgr := query.NewUserMembershipManager(c)
+	mgr := ctr.q.NewUserMembershipManager(c)
 	user := c.Get(contextUserKey).(*models.User)
 	o := &models.UserMembership{UserID: user.ID, GroupID: group.ID}
 

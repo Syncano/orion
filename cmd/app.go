@@ -18,13 +18,14 @@ import (
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/trace"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapgrpc"
+	"google.golang.org/grpc/grpclog"
 
+	"github.com/Syncano/orion/app/settings"
 	"github.com/Syncano/orion/cmd/amqp"
 	"github.com/Syncano/orion/pkg/cache"
-	"github.com/Syncano/orion/pkg/celery"
 	"github.com/Syncano/orion/pkg/jobs"
 	"github.com/Syncano/orion/pkg/log"
-	"github.com/Syncano/orion/pkg/settings"
 	"github.com/Syncano/orion/pkg/storage"
 	"github.com/Syncano/orion/pkg/version"
 )
@@ -39,6 +40,11 @@ var (
 	amqpChannel        *amqp.Channel
 
 	jaegerExporter *jaeger.Exporter
+	db             *storage.Database
+	fs             *storage.Storage
+	rredis         *storage.Redis
+	cach           *cache.Cache
+	logger         *log.Logger
 )
 
 func init() {
@@ -137,28 +143,37 @@ func init() {
 			return err
 		}
 
-		if err := log.Init(c.Bool("debug"), sentry.CurrentHub().Client()); err != nil {
+		var err error
+		if logger, err = log.New(c.Bool("debug"), sentry.CurrentHub().Client()); err != nil {
 			return err
 		}
+
+		// Set grpc logger.
+		var zapgrpcOpts []zapgrpc.Option
+		if c.Bool("debug") {
+			zapgrpcOpts = append(zapgrpcOpts, zapgrpc.WithDebug())
+		}
+
+		grpclog.SetLogger(zapgrpc.NewLogger(logger.Logger(), zapgrpcOpts...)) // nolint: staticcheck
 
 		if c.Bool("debug") {
 			settings.Common.Debug = true
 		}
 
 		// Serve expvar and checks.
-		logger := log.Logger()
-		logger.With(zap.Int("port", c.Int("port"))).Info("Serving http for expvar and checks")
+		logg := logger.Logger()
+		logg.With(zap.Int("port", c.Int("port"))).Info("Serving http for expvar and checks")
 
 		go func() {
 			if err := http.ListenAndServe(fmt.Sprintf(":%d", c.Int("port")), nil); err != nil && err != http.ErrServerClosed {
-				logger.With(zap.Error(err)).Fatal("Serve error")
+				logg.With(zap.Error(err)).Fatal("Serve error")
 			}
 		}()
 
 		// Setup prometheus handler.
 		exporter, err := prometheus.NewExporter(prometheus.Options{})
 		if err != nil {
-			logger.With(zap.Error(err)).Fatal("Prometheus exporter misconfiguration")
+			logg.With(zap.Error(err)).Fatal("Prometheus exporter misconfiguration")
 		}
 
 		var views []*view.View
@@ -168,7 +183,7 @@ func init() {
 		views = append(views, ocgrpc.DefaultServerViews...)
 
 		if err := view.Register(views...); err != nil {
-			logger.With(zap.Error(err)).Fatal("Opencensus views registration failed")
+			logg.With(zap.Error(err)).Fatal("Opencensus views registration failed")
 		}
 
 		// Serve prometheus metrics.
@@ -181,11 +196,11 @@ func init() {
 				ServiceName: c.String("service-name"),
 			},
 			OnError: func(err error) {
-				logger.With(zap.Error(err)).Warn("Jaeger tracing error")
+				logg.With(zap.Error(err)).Warn("Jaeger tracing error")
 			},
 		})
 		if err != nil {
-			logger.With(zap.Error(err)).Fatal("Jaeger exporter misconfiguration")
+			logg.With(zap.Error(err)).Fatal("Jaeger exporter misconfiguration")
 		}
 
 		trace.RegisterExporter(jaegerExporter)
@@ -194,37 +209,46 @@ func init() {
 		})
 
 		// Initialize database client.
-		storage.InitDB(dbOptions, dbInstancesOptions, c.Bool("debug"))
+		db = storage.NewDatabase(dbOptions, dbInstancesOptions, logger, c.Bool("debug"))
 
-		// Validate default storage client.
-		storage.Default()
+		fs = storage.NewStorage(settings.Common.Location, settings.Buckets, settings.API.Host, settings.API.StorageURL)
 
 		// Initialize redis client.
-		storage.InitRedis(&redisOptions)
-		cache.Init(storage.Redis())
+		rredis = storage.NewRedis(&redisOptions)
+		cach = cache.New(rredis.Client(), db, &cache.Options{
+			LocalCacheTimeout: settings.Common.LocalCacheTimeout,
+			CacheTimeout:      settings.Common.CacheTimeout,
+			CacheVersion:      settings.Common.CacheVersion,
+		})
 
 		// Initialize AMQP client and celery wrapper.
-		amqpChannel = new(amqp.Channel)
-		if err := amqpChannel.Init(c.String("broker-url")); err != nil {
+		amqpChannel, err = amqp.New(c.String("broker-url"), logger.Logger())
+		if err != nil {
 			return err
 		}
-
-		celery.Init(amqpChannel)
 
 		return nil
 	}
 	App.After = func(c *cli.Context) error {
 		// Redis teardown.
-		storage.Redis().Close()
+		if rredis != nil {
+			rredis.Client().Close()
+		}
 
 		// Database teardown.
-		storage.DB().Close()
+		if db != nil {
+			db.DB().Close()
+		}
 
 		// Sync loggers.
-		log.Sync()
+		if logger != nil {
+			logger.Sync()
+		}
 
 		// Shutdown AMQP client.
-		amqpChannel.Shutdown()
+		if amqpChannel != nil {
+			amqpChannel.Shutdown()
+		}
 
 		// Shutdown job system.
 		jobs.Shutdown()

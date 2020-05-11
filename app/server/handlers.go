@@ -44,8 +44,8 @@ func logg(c echo.Context, start time.Time, path string, l *zap.Logger, err error
 }
 
 // Recovery recovers panics and logs them to sentry and zap.
-func Recovery() echo.MiddlewareFunc {
-	logger := log.RawLogger()
+func Recovery(logger *log.Logger) echo.MiddlewareFunc {
+	l := logger.RawLogger()
 
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
@@ -58,7 +58,7 @@ func Recovery() echo.MiddlewareFunc {
 					rvalStr := fmt.Sprint(rval)
 
 					c.Error(api.NewGenericError(http.StatusInternalServerError, "Internal server error."))
-					logg(c, start, path, logger.With(zap.String("panic", rvalStr)), nil)
+					logg(c, start, path, l.With(zap.String("panic", rvalStr)), nil)
 				}
 			}()
 
@@ -68,8 +68,8 @@ func Recovery() echo.MiddlewareFunc {
 }
 
 // Logger logs requests using zap.
-func Logger() echo.MiddlewareFunc {
-	logger := log.RawLogger()
+func Logger(logger *log.Logger) echo.MiddlewareFunc {
+	l := logger.RawLogger()
 
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
@@ -89,7 +89,7 @@ func Logger() echo.MiddlewareFunc {
 				}
 			}
 
-			logg(c, start, path, logger, err)
+			logg(c, start, path, l, err)
 
 			return nil
 		}

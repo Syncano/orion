@@ -11,13 +11,13 @@ import (
 	"github.com/Syncano/orion/app/models"
 	"github.com/Syncano/orion/app/query"
 	"github.com/Syncano/orion/app/serializers"
-	"github.com/Syncano/orion/pkg/settings"
+	"github.com/Syncano/orion/app/settings"
 )
 
-func InstanceContext(next echo.HandlerFunc) echo.HandlerFunc {
+func (ctr *Controller) InstanceContext(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		o := &models.Instance{Name: c.Param("instance_name")}
-		if err := query.NewInstanceManager(c).OneByName(o); err != nil {
+		if err := ctr.q.NewInstanceManager(c).OneByName(o); err != nil {
 			if err == pg.ErrNoRows {
 				return api.NewNotFoundError(o)
 			}
@@ -39,7 +39,7 @@ func InstanceContext(next echo.HandlerFunc) echo.HandlerFunc {
 			}
 		}
 
-		adminMgr := query.NewAdminManager(c)
+		adminMgr := ctr.q.NewAdminManager(c)
 
 		if owner == nil {
 			owner = &models.Admin{ID: o.OwnerID}
@@ -66,7 +66,7 @@ func InstanceContext(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func InstanceAuth(next echo.HandlerFunc) echo.HandlerFunc {
+func (ctr *Controller) InstanceAuth(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		o := c.Get(settings.ContextInstanceKey).(*models.Instance)
 		perm := false
@@ -75,7 +75,7 @@ func InstanceAuth(next echo.HandlerFunc) echo.HandlerFunc {
 			adm := a.(*models.Admin)
 			air := &models.AdminInstanceRole{InstanceID: o.ID, AdminID: adm.ID}
 
-			if adm.ID == o.OwnerID || adm.IsStaff || query.NewAdminInstanceRoleManager(c).OneByInstanceAndAdmin(air) == nil {
+			if adm.ID == o.OwnerID || adm.IsStaff || ctr.q.NewAdminInstanceRoleManager(c).OneByInstanceAndAdmin(air) == nil {
 				perm = true
 			}
 		} else if a := c.Get(settings.ContextAPIKeyKey); a != nil {
@@ -90,15 +90,15 @@ func InstanceAuth(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func InstanceCreate(c echo.Context) error {
+func (ctr *Controller) InstanceCreate(c echo.Context) error {
 	// TODO: #12 Instance create
 	return api.NewPermissionDeniedError()
 }
 
-func InstanceList(c echo.Context) error {
+func (ctr *Controller) InstanceList(c echo.Context) error {
 	var o []*models.Instance
 
-	paginator := &PaginatorDB{Query: query.NewInstanceManager(c).WithAccessQ(&o)}
+	paginator := &PaginatorDB{Query: ctr.q.NewInstanceManager(c).WithAccessQ(&o)}
 	cursor := paginator.CreateCursor(c, true)
 
 	r, err := Paginate(c, cursor, (*models.Instance)(nil), serializers.InstanceSerializer{}, paginator)
@@ -113,10 +113,10 @@ func detailInstance(c echo.Context) *models.Instance {
 	return &models.Instance{Name: c.Param("instance_name")}
 }
 
-func InstanceRetrieve(c echo.Context) error {
+func (ctr *Controller) InstanceRetrieve(c echo.Context) error {
 	o := detailInstance(c)
 
-	if err := query.NewInstanceManager(c).WithAccessByNameQ(o).Select(); err != nil {
+	if err := ctr.q.NewInstanceManager(c).WithAccessByNameQ(o).Select(); err != nil {
 		if err == pg.ErrNoRows {
 			return api.NewNotFoundError(o)
 		}
@@ -127,9 +127,9 @@ func InstanceRetrieve(c echo.Context) error {
 	return api.Render(c, http.StatusOK, serializers.InstanceSerializer{}.Response(o))
 }
 
-func InstanceUpdate(c echo.Context) error {
+func (ctr *Controller) InstanceUpdate(c echo.Context) error {
 	// TODO: #9 Instance updates/deletes
-	mgr := query.NewInstanceManager(c)
+	mgr := ctr.q.NewInstanceManager(c)
 	o := detailInstance(c)
 
 	if err := mgr.RunInTransaction(func(*pg.Tx) error {
@@ -146,7 +146,7 @@ func InstanceUpdate(c echo.Context) error {
 	return api.NewPermissionDeniedError()
 }
 
-func InstanceDelete(c echo.Context) error {
+func (ctr *Controller) InstanceDelete(c echo.Context) error {
 	// TODO: #9 Instance updates/deletes
 	// user := detailUserObject(c)
 	// if user == nil {

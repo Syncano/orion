@@ -15,9 +15,8 @@ import (
 	"github.com/Syncano/orion/app/api"
 	"github.com/Syncano/orion/app/models"
 	"github.com/Syncano/orion/app/serializers"
+	"github.com/Syncano/orion/app/settings"
 	"github.com/Syncano/orion/pkg/redisdb"
-	"github.com/Syncano/orion/pkg/settings"
-	"github.com/Syncano/orion/pkg/storage"
 )
 
 const (
@@ -32,18 +31,18 @@ var (
 	}
 )
 
-func createChangeDBCtx(c echo.Context, room string, o interface{}) *redisdb.DBCtx {
-	return storage.RedisDB().Model(o, map[string]interface{}{
+func (ctr *Controller) createChangeDBCtx(c echo.Context, room string, o interface{}) *redisdb.DBCtx {
+	return ctr.redis.DB().Model(o, map[string]interface{}{
 		"instance": c.Get(settings.ContextInstanceKey).(*models.Instance),
 		"channel":  c.Get(contextChannelKey).(*models.Channel),
 		"room":     room,
 	})
 }
 
-func changeList(c echo.Context, room string) error {
+func (ctr *Controller) changeList(c echo.Context, room string) error {
 	var o []*models.Change
 
-	paginator := &PaginatorRedis{DBCtx: createChangeDBCtx(c, room, &o)}
+	paginator := &PaginatorRedis{DBCtx: ctr.createChangeDBCtx(c, room, &o)}
 	cursor := paginator.CreateCursor(c, false)
 
 	r, err := Paginate(c, cursor, (*models.Change)(nil), serializers.ChangeSerializer{}, paginator)
@@ -54,8 +53,8 @@ func changeList(c echo.Context, room string) error {
 	return api.Render(c, http.StatusOK, serializers.CreatePage(c, r, nil))
 }
 
-func changeRetrieve(c echo.Context, room string, o *models.Change) error {
-	if err := createChangeDBCtx(c, room, o).Find(o.ID); err != nil {
+func (ctr *Controller) changeRetrieve(c echo.Context, room string, o *models.Change) error {
+	if err := ctr.createChangeDBCtx(c, room, o).Find(o.ID); err != nil {
 		if err == pg.ErrNoRows {
 			return api.NewNotFoundError(o)
 		}
@@ -80,7 +79,7 @@ func channelStreamKey(inst *models.Instance, ch *models.Channel, room *string) s
 	return channelWithRoom(fmt.Sprintf("stream:channel:%d:%d", inst.ID, ch.ID), room)
 }
 
-func changeSubscribe(c echo.Context, room *string) error {
+func (ctr *Controller) changeSubscribe(c echo.Context, room *string) error {
 	isWebSocket := c.QueryParam("transport") == "websocket"
 	limit := 1
 
@@ -88,7 +87,7 @@ func changeSubscribe(c echo.Context, room *string) error {
 		limit = settings.API.ChannelWebSocketLimit
 	}
 
-	ch, err := changeSubscribeStream(c, room, limit, settings.API.ChannelSubscribeTimeout)
+	ch, err := ctr.changeSubscribeStream(c, room, limit, settings.API.ChannelSubscribeTimeout)
 	if err != nil {
 		return err
 	}
@@ -117,7 +116,7 @@ func changeSubscribe(c echo.Context, room *string) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func changeSubscribeStream(c echo.Context, room *string, limit int, timeout time.Duration) (<-chan []byte, error) {
+func (ctr *Controller) changeSubscribeStream(c echo.Context, room *string, limit int, timeout time.Duration) (<-chan []byte, error) {
 	instance := c.Get(settings.ContextInstanceKey).(*models.Instance)
 	channel := c.Get(contextChannelKey).(*models.Channel)
 	start := time.Now()
@@ -132,7 +131,7 @@ func changeSubscribeStream(c echo.Context, room *string, limit int, timeout time
 		lastID, _ = strconv.Atoi(lastIDStr)
 
 		var o []*models.Change
-		if err := createChangeDBCtx(c, *room, &o).List(lastID+1, 0, limit, true, nil); err != nil {
+		if err := ctr.createChangeDBCtx(c, *room, &o).List(lastID+1, 0, limit, true, nil); err != nil {
 			return nil, err
 		}
 
@@ -157,7 +156,7 @@ func changeSubscribeStream(c echo.Context, room *string, limit int, timeout time
 	streamKey := channelStreamKey(instance, channel, room)
 	ch := make(chan string, limit)
 
-	if err := storage.RedisPubSub().Subscribe(streamKey, ch); err != nil {
+	if err := ctr.redis.PubSub().Subscribe(streamKey, ch); err != nil {
 		return outCh, err
 	}
 

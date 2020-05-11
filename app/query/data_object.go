@@ -4,7 +4,7 @@ import (
 	"github.com/go-pg/pg/v9/orm"
 
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/orion/pkg/settings"
+	"github.com/Syncano/orion/app/settings"
 	"github.com/Syncano/orion/pkg/storage"
 )
 
@@ -14,19 +14,19 @@ type DataObjectManager struct {
 }
 
 // NewDataObjectManager creates and returns new DataObject manager.
-func NewDataObjectManager(c storage.DBContext) *DataObjectManager {
-	return &DataObjectManager{LiveManager: NewLiveTenantManager(c)}
+func (q *Factory) NewDataObjectManager(c storage.DBContext) *DataObjectManager {
+	return &DataObjectManager{LiveManager: q.NewLiveTenantManager(c)}
 }
 
 // Create creates new object.
 func (m *DataObjectManager) Create(o interface{}) error {
-	_, e := m.DB().ModelContext(m.Context.Request().Context(), o).Returning("*").Insert()
+	_, e := m.DB().ModelContext(m.dbCtx.Request().Context(), o).Returning("*").Insert()
 	return e
 }
 
 // CountEstimate returns count estimate for current data objects list.
 func (m *DataObjectManager) CountEstimate(q orm.QueryAppender) (int, error) {
-	return CountEstimate(m.Context.Request().Context(), m.DB(), q, settings.API.DataObjectEstimateThreshold)
+	return CountEstimate(m.dbCtx.Request().Context(), m.DB(), q, settings.API.DataObjectEstimateThreshold)
 }
 
 // ForClassQ outputs objects within specific class.

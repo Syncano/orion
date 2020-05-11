@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Syncano/orion/pkg/settings"
+	"github.com/Syncano/orion/app/settings"
 
 	"github.com/jackc/pgtype"
 	json "github.com/json-iterator/go"

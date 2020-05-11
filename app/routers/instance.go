@@ -7,26 +7,26 @@ import (
 )
 
 // InstanceRegister registers instance routes.
-func InstanceRegister(r *echo.Group, m *middlewares) {
-	g := r.Group("", m.Get()...)
+func InstanceRegister(ctr *controllers.Controller, r *echo.Group, m *middlewares) {
+	g := r.Group("", m.Get(ctr)...)
 
 	// List routes.
-	g.GET("/", controllers.InstanceList)
-	g.POST("/", controllers.InstanceCreate)
+	g.GET("/", ctr.InstanceList)
+	g.POST("/", ctr.InstanceCreate)
 
 	// Detail routes.
 	d := g.Group("/:instance_name")
-	d.GET("/", controllers.InstanceRetrieve)
-	d.PATCH("/", controllers.InstanceUpdate)
-	d.DELETE("/", controllers.InstanceDelete)
+	d.GET("/", ctr.InstanceRetrieve)
+	d.PATCH("/", ctr.InstanceUpdate)
+	d.DELETE("/", ctr.InstanceDelete)
 
 	// Sub routes.
 	sub := r.Group("/:instance_name")
-	m = m.Add(controllers.InstanceContext, controllers.InstanceSubscriptionContext, controllers.BillingCheck).
-		AddAuth(controllers.InstanceAuth)
+	m = m.Add(ctr.InstanceContext, ctr.InstanceSubscriptionContext, ctr.BillingCheck).
+		AddAuth(ctr.InstanceAuth)
 
-	ClassRegister(sub.Group("/classes"), m)
-	UserRegister(sub.Group("/users"), m)
-	UserGroupRegister(sub.Group("/groups"), m)
-	SocketEndpointRegister(sub.Group("/endpoints/sockets"), m)
+	ClassRegister(ctr, sub.Group("/classes"), m)
+	UserRegister(ctr, sub.Group("/users"), m)
+	UserGroupRegister(ctr, sub.Group("/groups"), m)
+	SocketEndpointRegister(ctr, sub.Group("/endpoints/sockets"), m)
 }

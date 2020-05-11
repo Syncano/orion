@@ -7,7 +7,7 @@ import (
 	jsoniter "github.com/json-iterator/go"
 	"github.com/labstack/echo/v4"
 
-	"github.com/Syncano/orion/pkg/settings"
+	"github.com/Syncano/orion/app/settings"
 )
 
 var (

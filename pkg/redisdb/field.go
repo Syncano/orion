@@ -6,8 +6,6 @@ import (
 	"time"
 
 	jsoniter "github.com/json-iterator/go"
-
-	"github.com/Syncano/orion/pkg/settings"
 )
 
 // FieldAdapter is an interface for Redis model field adapter.
@@ -16,11 +14,13 @@ type FieldAdapter interface {
 	Dump(value interface{}) string
 }
 
+const datetimeFormat = "2006-01-02T15:04:05.000000Z"
+
 var (
 	fieldAdapterType = reflect.TypeOf((*FieldAdapter)(nil)).Elem()
 	timeType         = reflect.TypeOf((*time.Time)(nil)).Elem()
 	jsonAdapter      = &jsonFieldAdapter{}
-	timeAdapter      = &datetimeFieldAdapter{}
+	timeAdapter      = &datetimeFieldAdapter{datetimeFormat: datetimeFormat}
 )
 
 // Field represents a Redis model field.
@@ -92,15 +92,17 @@ func (f *integerFieldAdapter) Dump(value interface{}) string {
 }
 
 // Datetime
-type datetimeFieldAdapter struct{}
+type datetimeFieldAdapter struct {
+	datetimeFormat string
+}
 
 func (f *datetimeFieldAdapter) Load(value string) interface{} {
-	t, _ := time.Parse(settings.Common.DateTimeFormat, value)
+	t, _ := time.Parse(f.datetimeFormat, value)
 	return t
 }
 
 func (f *datetimeFieldAdapter) Dump(value interface{}) string {
-	return value.(time.Time).Format(settings.Common.DateTimeFormat)
+	return value.(time.Time).Format(f.datetimeFormat)
 }
 
 // JSON
