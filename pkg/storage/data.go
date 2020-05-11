@@ -41,6 +41,7 @@ type Storage struct {
 func NewStorage(loc string, buckets map[BucketKey]string, host, storageURL string) *Storage {
 	return &Storage{
 		storageCache: make(map[string]DataStorage),
+		buckets:      buckets,
 		loc:          loc,
 		host:         host,
 		storageURL:   storageURL,
