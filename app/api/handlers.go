@@ -14,8 +14,8 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/Syncano/orion/app/models"
+	"github.com/Syncano/orion/app/settings"
 	"github.com/Syncano/orion/app/validators"
-	"github.com/Syncano/orion/pkg/settings"
 )
 
 // Context keys.

@@ -2,7 +2,6 @@ package storage
 
 import (
 	"fmt"
-	"sync"
 
 	"github.com/go-pg/pg/v9/orm"
 )
@@ -18,51 +17,46 @@ type (
 type anyModel struct{}
 
 var (
-	modelhookmu     sync.RWMutex
-	saveHooks       = map[string][]SaveModelHookFunc{}
-	deleteHooks     = map[string][]DeleteModelHookFunc{}
-	softDeleteHooks = map[string][]SoftDeleteModelHookFunc{}
-
 	// AnyModel signifies any model hook.
 	AnyModel    = (*anyModel)(nil)
 	anyModelKey = fmt.Sprintf("%T", AnyModel)
 )
 
-func AddModelDeleteHook(model interface{}, f DeleteModelHookFunc) {
-	modelhookmu.Lock()
+func (d *Database) AddModelDeleteHook(model interface{}, f DeleteModelHookFunc) {
+	d.modelhookmu.Lock()
 
 	key := fmt.Sprintf("%T", model)
-	deleteHooks[key] = append(deleteHooks[key], f)
+	d.deleteHooks[key] = append(d.deleteHooks[key], f)
 
-	modelhookmu.Unlock()
+	d.modelhookmu.Unlock()
 }
 
-func AddModelSoftDeleteHook(model interface{}, f SoftDeleteModelHookFunc) {
-	modelhookmu.Lock()
+func (d *Database) AddModelSoftDeleteHook(model interface{}, f SoftDeleteModelHookFunc) {
+	d.modelhookmu.Lock()
 
 	key := fmt.Sprintf("%T", model)
-	softDeleteHooks[key] = append(softDeleteHooks[key], f)
+	d.softDeleteHooks[key] = append(d.softDeleteHooks[key], f)
 
-	modelhookmu.Unlock()
+	d.modelhookmu.Unlock()
 }
 
-func AddModelSaveHook(model interface{}, f SaveModelHookFunc) {
-	modelhookmu.Lock()
+func (d *Database) AddModelSaveHook(model interface{}, f SaveModelHookFunc) {
+	d.modelhookmu.Lock()
 
 	key := fmt.Sprintf("%T", model)
-	saveHooks[key] = append(saveHooks[key], f)
+	d.saveHooks[key] = append(d.saveHooks[key], f)
 
-	modelhookmu.Unlock()
+	d.modelhookmu.Unlock()
 }
 
-func ProcessModelSaveHook(c DBContext, db orm.DB, created bool, model interface{}) error {
-	modelhookmu.RLock()
+func (d *Database) ProcessModelSaveHook(c DBContext, db orm.DB, created bool, model interface{}) error {
+	d.modelhookmu.RLock()
 
 	key := fmt.Sprintf("%T", model)
-	funcs := saveHooks[key]
-	funcsAny := saveHooks[anyModelKey]
+	funcs := d.saveHooks[key]
+	funcsAny := d.saveHooks[anyModelKey]
 
-	modelhookmu.RUnlock()
+	d.modelhookmu.RUnlock()
 
 	funcs = append(funcs, funcsAny...)
 	for _, f := range funcs {
@@ -74,14 +68,14 @@ func ProcessModelSaveHook(c DBContext, db orm.DB, created bool, model interface{
 	return nil
 }
 
-func ProcessModelDeleteHook(c DBContext, db orm.DB, model interface{}) error {
-	modelhookmu.RLock()
+func (d *Database) ProcessModelDeleteHook(c DBContext, db orm.DB, model interface{}) error {
+	d.modelhookmu.RLock()
 
 	key := fmt.Sprintf("%T", model)
-	funcs := deleteHooks[key]
-	funcsAny := deleteHooks[anyModelKey]
+	funcs := d.deleteHooks[key]
+	funcsAny := d.deleteHooks[anyModelKey]
 
-	modelhookmu.RUnlock()
+	d.modelhookmu.RUnlock()
 
 	funcs = append(funcs, funcsAny...)
 	for _, f := range funcs {
@@ -93,14 +87,14 @@ func ProcessModelDeleteHook(c DBContext, db orm.DB, model interface{}) error {
 	return nil
 }
 
-func ProcessModelSoftDeleteHook(c DBContext, db orm.DB, model interface{}) error {
-	modelhookmu.RLock()
+func (d *Database) ProcessModelSoftDeleteHook(c DBContext, db orm.DB, model interface{}) error {
+	d.modelhookmu.RLock()
 
 	key := fmt.Sprintf("%T", model)
-	funcs := softDeleteHooks[key]
-	funcsAny := softDeleteHooks[anyModelKey]
+	funcs := d.softDeleteHooks[key]
+	funcsAny := d.softDeleteHooks[anyModelKey]
 
-	modelhookmu.RUnlock()
+	d.modelhookmu.RUnlock()
 
 	funcs = append(funcs, funcsAny...)
 	for _, f := range funcs {

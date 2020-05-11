@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"net"
+	"sync"
 	"time"
 
 	"github.com/go-pg/pg/v9"
@@ -21,10 +22,21 @@ const (
 	dbConnRetrySleep     = 250 * time.Millisecond
 )
 
-var (
+type Database struct {
 	commonDB *pg.DB
 	tenantDB *pg.DB
-)
+
+	// db hooks
+	dbhookmu      sync.RWMutex
+	commitHooks   map[*pg.Tx][]hookFunc
+	rollbackHooks map[*pg.Tx][]hookFunc
+
+	// model hooks
+	modelhookmu     sync.RWMutex
+	saveHooks       map[string][]SaveModelHookFunc
+	deleteHooks     map[string][]DeleteModelHookFunc
+	softDeleteHooks map[string][]SoftDeleteModelHookFunc
+}
 
 // DefaultDBOptions returns
 func DefaultDBOptions() *pg.Options {
@@ -50,12 +62,24 @@ func DefaultDBOptions() *pg.Options {
 }
 
 // InitDB sets up a database.
-func InitDB(opts, instancesOpts *pg.Options, debug bool) {
-	commonDB = initDB(opts, debug)
-	tenantDB = commonDB
+func NewDatabase(opts, instancesOpts *pg.Options, logger *log.Logger, debug bool) *Database {
+	commonDB := initDB(opts, logger, debug)
+	tenantDB := commonDB
 
 	if instancesOpts.Addr != opts.Addr || instancesOpts.Database != opts.Database {
-		tenantDB = initDB(instancesOpts, debug)
+		tenantDB = initDB(instancesOpts, logger, debug)
+	}
+
+	return &Database{
+		commonDB: commonDB,
+		tenantDB: tenantDB,
+
+		commitHooks:   make(map[*pg.Tx][]hookFunc),
+		rollbackHooks: make(map[*pg.Tx][]hookFunc),
+
+		saveHooks:       make(map[string][]SaveModelHookFunc),
+		deleteHooks:     make(map[string][]DeleteModelHookFunc),
+		softDeleteHooks: make(map[string][]SoftDeleteModelHookFunc),
 	}
 }
 
@@ -81,22 +105,22 @@ func (h *debugHook) AfterQuery(ctx context.Context, event *pg.QueryEvent) error 
 	return nil
 }
 
-func initDB(opts *pg.Options, debug bool) *pg.DB {
+func initDB(opts *pg.Options, logger *log.Logger, debug bool) *pg.DB {
 	db := pg.Connect(opts)
 
 	if debug {
-		db.AddQueryHook(&debugHook{logger: log.Logger().WithOptions(zap.AddCallerSkip(8))})
+		db.AddQueryHook(&debugHook{logger: logger.Logger().WithOptions(zap.AddCallerSkip(8))})
 	}
 
 	return db
 }
 
 // DB returns database client.
-func DB() *pg.DB {
-	return commonDB
+func (d *Database) DB() *pg.DB {
+	return d.commonDB
 }
 
 // TenantDB returns database client.
-func TenantDB(schema string) *pg.DB {
-	return tenantDB.WithParam("schema", pg.Ident(schema)).WithContext(context.WithValue(context.Background(), KeySchema, schema))
+func (d *Database) TenantDB(schema string) *pg.DB {
+	return d.tenantDB.WithParam("schema", pg.Ident(schema)).WithContext(context.WithValue(context.Background(), KeySchema, schema))
 }

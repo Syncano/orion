@@ -5,42 +5,40 @@ import (
 
 	"github.com/go-pg/pg/v9/orm"
 
-	"github.com/Syncano/orion/pkg/settings"
-	"github.com/Syncano/orion/pkg/storage"
 	"github.com/Syncano/orion/pkg/util"
 )
 
-func createFuncCacheKey(funcKey, versionKey, lookup string) string {
-	return fmt.Sprintf("0:cache:f:%d:%s:%s:%x", settings.Common.CacheVersion, funcKey, versionKey, util.Hash(lookup))
+func (c *Cache) createFuncCacheKey(funcKey, versionKey, lookup string) string {
+	return fmt.Sprintf("0:cache:f:%d:%s:%s:%x", c.opts.CacheVersion, funcKey, versionKey, util.Hash(lookup))
 }
 
-func createFuncVersionCacheKey(funcKey, versionKey string) string {
-	return fmt.Sprintf("0:cache:f:%d:%s:%s:version", settings.Common.CacheVersion, funcKey, versionKey)
+func (c *Cache) createFuncVersionCacheKey(funcKey, versionKey string) string {
+	return fmt.Sprintf("0:cache:f:%d:%s:%s:version", c.opts.CacheVersion, funcKey, versionKey)
 }
 
-func FuncCacheInvalidate(funcKey, versionKey string) error {
-	versionKey = createFuncVersionCacheKey(funcKey, versionKey)
-	return InvalidateVersion(versionKey, settings.Common.CacheTimeout)
+func (c *Cache) FuncCacheInvalidate(funcKey, versionKey string) error {
+	versionKey = c.createFuncVersionCacheKey(funcKey, versionKey)
+	return c.InvalidateVersion(versionKey, c.opts.CacheTimeout)
 }
 
-func FuncCacheCommitInvalidate(db orm.DB, funcKey, versionKey string) {
-	storage.AddDBCommitHook(db, func() error {
-		return FuncCacheInvalidate(funcKey, versionKey)
+func (c *Cache) FuncCacheCommitInvalidate(db orm.DB, funcKey, versionKey string) {
+	c.db.AddDBCommitHook(db, func() error {
+		return c.FuncCacheInvalidate(funcKey, versionKey)
 	})
 }
 
-func FuncCache(funcKey, versionKey string, val interface{}, lookup string,
+func (c *Cache) FuncCache(funcKey, versionKey string, val interface{}, lookup string,
 	compute func() (interface{}, error), validate func(interface{}) bool) error {
-	funcKey = createFuncCacheKey(funcKey, versionKey, lookup)
+	funcKey = c.createFuncCacheKey(funcKey, versionKey, lookup)
 
-	return VersionedCache(funcKey, lookup, val,
+	return c.VersionedCache(funcKey, lookup, val,
 		func() string {
-			return createFuncVersionCacheKey(funcKey, versionKey)
+			return c.createFuncVersionCacheKey(funcKey, versionKey)
 		},
-		compute, validate, settings.Common.CacheTimeout)
+		compute, validate, c.opts.CacheTimeout)
 }
 
-func SimpleFuncCache(funcKey, versionKey string, val interface{}, lookup string,
+func (c *Cache) SimpleFuncCache(funcKey, versionKey string, val interface{}, lookup string,
 	compute func() (interface{}, error)) error {
-	return FuncCache(funcKey, versionKey, val, lookup, compute, nil)
+	return c.FuncCache(funcKey, versionKey, val, lookup, compute, nil)
 }

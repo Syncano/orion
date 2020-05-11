@@ -10,12 +10,11 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/Syncano/orion/app/api"
+	"github.com/Syncano/orion/app/settings"
 	"github.com/Syncano/orion/app/validators"
-	"github.com/Syncano/orion/pkg/cache"
-	"github.com/Syncano/orion/pkg/settings"
 )
 
-func CacheInvalidate(c echo.Context) error {
+func (ctr *Controller) CacheInvalidate(c echo.Context) error {
 	v := &validators.CacheInvalidateForm{}
 
 	if err := api.BindValidateAndExec(c, v, func() error {
@@ -25,7 +24,7 @@ func CacheInvalidate(c echo.Context) error {
 			return api.NewGenericError(http.StatusBadRequest, "Invalid signature.")
 		}
 
-		return cache.InvalidateVersion(v.VersionKey, settings.Common.CacheTimeout)
+		return ctr.c.InvalidateVersion(v.VersionKey, settings.Common.CacheTimeout)
 	}); err != nil {
 		return err
 	}

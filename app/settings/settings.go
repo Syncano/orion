@@ -22,7 +22,6 @@ type common struct {
 
 	AnalyticsWriteKey string `env:"ANALYTICS_WRITE_KEY"`
 	SecretKey         string `env:"SECRET_KEY"`
-	StripeSecretKey   string `env:"STRIPE_SECRET_KEY"`
 }
 
 // Common is a global struct with options filled by env.
@@ -57,9 +56,10 @@ type PlanLimit struct {
 }
 
 type billing struct {
+	StripeSecretKey            string `env:"STRIPE_SECRET_KEY"`
 	DefaultPlanName            string `env:"BILLING_DEFAULT_PLAN_NAME"`
 	DefaultPlanExpiration      int    `env:"BILLING_DEFAULT_PLAN_EXPIRATION"` // days
-	DueDays                    int    // days
+	DefaultDueDays             int    // days
 	GracePeriodForPlanChanging int
 	AlarmPoints                []int
 	ChecksTimeout              time.Duration
@@ -77,7 +77,7 @@ type billing struct {
 var Billing = &billing{
 	DefaultPlanName:            "builder",
 	DefaultPlanExpiration:      30,
-	DueDays:                    30,
+	DefaultDueDays:             30,
 	GracePeriodForPlanChanging: 1,
 	AlarmPoints:                []int{80},
 	ChecksTimeout:              5 * time.Minute,
@@ -133,6 +133,8 @@ var API = &api{
 }
 
 type socket struct {
+	CodeboxAddr    string `env:"CODEBOX_ADDR"`
+	CodeboxRetry   uint   `env:"CODEBOX_RETRY"`
 	DefaultTimeout time.Duration
 	DefaultAsync   uint32
 	DefaultMCPU    uint32
@@ -142,6 +144,8 @@ type socket struct {
 }
 
 var Socket = &socket{
+	CodeboxAddr:    "codebox-broker:80",
+	CodeboxRetry:   2,
 	DefaultTimeout: 30 * time.Second / 1e6,
 	DefaultAsync:   0,
 	DefaultMCPU:    0,

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Syncano/orion/pkg/settings"
+	"github.com/Syncano/orion/app/settings"
 	"github.com/Syncano/orion/pkg/storage"
 )
 
@@ -74,9 +74,8 @@ func getLocalPath(path string) string {
 	return path
 }
 
-func (m *Socket) Files() map[string]string {
+func (m *Socket) Files(s storage.DataStorage) map[string]string {
 	f := make(map[string]string)
-	s := storage.Default()
 
 	for path, data := range m.FileList.Get().(map[string]interface{}) {
 		if path == settings.Socket.YAML {

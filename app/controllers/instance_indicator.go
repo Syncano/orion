@@ -7,13 +7,13 @@ import (
 	"github.com/Syncano/orion/app/api"
 	"github.com/Syncano/orion/app/models"
 	"github.com/Syncano/orion/app/query"
-	"github.com/Syncano/orion/pkg/settings"
+	"github.com/Syncano/orion/app/settings"
 	"github.com/Syncano/orion/pkg/storage"
 )
 
-func updateInstanceIndicatorValue(c storage.DBContext, db orm.DB, typ, diff int) error {
+func (ctr *Controller) updateInstanceIndicatorValue(c storage.DBContext, db orm.DB, typ, diff int) error {
 	instance := c.Get(settings.ContextInstanceKey).(*models.Instance)
-	mgr := query.NewInstanceIndicatorManager(c)
+	mgr := ctr.q.NewInstanceIndicatorManager(c)
 	mgr.SetDB(db)
 
 	o := &models.InstanceIndicator{InstanceID: instance.ID, Type: typ}

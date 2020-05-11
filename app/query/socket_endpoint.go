@@ -7,7 +7,6 @@ import (
 	"github.com/go-pg/pg/v9/orm"
 
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/orion/pkg/cache"
 	"github.com/Syncano/orion/pkg/storage"
 )
 
@@ -17,8 +16,8 @@ type SocketEndpointManager struct {
 }
 
 // NewSocketEndpointManager creates and returns new Socket Endpoint manager.
-func NewSocketEndpointManager(c storage.DBContext) *SocketEndpointManager {
-	return &SocketEndpointManager{Manager: NewTenantManager(c)}
+func (q *Factory) NewSocketEndpointManager(c storage.DBContext) *SocketEndpointManager {
+	return &SocketEndpointManager{Manager: q.NewTenantManager(c)}
 }
 
 // ForSocketQ outputs object filtered by name.
@@ -31,7 +30,7 @@ func (m *SocketEndpointManager) OneByName(o *models.SocketEndpoint) error {
 	o.Name = strings.ToLower(o.Name)
 
 	return RequireOne(
-		cache.SimpleModelCache(m.DB(), o, fmt.Sprintf("n=%s", o.Name), func() (interface{}, error) {
+		m.c.SimpleModelCache(m.DB(), o, fmt.Sprintf("n=%s", o.Name), func() (interface{}, error) {
 			return o, m.Query(o).Where("name = ?", o.Name).Select()
 		}),
 	)

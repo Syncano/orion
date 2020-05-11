@@ -2,9 +2,11 @@ package routers
 
 import (
 	"github.com/labstack/echo/v4"
+
+	"github.com/Syncano/orion/app/controllers"
 )
 
 // Register registers all routes.
-func Register(e *echo.Echo) {
-	V3Register(e, e.Group("/v3"))
+func Register(ctr *controllers.Controller, e *echo.Echo) {
+	V3Register(ctr, e, e.Group("/v3"))
 }

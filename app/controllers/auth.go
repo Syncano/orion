@@ -14,9 +14,8 @@ import (
 
 	"github.com/Syncano/orion/app/api"
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/orion/app/query"
+	"github.com/Syncano/orion/app/settings"
 	"github.com/Syncano/orion/app/validators"
-	"github.com/Syncano/orion/pkg/settings"
 	"github.com/Syncano/orion/pkg/util"
 )
 
@@ -28,7 +27,7 @@ const (
 )
 
 // Auth handles authenticates admin/api key.
-func Auth(next echo.HandlerFunc) echo.HandlerFunc {
+func (ctr *Controller) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		form := &validators.APIKeyForm{}
 
@@ -40,13 +39,13 @@ func Auth(next echo.HandlerFunc) echo.HandlerFunc {
 			if util.CheckStringParity(form.APIKey) {
 				o := &models.Admin{Key: form.APIKey}
 
-				if query.NewAdminManager(c).OneByKey(o) == nil {
+				if ctr.q.NewAdminManager(c).OneByKey(o) == nil {
 					c.Set(settings.ContextAdminKey, o)
 				}
 			} else {
 				o := &models.APIKey{Key: form.APIKey}
 
-				if query.NewAPIKeyManager(c).OneByKey(o) == nil {
+				if ctr.q.NewAPIKeyManager(c).OneByKey(o) == nil {
 					c.Set(settings.ContextAPIKeyKey, o)
 				}
 			}
@@ -55,7 +54,7 @@ func Auth(next echo.HandlerFunc) echo.HandlerFunc {
 			if instance != nil && int64(instance.(*models.Instance).ID) == verifyToken(form.APIKey) {
 				o := &models.Admin{ID: instance.(*models.Instance).OwnerID}
 
-				if query.NewAdminManager(c).OneByID(o) == nil {
+				if ctr.q.NewAdminManager(c).OneByID(o) == nil {
 					c.Set(settings.ContextAdminKey, o)
 				}
 			}
@@ -65,7 +64,7 @@ func Auth(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func RequireAPIKeyOrAdmin(next echo.HandlerFunc) echo.HandlerFunc {
+func (ctr *Controller) RequireAPIKeyOrAdmin(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		if c.Get(settings.ContextAPIKeyKey) == nil && c.Get(settings.ContextAdminKey) == nil {
 			return api.NewPermissionDeniedError()
@@ -75,7 +74,7 @@ func RequireAPIKeyOrAdmin(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func RequireAdmin(next echo.HandlerFunc) echo.HandlerFunc {
+func (ctr *Controller) RequireAdmin(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		if c.Get(settings.ContextAdminKey) == nil {
 			return api.NewPermissionDeniedError()
@@ -86,7 +85,7 @@ func RequireAdmin(next echo.HandlerFunc) echo.HandlerFunc {
 }
 
 // AuthUser handles authenticates user key.
-func AuthUser(next echo.HandlerFunc) echo.HandlerFunc {
+func (ctr *Controller) AuthUser(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		if c.Get(settings.ContextInstanceKey) != nil {
 			form := &validators.UserKeyForm{}
@@ -95,7 +94,7 @@ func AuthUser(next echo.HandlerFunc) echo.HandlerFunc {
 			}
 
 			o := &models.User{Key: form.UserKey}
-			if keyRegex.MatchString(form.UserKey) && query.NewUserManager(c).OneByKey(o) == nil {
+			if keyRegex.MatchString(form.UserKey) && ctr.q.NewUserManager(c).OneByKey(o) == nil {
 				c.Set(settings.ContextUserKey, o)
 			}
 		}
@@ -104,7 +103,7 @@ func AuthUser(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func RequireUser(next echo.HandlerFunc) echo.HandlerFunc {
+func (ctr *Controller) RequireUser(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		if c.Get(settings.ContextUserKey) == nil {
 			return api.NewPermissionDeniedError()

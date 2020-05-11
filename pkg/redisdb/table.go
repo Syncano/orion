@@ -29,11 +29,12 @@ type Table struct {
 }
 
 func newTable(typ reflect.Type) *Table {
-	r := new(Table)
-	r.Type = typ
-	r.Name = typ.Name()
+	r := &Table{
+		Type:   typ,
+		Name:   typ.Name(),
+		Fields: make(map[string]*Field, typ.NumField()),
+	}
 
-	r.Fields = make(map[string]*Field, r.Type.NumField())
 	r.addFields(r.Type, nil)
 
 	return r

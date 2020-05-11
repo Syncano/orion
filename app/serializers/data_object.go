@@ -8,7 +8,7 @@ import (
 	"github.com/twpayne/go-geom/encoding/ewkbhex"
 
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/orion/pkg/settings"
+	"github.com/Syncano/orion/app/settings"
 	"github.com/Syncano/orion/pkg/util"
 )
 

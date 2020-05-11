@@ -7,28 +7,31 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/Syncano/orion/pkg/settings"
+	"github.com/Syncano/orion/pkg/util"
 )
 
 type localStorage struct {
-	basePath string
-	buckets  map[settings.BucketKey]*bucketInfo
+	basePath         string
+	buckets          map[BucketKey]*bucketInfo
+	host, storageURL string
 }
 
-func newLocalStorage(loc string, buckets map[settings.BucketKey]*bucketInfo) DataStorage {
-	basePath := settings.GetLocationEnvDefault(loc, "BASE_PATH", "media")
+func newLocalStorage(loc string, buckets map[BucketKey]*bucketInfo, host, storageURL string) DataStorage {
+	basePath := util.GetPrefixEnvDefault(loc, "BASE_PATH", "media")
 
 	return &localStorage{
-		basePath: basePath,
-		buckets:  buckets,
+		basePath:   basePath,
+		buckets:    buckets,
+		host:       host,
+		storageURL: storageURL,
 	}
 }
 
-func (s *localStorage) URL(bucket settings.BucketKey, key string) string {
-	return fmt.Sprintf("http://%s%s%s", settings.API.Host, settings.API.StorageURL, key)
+func (s *localStorage) URL(bucket BucketKey, key string) string {
+	return fmt.Sprintf("http://%s%s%s", s.host, s.storageURL, key)
 }
 
-func (s *localStorage) Upload(ctx context.Context, bucket settings.BucketKey, key string, f io.Reader) error {
+func (s *localStorage) Upload(ctx context.Context, bucket BucketKey, key string, f io.Reader) error {
 	of, err := os.Create(filepath.Join(s.basePath, key))
 	if err != nil {
 		return err
@@ -39,6 +42,6 @@ func (s *localStorage) Upload(ctx context.Context, bucket settings.BucketKey, ke
 	return err
 }
 
-func (s *localStorage) Delete(ctx context.Context, bucket settings.BucketKey, key string) error {
+func (s *localStorage) Delete(ctx context.Context, bucket BucketKey, key string) error {
 	return os.Remove(filepath.Join(s.basePath, key))
 }
