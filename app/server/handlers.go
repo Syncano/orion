@@ -7,11 +7,16 @@ import (
 
 	sentryecho "github.com/getsentry/sentry-go/echo"
 	"github.com/labstack/echo/v4"
+	"github.com/lithammer/shortuuid"
 	"go.uber.org/zap"
 
 	"github.com/Syncano/orion/app/api"
 	"github.com/Syncano/orion/pkg/log"
 	"github.com/Syncano/orion/pkg/util"
+)
+
+const (
+	ContextRequestID = "req_id"
 )
 
 func logg(c echo.Context, start time.Time, path string, l *zap.Logger, err error) {
@@ -92,6 +97,23 @@ func Logger(logger *log.Logger) echo.MiddlewareFunc {
 			logg(c, start, path, l, err)
 
 			return nil
+		}
+	}
+}
+
+const RequestIDHeader = "X-Request-Id"
+
+func RequestID() echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			requestID := c.Request().Header.Get(RequestIDHeader)
+			if requestID == "" {
+				requestID = shortuuid.New()
+			}
+
+			c.Set(ContextRequestID, requestID)
+
+			return next(c)
 		}
 	}
 }

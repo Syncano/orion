@@ -63,6 +63,7 @@ func (s *Server) setupRouter() *echo.Echo {
 			Repanic: true,
 		}),
 		middleware.CORSWithConfig(middleware.CORSConfig{MaxAge: 86400}),
+		RequestID(),
 		OpenCensus(),
 	)
 

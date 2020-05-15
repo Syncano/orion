@@ -9,6 +9,8 @@ import (
 	"go.opencensus.io/plugin/ocgrpc"
 	"google.golang.org/grpc"
 
+	broker "github.com/Syncano/syncanoapis/gen/go/syncano/codebox/broker/v1"
+
 	"github.com/Syncano/orion/app/models"
 	"github.com/Syncano/orion/app/query"
 	"github.com/Syncano/orion/app/settings"
@@ -17,7 +19,6 @@ import (
 	"github.com/Syncano/orion/pkg/celery"
 	"github.com/Syncano/orion/pkg/log"
 	"github.com/Syncano/orion/pkg/storage"
-	broker "github.com/Syncano/syncanoapis/gen/go/syncano/codebox/broker/v1"
 )
 
 type Controller struct {
