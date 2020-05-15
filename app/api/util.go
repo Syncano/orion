@@ -76,6 +76,6 @@ func SimpleDelete(c echo.Context, mgr Deleter, q *orm.Query, v Verboser) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func AddRequestID(ctx context.Context, c echo.Context) context.Context {
+func AddRequestID(ctx context.Context, c echo.Context) (outCtx context.Context, reqID string) {
 	return util.AddRequestID(ctx, func() string { return c.Get(settings.ContextRequestID).(string) })
 }

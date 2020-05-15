@@ -268,7 +268,7 @@ func (ctr *Controller) sendCodeboxRequest(ctx context.Context, c echo.Context, i
 	// Prepare request.
 	instanceID := strconv.Itoa(inst.ID)
 
-	ctx = api.AddRequestID(ctx, c)
+	ctx, _ = api.AddRequestID(ctx, c)
 
 	stream, err := ctr.brokerCli.Run(ctx, grpc.WaitForReady(true))
 	if err != nil {

@@ -32,8 +32,9 @@ func RequestID(ctx context.Context, defaultReq func() string) string {
 	return reqID
 }
 
-func AddRequestID(ctx context.Context, defaultReq func() string) context.Context {
-	req := RequestID(ctx, defaultReq)
+func AddRequestID(ctx context.Context, defaultReq func() string) (outCtx context.Context, reqID string) {
+	reqID = RequestID(ctx, defaultReq)
+	outCtx = metadata.AppendToOutgoingContext(ctx, medatadaRequestIDKey, reqID)
 
-	return metadata.AppendToOutgoingContext(ctx, medatadaRequestIDKey, req)
+	return outCtx, reqID
 }
