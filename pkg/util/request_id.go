@@ -20,6 +20,7 @@ func requestIDFromMetadata(md metadata.MD) string {
 	}
 
 	reqID := header[0]
+
 	return reqID
 }
 
