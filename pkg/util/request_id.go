@@ -41,10 +41,14 @@ func RequestID(ctx context.Context, defaultReq func() string) string {
 		}
 	}
 
-	return defaultReq()
+	if defaultReq != nil {
+		return defaultReq()
+	}
+
+	return ""
 }
 
-func DefaultRequestID(ctx context.Context, defaultReq func() string) string {
+func DefaultRequestID(ctx context.Context) string {
 	return RequestID(ctx, NewRequestID)
 }
 
