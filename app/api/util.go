@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/go-pg/pg/v9"
@@ -8,6 +9,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/Syncano/orion/app/query"
+	"github.com/Syncano/orion/app/settings"
 	"github.com/Syncano/orion/pkg/util"
 )
 
@@ -72,4 +74,8 @@ func SimpleDelete(c echo.Context, mgr Deleter, q *orm.Query, v Verboser) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+func AddRequestID(ctx context.Context, c echo.Context) (outCtx context.Context, reqID string) {
+	return util.AddRequestID(ctx, func() string { return c.Get(settings.ContextRequestID).(string) })
 }

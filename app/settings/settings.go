@@ -134,7 +134,6 @@ var API = &api{
 
 type socket struct {
 	CodeboxAddr    string `env:"CODEBOX_ADDR"`
-	CodeboxRetry   uint   `env:"CODEBOX_RETRY"`
 	DefaultTimeout time.Duration
 	DefaultAsync   uint32
 	DefaultMCPU    uint32
@@ -145,7 +144,6 @@ type socket struct {
 
 var Socket = &socket{
 	CodeboxAddr:    "codebox-broker:80",
-	CodeboxRetry:   2,
 	DefaultTimeout: 30 * time.Second / 1e6,
 	DefaultAsync:   0,
 	DefaultMCPU:    0,

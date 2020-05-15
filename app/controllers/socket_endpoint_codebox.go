@@ -18,14 +18,15 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	broker "github.com/Syncano/syncanoapis/gen/go/syncano/codebox/broker/v1"
+	"github.com/Syncano/syncanoapis/gen/go/syncano/codebox/lb/v1"
+	"github.com/Syncano/syncanoapis/gen/go/syncano/codebox/script/v1"
+
 	"github.com/Syncano/orion/app/api"
 	"github.com/Syncano/orion/app/models"
 	"github.com/Syncano/orion/app/serializers"
 	"github.com/Syncano/orion/app/settings"
 	"github.com/Syncano/orion/pkg/util"
-	broker "github.com/Syncano/syncanoapis/gen/go/syncano/codebox/broker/v1"
-	lb "github.com/Syncano/syncanoapis/gen/go/syncano/codebox/lb/v1"
-	script "github.com/Syncano/syncanoapis/gen/go/syncano/codebox/script/v1"
 )
 
 type empty struct{}
@@ -266,60 +267,101 @@ func (ctr *Controller) sendCodeboxRequest(ctx context.Context, c echo.Context, i
 
 	// Prepare request.
 	instanceID := strconv.Itoa(inst.ID)
-	scriptReq := []*script.RunRequest{
-		{
-			Value: &script.RunRequest_Meta{
-				Meta: &script.RunRequest_MetaMessage{
-					Runtime:     call["runtime"].(string),
-					SourceHash:  sock.Hash(),
-					UserId:      instanceID,
-					Environment: environmentHash,
 
-					Options: &script.RunRequest_MetaMessage_OptionsMessage{
-						Entrypoint:  endpoint.Entrypoint(call),
-						OutputLimit: uint32(settings.Socket.MaxResultSize),
-						Timeout:     timeout,
-						Async:       async,
-						Mcpu:        mcpu,
-						Args:        payloadBytes,
-						Config:      configBytes,
-						Meta:        metaBytes,
-					},
+	ctx, _ = api.AddRequestID(ctx, c)
+
+	stream, err := ctr.brokerCli.Run(ctx, grpc.WaitForReady(true))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Broker Meta
+	req := &broker.RunRequest{
+		Value: &broker.RunRequest_Meta{
+			Meta: &broker.RunMeta{
+				Files:          sock.Files(ctr.fs.Default()),
+				EnvironmentUrl: environmentURL,
+				Trace:          []byte(createCodeboxTraceKey(socketEndpointTraceType, inst, sock, endpoint, trace)),
+				TraceId:        uint64(trace.ID),
+				Sync:           true,
+			},
+		},
+	}
+	if err := stream.Send(req); err != nil {
+		return nil, nil, err
+	}
+
+	// LB Meta
+	req = &broker.RunRequest{
+		Value: &broker.RunRequest_LbMeta{
+			LbMeta: &lb.RunMeta{
+				ConcurrencyKey:   instanceID,
+				ConcurrencyLimit: int32(c.Get(contextAdminLimitKey).(*models.AdminLimit).CodeboxConcurrency(sub)),
+			},
+		},
+	}
+	if err := stream.Send(req); err != nil {
+		return nil, nil, err
+	}
+
+	// Script Meta
+	req = &broker.RunRequest{
+		Value: &broker.RunRequest_ScriptMeta{
+			ScriptMeta: &script.RunMeta{
+				Runtime:     call["runtime"].(string),
+				SourceHash:  sock.Hash(),
+				UserId:      instanceID,
+				Environment: environmentHash,
+
+				Options: &script.RunMeta_Options{
+					Entrypoint:  endpoint.Entrypoint(call),
+					OutputLimit: uint32(settings.Socket.MaxResultSize),
+					Timeout:     timeout,
+					Async:       async,
+					Mcpu:        mcpu,
+					Config:      configBytes,
+					Meta:        metaBytes,
 				},
 			},
 		},
 	}
+	if err := stream.Send(req); err != nil {
+		return nil, nil, err
+	}
+
+	// Script Chunks
+	req = &broker.RunRequest{
+		Value: &broker.RunRequest_ScriptChunk{
+			ScriptChunk: &script.RunChunk{
+				Data: payloadBytes,
+				Type: script.RunChunk_ARGS,
+			},
+		},
+	}
+	if err := stream.Send(req); err != nil {
+		return nil, nil, err
+	}
 
 	// Add files to request.
 	for n, f := range files {
-		scriptReq = append(scriptReq, &script.RunRequest{
-			Value: &script.RunRequest_Chunk{
-				Chunk: &script.RunRequest_ChunkMessage{
+		req = &broker.RunRequest{
+			Value: &broker.RunRequest_ScriptChunk{
+				ScriptChunk: &script.RunChunk{
 					Name:        n,
 					Filename:    f.Filename,
 					ContentType: f.ContentType,
 					Data:        f.Data,
 				},
 			},
-		})
+		}
+		if err := stream.Send(req); err != nil {
+			return nil, nil, err
+		}
 	}
 
-	req := &broker.RunRequest{
-		Meta: &broker.RunRequest_MetaMessage{
-			Files:          sock.Files(ctr.fs.Default()),
-			EnvironmentUrl: environmentURL,
-			Trace:          []byte(createCodeboxTraceKey(socketEndpointTraceType, inst, sock, endpoint, trace)),
-			TraceId:        uint64(trace.ID),
-			Sync:           true,
-		},
-		LbMeta: &lb.RunRequest_MetaMessage{
-			ConcurrencyKey:   instanceID,
-			ConcurrencyLimit: int32(c.Get(contextAdminLimitKey).(*models.AdminLimit).CodeboxConcurrency(sub)),
-		},
-		Request: scriptReq,
+	if err := stream.CloseSend(); err != nil {
+		return nil, nil, err
 	}
-
-	stream, err := ctr.brokerCli.Run(ctx, req, grpc.WaitForReady(true))
 
 	return stream, trace, err
 }
