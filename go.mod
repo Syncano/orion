@@ -27,7 +27,6 @@ require (
 	github.com/google/uuid v1.1.1 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
 	github.com/gorilla/websocket v1.4.2
-	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
 	github.com/hnakamur/zap-ltsv v0.0.0-20170731143423-10a3dd1d839c
 	github.com/imdario/mergo v0.3.9
 	github.com/jackc/pgtype v1.3.0

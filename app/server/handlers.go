@@ -63,7 +63,9 @@ func Recovery(logger *log.Logger) echo.MiddlewareFunc {
 					rvalStr := fmt.Sprint(rval)
 
 					c.Error(api.NewGenericError(http.StatusInternalServerError, "Internal server error."))
-					logg(c, start, path, l.With(zap.String("panic", rvalStr)), nil)
+
+					logg(c, start, path,
+						l.With(zap.String("panic", rvalStr), zap.String("reqID", c.Get(ContextRequestID).(string))), nil)
 				}
 			}()
 
@@ -94,7 +96,8 @@ func Logger(logger *log.Logger) echo.MiddlewareFunc {
 				}
 			}
 
-			logg(c, start, path, l, err)
+			logg(c, start, path,
+				l.With(zap.String("reqID", c.Get(ContextRequestID).(string))), err)
 
 			return nil
 		}

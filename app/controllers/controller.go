@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/go-pg/pg/v9/orm"
-	grpc_retry "github.com/grpc-ecosystem/go-grpc-middleware/retry"
 	"go.opencensus.io/plugin/ocgrpc"
 	"google.golang.org/grpc"
 
@@ -36,12 +35,6 @@ func New(db *storage.Database, fs *storage.Storage, redis *storage.Redis, c *cac
 	conn, err := grpc.Dial(settings.Socket.CodeboxAddr,
 		grpc.WithInsecure(),
 		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(settings.MaxGRPCMessageSize)),
-		grpc.WithUnaryInterceptor(
-			grpc_retry.UnaryClientInterceptor(grpc_retry.WithMax(settings.Socket.CodeboxRetry)),
-		),
-		grpc.WithStreamInterceptor(
-			grpc_retry.StreamClientInterceptor(grpc_retry.WithMax(settings.Socket.CodeboxRetry)),
-		),
 		grpc.WithStatsHandler(&ocgrpc.ClientHandler{}),
 	)
 	if err != nil {
