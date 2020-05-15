@@ -13,23 +13,38 @@ func NewRequestID() string {
 	return shortuuid.New()
 }
 
-func RequestID(ctx context.Context, defaultReq func() string) string {
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		return defaultReq()
-	}
-
+func requestIDFromMetadata(md metadata.MD) string {
 	header, ok := md[medatadaRequestIDKey]
 	if !ok {
-		return defaultReq()
+		return ""
 	}
 
 	reqID := header[0]
-	if reqID == "" {
-		return defaultReq()
+	return reqID
+}
+
+func RequestID(ctx context.Context, defaultReq func() string) string {
+	md, ok := metadata.FromOutgoingContext(ctx)
+	if ok {
+		reqID := requestIDFromMetadata(md)
+		if reqID != "" {
+			return reqID
+		}
 	}
 
-	return reqID
+	md, ok = metadata.FromIncomingContext(ctx)
+	if ok {
+		reqID := requestIDFromMetadata(md)
+		if reqID != "" {
+			return reqID
+		}
+	}
+
+	return defaultReq()
+}
+
+func DefaultRequestID(ctx context.Context, defaultReq func() string) string {
+	return RequestID(ctx, NewRequestID)
 }
 
 func AddRequestID(ctx context.Context, defaultReq func() string) (outCtx context.Context, reqID string) {
@@ -37,4 +52,8 @@ func AddRequestID(ctx context.Context, defaultReq func() string) (outCtx context
 	outCtx = metadata.AppendToOutgoingContext(ctx, medatadaRequestIDKey, reqID)
 
 	return outCtx, reqID
+}
+
+func AddDefaultRequestID(ctx context.Context) (outCtx context.Context, reqID string) {
+	return AddRequestID(ctx, NewRequestID)
 }
