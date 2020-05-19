@@ -97,7 +97,7 @@ func Logger(logger *log.Logger) echo.MiddlewareFunc {
 			}
 
 			logg(c, start, path,
-				l.With(zap.String("reqID", c.Get(ContextRequestID).(string))), err)
+				l, err)
 
 			return nil
 		}

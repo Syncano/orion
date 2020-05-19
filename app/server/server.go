@@ -55,16 +55,16 @@ func NewServer(db *storage.Database, fs *storage.Storage, redis *storage.Redis, 
 
 func (s *Server) setupRouter() *echo.Echo {
 	e := echo.New()
-	// Bottom up middlewares
+	// Top-down middlewares
 	e.Use(
-		Recovery(s.log),
-		Logger(s.log),
+		RequestID(),
+		middleware.CORSWithConfig(middleware.CORSConfig{MaxAge: 86400}),
+		OpenCensus(),
 		sentryecho.New(sentryecho.Options{
 			Repanic: true,
 		}),
-		middleware.CORSWithConfig(middleware.CORSConfig{MaxAge: 86400}),
-		RequestID(),
-		OpenCensus(),
+		Logger(s.log),
+		Recovery(s.log),
 	)
 
 	// Register profiling if debug is on.
