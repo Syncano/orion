@@ -17,7 +17,7 @@ type DB struct {
 }
 
 // Init sets up Redis DB.
-func Init(cli *redis.Client) *DB {
+func New(cli *redis.Client) *DB {
 	return &DB{
 		redisCli: cli,
 	}

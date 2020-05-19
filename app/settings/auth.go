@@ -7,4 +7,5 @@ const (
 	ContextInstanceKey      = "instance"
 	ContextInstanceOwnerKey = "instance_owner"
 	ContextUserKey          = "auth_user"
+	ContextRequestID        = "req_id"
 )

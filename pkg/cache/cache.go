@@ -6,49 +6,77 @@ import (
 
 	"github.com/go-redis/cache/v7"
 	"github.com/go-redis/redis/v7"
+	"github.com/imdario/mergo"
 	"github.com/vmihailenco/msgpack/v4"
 
-	"github.com/Syncano/orion/pkg/settings"
+	"github.com/Syncano/orion/pkg/storage"
 	"github.com/Syncano/orion/pkg/util"
-)
-
-var (
-	codec, codecLocal *cache.Codec
 )
 
 const (
 	versionGraceDuration = 5 * time.Minute
 )
 
+type Cache struct {
+	codec, codecLocal *cache.Codec
+	db                *storage.Database
+	opts              *Options
+}
+
+type Options struct {
+	LocalCacheTimeout time.Duration
+	CacheTimeout      time.Duration
+	CacheVersion      int
+}
+
+var DefaultOptions = &Options{
+	CacheVersion:      1,
+	CacheTimeout:      12 * time.Hour,
+	LocalCacheTimeout: 1 * time.Hour,
+}
+
 // Init sets up a cache.
-func Init(cli rediser) {
-	codec = &cache.Codec{
-		Redis: cli,
+func New(r rediser, db *storage.Database, opts *Options) *Cache {
+	if opts != nil {
+		mergo.Merge(opts, DefaultOptions) // nolint - error not possible
+	} else {
+		opts = DefaultOptions
+	}
+
+	codec := &cache.Codec{
+		Redis: r,
 
 		Marshal:   msgpack.Marshal,
 		Unmarshal: msgpack.Unmarshal,
 	}
-	codecLocal = &cache.Codec{
+	codecLocal := &cache.Codec{
 		Marshal:   msgpack.Marshal,
 		Unmarshal: msgpack.Unmarshal,
 	}
-	codecLocal.UseLocalCache(50000, settings.Common.LocalCacheTimeout)
+	codecLocal.UseLocalCache(50000, opts.LocalCacheTimeout)
+
+	return &Cache{
+		codec:      codec,
+		codecLocal: codecLocal,
+		db:         db,
+		opts:       opts,
+	}
 }
 
 // Codec returns cache client.
-func Codec() *cache.Codec {
-	return codec
+func (c *Cache) Codec() *cache.Codec {
+	return c.codec
 }
 
 // CodecLocal returns cache client that uses local cache as well as remote.
-func CodecLocal() *cache.Codec {
-	return codecLocal
+func (c *Cache) CodecLocal() *cache.Codec {
+	return c.codecLocal
 }
 
 // Stats returns cache statistics.
-func Stats() *cache.Stats {
-	stats := codec.Stats()
-	statsLocal := codec.Stats()
+func (c *Cache) Stats() *cache.Stats {
+	stats := c.codec.Stats()
+	statsLocal := c.codec.Stats()
 	statsLocal.Hits += stats.Hits
 	statsLocal.Misses += stats.Misses
 
@@ -64,7 +92,7 @@ func (ci *cacheItem) validate(version string, validate func(interface{}) bool) b
 	return version == ci.Version && (validate == nil || validate(ci.Object))
 }
 
-func VersionedCache(cacheKey, lookup string, val interface{},
+func (c *Cache) VersionedCache(cacheKey, lookup string, val interface{},
 	versionKeyFunc func() string, compute func() (interface{}, error), validate func(interface{}) bool, expiration time.Duration) error {
 	item := &cacheItem{Object: val}
 
@@ -74,8 +102,8 @@ func VersionedCache(cacheKey, lookup string, val interface{},
 	)
 
 	// Get object and check version. First local and fallback to global cache.
-	if codecLocal.Get(cacheKey, item) == nil {
-		version, err = codec.Redis.Get(versionKeyFunc()).Result()
+	if c.codecLocal.Get(cacheKey, item) == nil {
+		version, err = c.codec.Redis.Get(versionKeyFunc()).Result()
 		if err != nil && err != redis.Nil {
 			return err
 		}
@@ -85,19 +113,19 @@ func VersionedCache(cacheKey, lookup string, val interface{},
 		}
 	}
 
-	if codec.Get(cacheKey, item) == nil {
+	if c.codec.Get(cacheKey, item) == nil {
 		if version == "" {
-			version, err = codec.Redis.Get(versionKeyFunc()).Result()
+			version, err = c.codec.Redis.Get(versionKeyFunc()).Result()
 			if err != nil && err != redis.Nil {
 				return err
 			}
 		}
 
 		if item.validate(version, validate) {
-			return codecLocal.Set(&cache.Item{
+			return c.codecLocal.Set(&cache.Item{
 				Key:        cacheKey,
 				Object:     item,
-				Expiration: settings.Common.LocalCacheTimeout,
+				Expiration: c.opts.LocalCacheTimeout,
 			})
 		}
 	}
@@ -109,7 +137,7 @@ func VersionedCache(cacheKey, lookup string, val interface{},
 	}
 
 	if version == "" {
-		version, err = codec.Redis.Get(versionKeyFunc()).Result()
+		version, err = c.codec.Redis.Get(versionKeyFunc()).Result()
 		if err != nil && err != redis.Nil {
 			return err
 		}
@@ -129,21 +157,21 @@ func VersionedCache(cacheKey, lookup string, val interface{},
 	item.Version = version
 
 	// Set cache values.
-	codecLocal.Set(&cache.Item{ // nolint: errcheck
+	c.codecLocal.Set(&cache.Item{ // nolint: errcheck
 		Key:        cacheKey,
 		Object:     item,
-		Expiration: settings.Common.LocalCacheTimeout,
+		Expiration: c.opts.LocalCacheTimeout,
 	})
 
-	return codec.Set(&cache.Item{
+	return c.codec.Set(&cache.Item{
 		Key:        cacheKey,
 		Object:     item,
 		Expiration: expiration,
 	})
 }
 
-func InvalidateVersion(versionKey string, expiration time.Duration) error {
-	return codec.Redis.Set(
+func (c *Cache) InvalidateVersion(versionKey string, expiration time.Duration) error {
+	return c.codec.Redis.Set(
 		versionKey,
 		util.GenerateRandomString(4),
 		expiration+versionGraceDuration, // Add grace period to avoid race condition.

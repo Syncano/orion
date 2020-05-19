@@ -8,10 +8,9 @@ import (
 
 	"github.com/Syncano/orion/app/api"
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/orion/app/query"
 	"github.com/Syncano/orion/app/serializers"
+	"github.com/Syncano/orion/app/settings"
 	"github.com/Syncano/orion/app/validators"
-	"github.com/Syncano/orion/pkg/settings"
 )
 
 const (
@@ -32,14 +31,14 @@ func detailUserObject(c echo.Context) *models.User {
 	return o
 }
 
-func UserContext(next echo.HandlerFunc) echo.HandlerFunc {
+func (ctr *Controller) UserContext(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		o := detailUserObject(c)
 		if o == nil {
 			return api.NewNotFoundError(o)
 		}
 
-		if err := query.NewUserManager(c).OneByID(o); err != nil {
+		if err := ctr.q.NewUserManager(c).OneByID(o); err != nil {
 			if err == pg.ErrNoRows {
 				return api.NewNotFoundError(o)
 			}
@@ -53,10 +52,10 @@ func UserContext(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func UserClassContext(next echo.HandlerFunc) echo.HandlerFunc {
+func (ctr *Controller) UserClassContext(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		o := &models.Class{Name: models.UserClassName}
-		if err := query.NewClassManager(c).OneByName(o); err != nil {
+		if err := ctr.q.NewClassManager(c).OneByName(o); err != nil {
 			if err == pg.ErrNoRows {
 				return api.NewNotFoundError(o)
 			}
@@ -70,15 +69,15 @@ func UserClassContext(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func UserCreate(c echo.Context) error {
+func (ctr *Controller) UserCreate(c echo.Context) error {
 	// TODO: #15 Users updates/deletes
 	return api.NewPermissionDeniedError()
 }
 
-func UserList(c echo.Context) error {
+func (ctr *Controller) UserList(c echo.Context) error {
 	var o []*models.User
 
-	mgr := query.NewUserManager(c)
+	mgr := ctr.q.NewUserManager(c)
 	props := make(map[string]interface{})
 	class := c.Get(contextUserClassKey).(*models.Class)
 
@@ -87,7 +86,7 @@ func UserList(c echo.Context) error {
 
 	if _, e := c.QueryParams()["query"]; e {
 		var err error
-		q, err = NewDataObjectQuery(class.FilterFields()).Parse(c, q)
+		q, err = NewDataObjectQuery(class.FilterFields()).Parse(ctr.q, c, q)
 
 		if err != nil {
 			return err
@@ -116,7 +115,7 @@ func UserList(c echo.Context) error {
 	return api.Render(c, http.StatusOK, serializers.CreatePage(c, r, props))
 }
 
-func UserRetrieve(c echo.Context) error {
+func (ctr *Controller) UserRetrieve(c echo.Context) error {
 	o := detailUserObject(c)
 	if o == nil {
 		return api.NewNotFoundError(o)
@@ -124,7 +123,7 @@ func UserRetrieve(c echo.Context) error {
 
 	class := c.Get(contextUserClassKey).(*models.Class)
 
-	if err := query.NewUserManager(c).ByIDQ(class, o).Select(); err != nil {
+	if err := ctr.q.NewUserManager(c).ByIDQ(class, o).Select(); err != nil {
 		if err == pg.ErrNoRows {
 			return api.NewNotFoundError(o)
 		}
@@ -137,19 +136,19 @@ func UserRetrieve(c echo.Context) error {
 	return api.Render(c, http.StatusOK, serializer.Response(o))
 }
 
-func UserUpdate(c echo.Context) error {
+func (ctr *Controller) UserUpdate(c echo.Context) error {
 	// TODO: #15 Users updates/deletes
 	return api.NewPermissionDeniedError()
 }
 
-func UserAuth(c echo.Context) error {
+func (ctr *Controller) UserAuth(c echo.Context) error {
 	form := &validators.UserAuthForm{}
 	if err := api.BindAndValidate(c, form); err != nil {
 		return err
 	}
 
 	o := &models.User{Username: form.Username}
-	mgr := query.NewUserManager(c)
+	mgr := ctr.q.NewUserManager(c)
 	class := c.Get(contextUserClassKey).(*models.Class)
 
 	if err := mgr.OneByName(o); err != nil {
@@ -169,7 +168,7 @@ func UserAuth(c echo.Context) error {
 	return api.Render(c, http.StatusOK, serializer.ResponseWithGroup(o))
 }
 
-func UserDelete(c echo.Context) error {
+func (ctr *Controller) UserDelete(c echo.Context) error {
 	// TODO: #15 Users updates/deletes
 	// user := detailUserObject(c)
 	// if user == nil {
@@ -184,27 +183,27 @@ func UserDelete(c echo.Context) error {
 	return api.NewPermissionDeniedError()
 }
 
-func UserSchemaRetrieve(c echo.Context) error {
+func (ctr *Controller) UserSchemaRetrieve(c echo.Context) error {
 	class := c.Get(contextUserClassKey).(*models.Class)
 
 	var err error
-	if class.ObjectsCount, err = query.NewUserManager(c).CountEstimate(); err != nil {
+	if class.ObjectsCount, err = ctr.q.NewUserManager(c).CountEstimate(); err != nil {
 		return err
 	}
 
 	return api.Render(c, http.StatusOK, serializers.UserClassSerializer{}.Response(class))
 }
 
-func UserSchemaUpdate(c echo.Context) error {
+func (ctr *Controller) UserSchemaUpdate(c echo.Context) error {
 	// TODO: #8 Class updates/deletes
 	return api.NewPermissionDeniedError()
 }
 
-func UserMeRetrieve(c echo.Context) error {
+func (ctr *Controller) UserMeRetrieve(c echo.Context) error {
 	class := c.Get(contextUserClassKey).(*models.Class)
 	user := c.Get(settings.ContextUserKey).(*models.User)
 
-	if err := query.NewUserManager(c).FetchData(class, user); err != nil {
+	if err := ctr.q.NewUserManager(c).FetchData(class, user); err != nil {
 		return err
 	}
 
@@ -213,25 +212,25 @@ func UserMeRetrieve(c echo.Context) error {
 	return api.Render(c, http.StatusOK, serializer.ResponseWithGroup(user))
 }
 
-func UserMeUpdate(c echo.Context) error {
+func (ctr *Controller) UserMeUpdate(c echo.Context) error {
 	// TODO: #15 Users updates/deletes
 	return api.NewPermissionDeniedError()
 }
 
-func UserResetKey(c echo.Context) error {
+func (ctr *Controller) UserResetKey(c echo.Context) error {
 	// TODO: #15 Users updates/deletes
 	return api.NewPermissionDeniedError()
 }
 
-func UsersInGroupCreate(c echo.Context) error {
+func (ctr *Controller) UsersInGroupCreate(c echo.Context) error {
 	class := c.Get(contextUserClassKey).(*models.Class)
 	group := c.Get(contextUserGroupKey).(*models.UserGroup)
 	user := &models.User{}
 	o := &models.UserMembership{GroupID: group.ID}
-	mgr := query.NewUserMembershipManager(c)
+	mgr := ctr.q.NewUserMembershipManager(c)
 
 	v := &validators.UserInGroupForm{
-		UserQ:       query.NewUserManager(c).Q(class, user),
+		UserQ:       ctr.q.NewUserManager(c).Q(class, user),
 		MembershipQ: mgr.ForGroupQ(group, (*models.UserMembership)(nil)),
 	}
 
@@ -247,13 +246,13 @@ func UsersInGroupCreate(c echo.Context) error {
 	return api.Render(c, http.StatusCreated, serializer.Response(user))
 }
 
-func UsersInGroupList(c echo.Context) error {
+func (ctr *Controller) UsersInGroupList(c echo.Context) error {
 	var o []*models.User
 
 	props := make(map[string]interface{})
 	class := c.Get(contextUserClassKey).(*models.Class)
 	group := c.Get(contextUserGroupKey).(*models.UserGroup)
-	paginator := &PaginatorDB{Query: query.NewUserManager(c).ForGroupQ(class, group, &o)}
+	paginator := &PaginatorDB{Query: ctr.q.NewUserManager(c).ForGroupQ(class, group, &o)}
 	cursor := paginator.CreateCursor(c, true)
 	serializer := serializers.UserSerializer{Class: class}
 
@@ -265,7 +264,7 @@ func UsersInGroupList(c echo.Context) error {
 	return api.Render(c, http.StatusOK, serializers.CreatePage(c, r, props))
 }
 
-func UsersInGroupRetrieve(c echo.Context) error {
+func (ctr *Controller) UsersInGroupRetrieve(c echo.Context) error {
 	o := detailUserObject(c)
 	if o == nil {
 		return api.NewNotFoundError(o)
@@ -274,7 +273,7 @@ func UsersInGroupRetrieve(c echo.Context) error {
 	class := c.Get(contextUserClassKey).(*models.Class)
 	group := c.Get(contextUserGroupKey).(*models.UserGroup)
 
-	if err := query.NewUserManager(c).ForGroupByIDQ(class, group, o).Select(); err != nil {
+	if err := ctr.q.NewUserManager(c).ForGroupByIDQ(class, group, o).Select(); err != nil {
 		if err == pg.ErrNoRows {
 			return api.NewNotFoundError(o)
 		}
@@ -287,13 +286,13 @@ func UsersInGroupRetrieve(c echo.Context) error {
 	return api.Render(c, http.StatusOK, serializer.Response(o))
 }
 
-func UsersInGroupDelete(c echo.Context) error {
+func (ctr *Controller) UsersInGroupDelete(c echo.Context) error {
 	user := detailUserObject(c)
 	if user == nil {
 		return api.NewNotFoundError(user)
 	}
 
-	mgr := query.NewUserMembershipManager(c)
+	mgr := ctr.q.NewUserMembershipManager(c)
 	group := c.Get(contextUserGroupKey).(*models.UserGroup)
 	o := &models.UserMembership{UserID: user.ID, GroupID: group.ID}
 

@@ -18,16 +18,14 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	broker "github.com/Syncano/syncanoapis/gen/go/syncano/codebox/broker/v1"
+	"github.com/Syncano/syncanoapis/gen/go/syncano/codebox/lb/v1"
+	"github.com/Syncano/syncanoapis/gen/go/syncano/codebox/script/v1"
+
 	"github.com/Syncano/orion/app/api"
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/orion/app/proto/codebox"
-	"github.com/Syncano/orion/app/proto/codebox/broker"
-	"github.com/Syncano/orion/app/proto/codebox/lb"
-	"github.com/Syncano/orion/app/proto/codebox/script"
-	"github.com/Syncano/orion/app/query"
 	"github.com/Syncano/orion/app/serializers"
-	"github.com/Syncano/orion/pkg/cache"
-	"github.com/Syncano/orion/pkg/settings"
+	"github.com/Syncano/orion/app/settings"
 	"github.com/Syncano/orion/pkg/util"
 )
 
@@ -48,6 +46,9 @@ var (
 )
 
 const (
+	// Timeout is a default timeout for codebox grpc.
+	codeboxTimeout = 8 * time.Minute
+
 	socketEndpointTokenDuration = 10 * time.Minute
 	socketEndpointTraceType     = "socket_endpoint"
 	codeboxTraceFormat          = `{"id":%d,"instance_id":%d,"obj_id":%d,"obj_name":"%s","type":"%s","socket":"%s"}`
@@ -189,7 +190,7 @@ func prepareSocketEndpointConfig(inst *models.Instance, sock *models.Socket) map
 	return cfg
 }
 
-func sendCodeboxRequest(ctx context.Context, c echo.Context, inst *models.Instance, sock *models.Socket,
+func (ctr *Controller) sendCodeboxRequest(ctx context.Context, c echo.Context, inst *models.Instance, sock *models.Socket,
 	endpoint *models.SocketEndpoint) (broker.ScriptRunner_RunClient, *models.SocketTrace, error) {
 	call := c.Get(contextSocketEndpointCallKey).(map[string]interface{})
 	sub := c.Get(contextSubscriptionKey).(*models.Subscription)
@@ -198,7 +199,7 @@ func sendCodeboxRequest(ctx context.Context, c echo.Context, inst *models.Instan
 
 	if sock.EnvironmentID != 0 {
 		environment := &models.SocketEnvironment{ID: sock.EnvironmentID}
-		if err := query.NewSocketEnvironmentManager(c).OneByID(environment); err != nil {
+		if err := ctr.q.NewSocketEnvironmentManager(c).OneByID(environment); err != nil {
 			if err == pg.ErrNoRows {
 				return nil, nil, api.NewNotFoundError(endpoint)
 			}
@@ -207,7 +208,7 @@ func sendCodeboxRequest(ctx context.Context, c echo.Context, inst *models.Instan
 		}
 
 		environmentHash = environment.Hash()
-		environmentURL = environment.URL()
+		environmentURL = environment.URL(ctr.fs.Default())
 	}
 
 	// Process payload.
@@ -243,7 +244,7 @@ func sendCodeboxRequest(ctx context.Context, c echo.Context, inst *models.Instan
 		Args: payload,
 	}
 
-	if e := createSocketTraceDBCtx(c, trace).Save(nil); e != nil {
+	if e := ctr.createSocketTraceDBCtx(c, trace).Save(nil); e != nil {
 		return nil, nil, e
 	}
 
@@ -266,60 +267,101 @@ func sendCodeboxRequest(ctx context.Context, c echo.Context, inst *models.Instan
 
 	// Prepare request.
 	instanceID := strconv.Itoa(inst.ID)
-	scriptReq := []*script.RunRequest{
-		{
-			Value: &script.RunRequest_Meta{
-				Meta: &script.RunRequest_MetaMessage{
-					Runtime:     call["runtime"].(string),
-					SourceHash:  sock.Hash(),
-					UserID:      instanceID,
-					Environment: environmentHash,
 
-					Options: &script.RunRequest_MetaMessage_OptionsMessage{
-						EntryPoint:  endpoint.Entrypoint(call),
-						OutputLimit: uint32(settings.Socket.MaxResultSize),
-						Timeout:     timeout,
-						Async:       async,
-						MCPU:        mcpu,
-						Args:        payloadBytes,
-						Config:      configBytes,
-						Meta:        metaBytes,
-					},
+	ctx, _ = api.AddRequestID(ctx, c)
+
+	stream, err := ctr.brokerCli.Run(ctx, grpc.WaitForReady(true))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Broker Meta
+	req := &broker.RunRequest{
+		Value: &broker.RunRequest_Meta{
+			Meta: &broker.RunMeta{
+				Files:          sock.Files(ctr.fs.Default()),
+				EnvironmentUrl: environmentURL,
+				Trace:          []byte(createCodeboxTraceKey(socketEndpointTraceType, inst, sock, endpoint, trace)),
+				TraceId:        uint64(trace.ID),
+				Sync:           true,
+			},
+		},
+	}
+	if err := stream.Send(req); err != nil {
+		return nil, nil, err
+	}
+
+	// LB Meta
+	req = &broker.RunRequest{
+		Value: &broker.RunRequest_LbMeta{
+			LbMeta: &lb.RunMeta{
+				ConcurrencyKey:   instanceID,
+				ConcurrencyLimit: int32(c.Get(contextAdminLimitKey).(*models.AdminLimit).CodeboxConcurrency(sub)),
+			},
+		},
+	}
+	if err := stream.Send(req); err != nil {
+		return nil, nil, err
+	}
+
+	// Script Meta
+	req = &broker.RunRequest{
+		Value: &broker.RunRequest_ScriptMeta{
+			ScriptMeta: &script.RunMeta{
+				Runtime:     call["runtime"].(string),
+				SourceHash:  sock.Hash(),
+				UserId:      instanceID,
+				Environment: environmentHash,
+
+				Options: &script.RunMeta_Options{
+					Entrypoint:  endpoint.Entrypoint(call),
+					OutputLimit: uint32(settings.Socket.MaxResultSize),
+					Timeout:     timeout,
+					Async:       async,
+					Mcpu:        mcpu,
+					Config:      configBytes,
+					Meta:        metaBytes,
 				},
 			},
 		},
 	}
+	if err := stream.Send(req); err != nil {
+		return nil, nil, err
+	}
+
+	// Script Chunks
+	req = &broker.RunRequest{
+		Value: &broker.RunRequest_ScriptChunk{
+			ScriptChunk: &script.RunChunk{
+				Data: payloadBytes,
+				Type: script.RunChunk_ARGS,
+			},
+		},
+	}
+	if err := stream.Send(req); err != nil {
+		return nil, nil, err
+	}
 
 	// Add files to request.
 	for n, f := range files {
-		scriptReq = append(scriptReq, &script.RunRequest{
-			Value: &script.RunRequest_Chunk{
-				Chunk: &script.RunRequest_ChunkMessage{
+		req = &broker.RunRequest{
+			Value: &broker.RunRequest_ScriptChunk{
+				ScriptChunk: &script.RunChunk{
 					Name:        n,
 					Filename:    f.Filename,
 					ContentType: f.ContentType,
 					Data:        f.Data,
 				},
 			},
-		})
+		}
+		if err := stream.Send(req); err != nil {
+			return nil, nil, err
+		}
 	}
 
-	req := &broker.RunRequest{
-		Meta: &broker.RunRequest_MetaMessage{
-			Files:          sock.Files(),
-			EnvironmentURL: environmentURL,
-			Trace:          []byte(createCodeboxTraceKey(socketEndpointTraceType, inst, sock, endpoint, trace)),
-			TraceID:        uint64(trace.ID),
-			Sync:           true,
-		},
-		LbMeta: &lb.RunRequest_MetaMessage{
-			ConcurrencyKey:   instanceID,
-			ConcurrencyLimit: int32(c.Get(contextAdminLimitKey).(*models.AdminLimit).CodeboxConcurrency(sub)),
-		},
-		Request: scriptReq,
+	if err := stream.CloseSend(); err != nil {
+		return nil, nil, err
 	}
-
-	stream, err := codebox.Runner.Run(ctx, req, grpc.WaitForReady(true))
 
 	return stream, trace, err
 }
@@ -379,13 +421,13 @@ func processCodeboxResponse(stream broker.ScriptRunner_RunClient, trace *models.
 	return nil
 }
 
-func SocketEndpointCodeboxRun(c echo.Context) error {
+func (ctr *Controller) SocketEndpointCodeboxRun(c echo.Context) error {
 	instance := c.Get(settings.ContextInstanceKey).(*models.Instance)
 	endpoint := c.Get(contextSocketEndpointKey).(*models.SocketEndpoint)
 	call := c.Get(contextSocketEndpointCallKey).(map[string]interface{})
 	socket := &models.Socket{ID: endpoint.SocketID}
 
-	if err := query.NewSocketManager(c).OneByID(socket); err != nil {
+	if err := ctr.q.NewSocketManager(c).OneByID(socket); err != nil {
 		if err == pg.ErrNoRows {
 			return api.NewNotFoundError(socket)
 		}
@@ -404,13 +446,13 @@ func SocketEndpointCodeboxRun(c echo.Context) error {
 		cacheTimeout := v.(float64)
 		cacheKey := createEndpointCacheKey(c.Get(settings.ContextInstanceKey).(*models.Instance).ID, endpoint.Name, socket.Hash())
 
-		if cache.Codec().Get(cacheKey, trace) == nil {
+		if ctr.c.Codec().Get(cacheKey, trace) == nil {
 			return serializers.SocketTraceSerializer{}.Render(c, trace)
 		}
 
 		defer func() {
 			if trace != nil {
-				cache.Codec().Set(&redis_cache.Item{ // nolint: errcheck
+				ctr.c.Codec().Set(&redis_cache.Item{ // nolint: errcheck
 					Key:        cacheKey,
 					Object:     trace,
 					Expiration: time.Duration(cacheTimeout),
@@ -420,10 +462,10 @@ func SocketEndpointCodeboxRun(c echo.Context) error {
 	}
 
 	// Process request.
-	ctx, cancel := context.WithTimeout(c.Request().Context(), codebox.Timeout)
+	ctx, cancel := context.WithTimeout(c.Request().Context(), codeboxTimeout)
 	defer cancel()
 
-	stream, trace, err = sendCodeboxRequest(ctx, c, instance, socket, endpoint)
+	stream, trace, err = ctr.sendCodeboxRequest(ctx, c, instance, socket, endpoint)
 	if err != nil {
 		return fmt.Errorf("error sending codebox request: %w", err)
 	}

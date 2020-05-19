@@ -7,6 +7,7 @@ require (
 	cloud.google.com/go/storage v1.6.0
 	contrib.go.opencensus.io/exporter/jaeger v0.2.0
 	contrib.go.opencensus.io/exporter/prometheus v0.1.0
+	github.com/Syncano/syncanoapis/gen/go v0.0.0-20200515121949-c3fc1e3188db
 	github.com/TheZeroSlave/zapsentry v1.4.0
 	github.com/alexandrevicenzi/unchained v1.3.0
 	github.com/aws/aws-sdk-go v1.30.4
@@ -23,11 +24,11 @@ require (
 	github.com/go-redis/cache/v7 v7.0.2
 	github.com/go-redis/redis/v7 v7.2.0
 	github.com/go-redis/redis_rate/v7 v7.0.1
-	github.com/golang/protobuf v1.3.5
+	github.com/google/uuid v1.1.1 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
 	github.com/gorilla/websocket v1.4.2
-	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
 	github.com/hnakamur/zap-ltsv v0.0.0-20170731143423-10a3dd1d839c
+	github.com/imdario/mergo v0.3.9
 	github.com/jackc/pgtype v1.3.0
 	github.com/jackc/pgx/v4 v4.6.0 // indirect
 	github.com/jinzhu/now v1.1.1
@@ -35,6 +36,7 @@ require (
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/labstack/echo/v4 v4.1.16
 	github.com/labstack/gommon v0.3.0
+	github.com/lithammer/shortuuid v3.0.0+incompatible
 	github.com/mitchellh/hashstructure v1.0.0
 	github.com/mitchellh/mapstructure v1.2.2
 	github.com/ogier/pflag v0.0.1 // indirect
@@ -55,6 +57,6 @@ require (
 	golang.org/x/crypto v0.0.0-20200403201458-baeed622b8d8
 	golang.org/x/tools v0.0.0-20200406144418-7db14c95bfa9
 	google.golang.org/api v0.21.0
-	google.golang.org/grpc v1.28.0
+	google.golang.org/grpc v1.29.1
 	kkn.fi/base62 v0.1.0
 )

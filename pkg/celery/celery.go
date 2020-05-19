@@ -18,6 +18,7 @@ const (
 
 // Task describes celery task definition.
 type Task struct {
+	ch     AMQPChannel
 	Task   string                 `json:"task"`
 	Queue  string                 `json:"-"`
 	ID     string                 `json:"id"`
@@ -25,9 +26,15 @@ type Task struct {
 	Kwargs map[string]interface{} `json:"kwargs"`
 }
 
+type Celery struct {
+	ch AMQPChannel
+}
+
 // Init sets up celery tasks.
-func Init(ch AMQPChannel) {
-	amqpCh = ch
+func New(ch AMQPChannel) *Celery {
+	return &Celery{
+		ch: ch,
+	}
 }
 
 // NewTask returns a new task object.
@@ -41,6 +48,7 @@ func NewTask(task, queue string, args []interface{}, kwargs map[string]interface
 	}
 
 	return &Task{
+		ch:     amqpCh,
 		Task:   task,
 		Queue:  queue,
 		ID:     uuid.NewV4().String(),
@@ -50,7 +58,7 @@ func NewTask(task, queue string, args []interface{}, kwargs map[string]interface
 }
 
 // Publish sends task to channel.
-func (t *Task) Publish() error {
+func (t *Task) Publish(c *Celery) error {
 	body, err := json.Marshal(t)
 	if err != nil {
 		return err
@@ -64,5 +72,5 @@ func (t *Task) Publish() error {
 		Body:            body,
 	}
 
-	return amqpCh.Publish(exchange, t.Queue, false, false, msg)
+	return c.ch.Publish(exchange, t.Queue, false, false, msg)
 }

@@ -7,8 +7,6 @@ import (
 
 	"github.com/streadway/amqp"
 	"go.uber.org/zap"
-
-	"github.com/Syncano/orion/pkg/log"
 )
 
 const (
@@ -18,6 +16,8 @@ const (
 
 // Channel is a wrapper for amqp channel supporting automatic reconnect.
 type Channel struct {
+	url              string
+	log              *zap.Logger
 	mu               sync.Mutex
 	ch               *amqp.Channel
 	running          uint32
@@ -61,17 +61,24 @@ func (ac *Channel) connect(url string) error {
 }
 
 // Init creates amqp channel with specified url and retry mechanism.
-func (ac *Channel) Init(url string) error {
-	logger := log.Logger()
+func New(url string, logger *zap.Logger) (*Channel, error) {
+	ac := &Channel{
+		url: url,
+		log: logger,
+	}
 
 	ac.mu.Lock()
 	err := ac.connect(url)
 	ac.mu.Unlock()
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
+	return ac, nil
+}
+
+func (ac *Channel) Start() {
 	ac.setRunning(true)
 
 	// Start connection monitor.
@@ -82,7 +89,7 @@ func (ac *Channel) Init(url string) error {
 			e := <-amqpCloseCh
 
 			if e != nil {
-				logger.With(zap.Error(e)).Warn("Lost AMQP connection")
+				ac.log.With(zap.Error(e)).Warn("Lost AMQP connection")
 
 				amqpSleep := amqpRetrySleep
 
@@ -90,8 +97,8 @@ func (ac *Channel) Init(url string) error {
 
 				for {
 					if ac.IsRunning() {
-						if e := ac.connect(url); e != nil {
-							logger.With(zap.Error(e)).Error("Cannot connect to AMQP, retrying")
+						if e := ac.connect(ac.url); e != nil {
+							ac.log.With(zap.Error(e)).Error("Cannot connect to AMQP, retrying")
 							time.Sleep(amqpSleep)
 
 							if amqpSleep < amqpMaxRetrySleep {
@@ -101,20 +108,18 @@ func (ac *Channel) Init(url string) error {
 							continue
 						}
 
-						logger.Info("Reconnected to AMQP")
+						ac.log.Info("Reconnected to AMQP")
 					}
 
 					break
 				}
 				ac.mu.Unlock()
 			} else {
-				logger.Info("Lost AMQP connection (graceful stop)")
+				ac.log.Info("Lost AMQP connection (graceful stop)")
 				break
 			}
 		}
 	}()
-
-	return nil
 }
 
 // IsRunning returns true if channel is setup and running.

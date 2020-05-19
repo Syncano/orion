@@ -8,17 +8,15 @@ import (
 	ltsv "github.com/hnakamur/zap-ltsv"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"go.uber.org/zap/zapgrpc"
 	"golang.org/x/crypto/ssh/terminal"
-	"google.golang.org/grpc/grpclog"
 )
 
-var (
+type Logger struct {
 	logger, sentryLogger *zap.Logger
-)
+}
 
 // Init sets up a logger.
-func Init(debug bool, sc *sentry.Client) error {
+func New(debug bool, sc *sentry.Client) (*Logger, error) {
 	var config zap.Config
 
 	if os.Getenv("FORCE_TERM") == "1" || terminal.IsTerminal(int(os.Stdout.Fd())) {
@@ -28,7 +26,7 @@ func Init(debug bool, sc *sentry.Client) error {
 		}
 	} else {
 		if err := ltsv.RegisterLTSVEncoder(); err != nil {
-			return err
+			return nil, err
 		}
 		config = ltsv.NewProductionConfig()
 		config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
@@ -39,22 +37,17 @@ func Init(debug bool, sc *sentry.Client) error {
 
 	var err error
 
-	logger, err = config.Build()
+	logger, err := config.Build()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	sentryLogger, err = addSentryLogger(logger, sc)
+	sentryLogger, err := addSentryLogger(logger, sc)
 
-	// Set grpc logger.
-	var zapgrpcOpts []zapgrpc.Option
-	if debug {
-		zapgrpcOpts = append(zapgrpcOpts, zapgrpc.WithDebug())
-	}
-
-	grpclog.SetLogger(zapgrpc.NewLogger(logger, zapgrpcOpts...)) // nolint: staticcheck
-
-	return err
+	return &Logger{
+		logger:       logger,
+		sentryLogger: sentryLogger,
+	}, err
 }
 
 func addSentryLogger(log *zap.Logger, sc *sentry.Client) (*zap.Logger, error) {
@@ -67,17 +60,17 @@ func addSentryLogger(log *zap.Logger, sc *sentry.Client) (*zap.Logger, error) {
 }
 
 // RawLogger returns zap logger without sentry.
-func RawLogger() *zap.Logger {
-	return logger
+func (l *Logger) RawLogger() *zap.Logger {
+	return l.logger
 }
 
 // Logger returns zap logger with sentry support on error.
-func Logger() *zap.Logger {
-	return sentryLogger
+func (l *Logger) Logger() *zap.Logger {
+	return l.sentryLogger
 }
 
 // Sync syncs both loggers.
-func Sync() {
-	logger.Sync()       // nolint: errcheck
-	sentryLogger.Sync() // nolint: errcheck
+func (l *Logger) Sync() {
+	l.logger.Sync()       // nolint: errcheck
+	l.sentryLogger.Sync() // nolint: errcheck
 }

@@ -7,8 +7,7 @@ import (
 	"github.com/go-pg/pg/v9/orm"
 
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/orion/pkg/cache"
-	"github.com/Syncano/orion/pkg/settings"
+	"github.com/Syncano/orion/app/settings"
 	"github.com/Syncano/orion/pkg/storage"
 )
 
@@ -18,8 +17,8 @@ type ClassManager struct {
 }
 
 // NewClassManager creates and returns new Class manager.
-func NewClassManager(c storage.DBContext) *ClassManager {
-	return &ClassManager{LiveManager: NewLiveTenantManager(c)}
+func (q *Factory) NewClassManager(c storage.DBContext) *ClassManager {
+	return &ClassManager{LiveManager: q.NewLiveTenantManager(c)}
 }
 
 // OneByName outputs object filtered by name.
@@ -30,7 +29,7 @@ func (m *ClassManager) OneByName(o *models.Class) error {
 	}
 
 	return RequireOne(
-		cache.SimpleModelCache(m.DB(), o, fmt.Sprintf("n=%s", o.Name), func() (interface{}, error) {
+		m.c.SimpleModelCache(m.DB(), o, fmt.Sprintf("n=%s", o.Name), func() (interface{}, error) {
 			return o, m.Query(o).
 				Where("name = ?", o.Name).
 				Select()

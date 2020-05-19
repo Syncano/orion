@@ -1,6 +1,7 @@
 package routers
 
 import (
+	"github.com/go-redis/redis/v7"
 	"github.com/go-redis/redis_rate/v7"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -8,14 +9,13 @@ import (
 
 	"github.com/Syncano/orion/app/api"
 	"github.com/Syncano/orion/app/controllers"
-	"github.com/Syncano/orion/pkg/settings"
-	"github.com/Syncano/orion/pkg/storage"
+	"github.com/Syncano/orion/app/settings"
 )
 
 // V3Register registers v3 routes.
-func V3Register(e *echo.Echo, g *echo.Group) {
-	InstanceRegister(g.Group("/instances"), standardMiddlewares(e))
-	g.POST("/cache_invalidate/", controllers.CacheInvalidate)
+func V3Register(ctr *controllers.Controller, e *echo.Echo, g *echo.Group) {
+	InstanceRegister(ctr, g.Group("/instances"), standardMiddlewares(e, ctr.Redis().Client()))
+	g.POST("/cache_invalidate/", ctr.CacheInvalidate)
 }
 
 type middlewares struct {
@@ -38,7 +38,7 @@ type middlewares struct {
 	SizeLimit   int64
 }
 
-func (m *middlewares) Get() []echo.MiddlewareFunc {
+func (m *middlewares) Get(ctr *controllers.Controller) []echo.MiddlewareFunc {
 	f := m.chain
 
 	if m.DisableBody {
@@ -52,21 +52,21 @@ func (m *middlewares) Get() []echo.MiddlewareFunc {
 	f = append(f, api.MethodOverride)
 
 	if m.Auth {
-		f = append(f, controllers.Auth)
+		f = append(f, ctr.Auth)
 
 		if m.AuthUser {
-			f = append(f, controllers.AuthUser)
+			f = append(f, ctr.AuthUser)
 		}
 
 		if m.RequireAuth {
 			if m.RequireAdmin {
-				f = append(f, controllers.RequireAdmin)
+				f = append(f, ctr.RequireAdmin)
 			} else {
-				f = append(f, controllers.RequireAPIKeyOrAdmin)
+				f = append(f, ctr.RequireAPIKeyOrAdmin)
 			}
 
 			if m.RequireUser {
-				f = append(f, controllers.RequireUser)
+				f = append(f, ctr.RequireUser)
 			}
 
 			f = append(f, m.authChain...)
@@ -101,10 +101,10 @@ func (m *middlewares) Copy() *middlewares {
 	return cp
 }
 
-func standardMiddlewares(e *echo.Echo) *middlewares {
+func standardMiddlewares(e *echo.Echo, r *redis.Client) *middlewares {
 	return &middlewares{
 		e:       e,
-		limiter: redis_rate.NewLimiter(storage.Redis()),
+		limiter: redis_rate.NewLimiter(r),
 
 		Auth:         true,
 		AuthUser:     true,

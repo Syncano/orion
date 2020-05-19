@@ -10,7 +10,8 @@ import (
 
 	"github.com/Syncano/orion/app/api"
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/orion/pkg/settings"
+	"github.com/Syncano/orion/app/query"
+	"github.com/Syncano/orion/app/settings"
 	"github.com/Syncano/orion/pkg/storage"
 )
 
@@ -26,7 +27,7 @@ func NewDataObjectQuery(fields map[string]models.FilterField) *DataObjectQuery {
 	return &DataObjectQuery{fields: fields}
 }
 
-func (doq *DataObjectQuery) Parse(c echo.Context, q *orm.Query) (*orm.Query, error) {
+func (doq *DataObjectQuery) Parse(qf *query.Factory, c echo.Context, q *orm.Query) (*orm.Query, error) {
 	qs := c.QueryParam("query")
 	if qs == "" {
 		return q, nil
@@ -44,10 +45,10 @@ func (doq *DataObjectQuery) Parse(c echo.Context, q *orm.Query) (*orm.Query, err
 		return nil, err
 	}
 
-	return doq.ParseMap(c, q, m)
+	return doq.ParseMap(qf, c, q, m)
 }
 
-func (doq *DataObjectQuery) ParseMap(c storage.DBContext, q *orm.Query, m map[string]interface{}) (*orm.Query, error) {
+func (doq *DataObjectQuery) ParseMap(qf *query.Factory, c storage.DBContext, q *orm.Query, m map[string]interface{}) (*orm.Query, error) {
 	var (
 		f   models.FilterField
 		ok  bool
@@ -61,7 +62,7 @@ func (doq *DataObjectQuery) ParseMap(c storage.DBContext, q *orm.Query, m map[st
 		}
 
 		for lookup, data := range props.(map[string]interface{}) {
-			if q, err = doq.fieldQuery(c, q, f, lookup, data); err != nil {
+			if q, err = doq.fieldQuery(qf, c, q, f, lookup, data); err != nil {
 				return nil, err
 			}
 		}
@@ -101,12 +102,12 @@ func (doq *DataObjectQuery) Validate(m map[string]interface{}, top bool) error {
 	return nil
 }
 
-func (doq *DataObjectQuery) fieldQuery(c storage.DBContext, q *orm.Query, f models.FilterField, lookup string, data interface{}) (*orm.Query, error) {
+func (doq *DataObjectQuery) fieldQuery(qf *query.Factory, c storage.DBContext, q *orm.Query, f models.FilterField, lookup string, data interface{}) (*orm.Query, error) {
 	// Find supported filter.
 	if filts, ok := filters[lookup]; ok {
 		for _, filt := range filts {
 			if filt.Supports(f) {
-				return filt.Process(c, doq, q, f, lookup, data)
+				return filt.Process(qf, c, doq, q, f, lookup, data)
 			}
 		}
 	}

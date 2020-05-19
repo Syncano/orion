@@ -7,11 +7,16 @@ import (
 
 	sentryecho "github.com/getsentry/sentry-go/echo"
 	"github.com/labstack/echo/v4"
+	"github.com/lithammer/shortuuid"
 	"go.uber.org/zap"
 
 	"github.com/Syncano/orion/app/api"
 	"github.com/Syncano/orion/pkg/log"
 	"github.com/Syncano/orion/pkg/util"
+)
+
+const (
+	ContextRequestID = "req_id"
 )
 
 func logg(c echo.Context, start time.Time, path string, l *zap.Logger, err error) {
@@ -44,8 +49,8 @@ func logg(c echo.Context, start time.Time, path string, l *zap.Logger, err error
 }
 
 // Recovery recovers panics and logs them to sentry and zap.
-func Recovery() echo.MiddlewareFunc {
-	logger := log.RawLogger()
+func Recovery(logger *log.Logger) echo.MiddlewareFunc {
+	l := logger.RawLogger()
 
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
@@ -58,7 +63,9 @@ func Recovery() echo.MiddlewareFunc {
 					rvalStr := fmt.Sprint(rval)
 
 					c.Error(api.NewGenericError(http.StatusInternalServerError, "Internal server error."))
-					logg(c, start, path, logger.With(zap.String("panic", rvalStr)), nil)
+
+					logg(c, start, path,
+						l.With(zap.String("panic", rvalStr), zap.String("reqID", c.Get(ContextRequestID).(string))), nil)
 				}
 			}()
 
@@ -68,8 +75,8 @@ func Recovery() echo.MiddlewareFunc {
 }
 
 // Logger logs requests using zap.
-func Logger() echo.MiddlewareFunc {
-	logger := log.RawLogger()
+func Logger(logger *log.Logger) echo.MiddlewareFunc {
+	l := logger.RawLogger()
 
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
@@ -89,9 +96,27 @@ func Logger() echo.MiddlewareFunc {
 				}
 			}
 
-			logg(c, start, path, logger, err)
+			logg(c, start, path,
+				l.With(zap.String("reqID", c.Get(ContextRequestID).(string))), err)
 
 			return nil
+		}
+	}
+}
+
+const RequestIDHeader = "X-Request-Id"
+
+func RequestID() echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			requestID := c.Request().Header.Get(RequestIDHeader)
+			if requestID == "" {
+				requestID = shortuuid.New()
+			}
+
+			c.Set(ContextRequestID, requestID)
+
+			return next(c)
 		}
 	}
 }

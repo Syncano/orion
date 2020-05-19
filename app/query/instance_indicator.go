@@ -13,8 +13,8 @@ type InstanceIndicatorManager struct {
 }
 
 // NewInstanceIndicatorManager creates and returns new Instance Indicator manager.
-func NewInstanceIndicatorManager(c storage.DBContext) *InstanceIndicatorManager {
-	return &InstanceIndicatorManager{Manager: NewTenantManager(c)}
+func (q *Factory) NewInstanceIndicatorManager(c storage.DBContext) *InstanceIndicatorManager {
+	return &InstanceIndicatorManager{Manager: q.NewTenantManager(c)}
 }
 
 // ByInstanceAndType filters object filtered by instance and type.

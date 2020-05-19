@@ -4,25 +4,25 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/Syncano/orion/app/controllers"
-	"github.com/Syncano/orion/pkg/settings"
+	"github.com/Syncano/orion/app/settings"
 )
 
 // SocketEndpointRegister registers socket endpoint routes.
-func SocketEndpointRegister(r *echo.Group, m *middlewares) {
+func SocketEndpointRegister(ctr *controllers.Controller, r *echo.Group, m *middlewares) {
 	m = m.Copy()
 	m.RequireAuth = false
 	m.AnonRateLimit = &settings.RateData{Limit: -1}
 	m.SizeLimit = settings.Socket.MaxPayloadSize
-	g := r.Group("", m.Get()...)
+	g := r.Group("", m.Get(ctr)...)
 
 	// List all socket endpoints.
-	g.GET("/", controllers.SocketEndpointList)
+	g.GET("/", ctr.SocketEndpointList)
 
 	// List socket endpoints by socket name.
 	d := g.Group("/:socket_name")
-	d.GET("/", controllers.SocketEndpointList)
+	d.GET("/", ctr.SocketEndpointList)
 
 	// Socket endpoint routes.
 	d = d.Group("/*")
-	d.Any("/", controllers.SocketEndpointMap)
+	d.Any("/", ctr.SocketEndpointMap)
 }

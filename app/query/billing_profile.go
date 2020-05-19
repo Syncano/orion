@@ -7,7 +7,6 @@ import (
 	"github.com/jinzhu/now"
 
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/orion/pkg/cache"
 	"github.com/Syncano/orion/pkg/storage"
 )
 
@@ -25,8 +24,8 @@ type ProfileManager struct {
 }
 
 // NewProfileManager creates and returns new Subscription manager.
-func NewProfileManager(c storage.DBContext) *ProfileManager {
-	return &ProfileManager{Manager: NewManager(c)}
+func (q *Factory) NewProfileManager(c storage.DBContext) *ProfileManager {
+	return &ProfileManager{Manager: q.NewManager(c)}
 }
 
 // GetBillingStatus returns status string for subscription.
@@ -39,7 +38,7 @@ func (m *ProfileManager) GetBillingStatus(sub *models.Subscription) (string, err
 
 	o := &models.Profile{AdminID: sub.AdminID}
 	n := time.Now()
-	err := cache.ModelCache(m.DB(), o, &ret, fmt.Sprintf("billing;a=%d;t=%s", o.AdminID, n.Format("06-01")), func() (interface{}, error) {
+	err := m.c.ModelCache(m.DB(), o, &ret, fmt.Sprintf("billing;a=%d;t=%s", o.AdminID, n.Format("06-01")), func() (interface{}, error) {
 		if b, err := m.Query(o).Where("admin_id = ? AND hard_limit_reached >= ?", o.AdminID, now.BeginningOfMonth()).Exists(); err != nil {
 			return "", err
 		} else if b {

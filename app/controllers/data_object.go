@@ -15,12 +15,12 @@ import (
 	"github.com/Syncano/orion/app/models"
 	"github.com/Syncano/orion/app/query"
 	"github.com/Syncano/orion/app/serializers"
-	"github.com/Syncano/orion/pkg/settings"
+	"github.com/Syncano/orion/app/settings"
 	"github.com/Syncano/orion/pkg/storage"
 	"github.com/Syncano/orion/pkg/util"
 )
 
-func DataObjectCreate(c echo.Context) error {
+func (ctr *Controller) DataObjectCreate(c echo.Context) error {
 	// TODO: #16 Object updates
 	// o.Data.Set(map[string]string{ // nolint: errcheck
 	// 	"abc": "aa",
@@ -28,10 +28,10 @@ func DataObjectCreate(c echo.Context) error {
 	return api.NewPermissionDeniedError()
 }
 
-func DataObjectList(c echo.Context) error {
+func (ctr *Controller) DataObjectList(c echo.Context) error {
 	var o []*models.DataObject
 
-	mgr := query.NewDataObjectManager(c)
+	mgr := ctr.q.NewDataObjectManager(c)
 	props := make(map[string]interface{})
 	class := c.Get(contextClassKey).(*models.Class)
 
@@ -41,7 +41,7 @@ func DataObjectList(c echo.Context) error {
 	if _, e := c.QueryParams()["query"]; e {
 		var err error
 
-		q, err = NewDataObjectQuery(class.FilterFields()).Parse(c, q)
+		q, err = NewDataObjectQuery(class.FilterFields()).Parse(ctr.q, c, q)
 		if err != nil {
 			return err
 		}
@@ -89,7 +89,7 @@ func detailDataObject(c echo.Context) *models.DataObject {
 	return o
 }
 
-func DataObjectRetrieve(c echo.Context) error {
+func (ctr *Controller) DataObjectRetrieve(c echo.Context) error {
 	o := detailDataObject(c)
 	if o == nil {
 		return api.NewNotFoundError(o)
@@ -97,7 +97,7 @@ func DataObjectRetrieve(c echo.Context) error {
 
 	class := c.Get(contextClassKey).(*models.Class)
 
-	if err := query.NewDataObjectManager(c).ForClassByIDQ(class, o).Select(); err != nil {
+	if err := ctr.q.NewDataObjectManager(c).ForClassByIDQ(class, o).Select(); err != nil {
 		if err == pg.ErrNoRows {
 			return api.NewNotFoundError(o)
 		}
@@ -110,9 +110,9 @@ func DataObjectRetrieve(c echo.Context) error {
 	return api.Render(c, http.StatusOK, serializer.Response(o))
 }
 
-func DataObjectUpdate(c echo.Context) error {
+func (ctr *Controller) DataObjectUpdate(c echo.Context) error {
 	// TODO: #16 Object updates
-	mgr := query.NewDataObjectManager(c)
+	mgr := ctr.q.NewDataObjectManager(c)
 
 	o := detailDataObject(c)
 	if o == nil {
@@ -153,26 +153,26 @@ func DataObjectUpdate(c echo.Context) error {
 	return api.NewPermissionDeniedError()
 }
 
-func DataObjectDelete(c echo.Context) error {
+func (ctr *Controller) DataObjectDelete(c echo.Context) error {
 	o := detailDataObject(c)
 	if o == nil {
 		return api.NewNotFoundError(o)
 	}
 
 	class := c.Get(contextClassKey).(*models.Class)
-	mgr := query.NewDataObjectManager(c)
+	mgr := ctr.q.NewDataObjectManager(c)
 
 	return api.SimpleDelete(c, mgr, mgr.ForClassByIDQ(class, o), o)
 }
 
-func dataObjectDeleteHook(c storage.DBContext, db orm.DB, i interface{}) error {
+func (ctr *Controller) dataObjectDeleteHook(c storage.DBContext, db orm.DB, i interface{}) error {
 	o := i.(*models.DataObject)
 	sizeDiff := 0
 
 	for k, v := range o.Files.Map {
 		fname := o.Data.Map[k]
 		util.Must(
-			storage.Default().Delete(context.Background(), settings.BucketData, fname.String),
+			ctr.fs.Default().Delete(context.Background(), settings.BucketData, fname.String),
 		)
 
 		if d, e := models.ValueFromString(models.FieldIntegerType, v.String); e == nil {
@@ -184,13 +184,13 @@ func dataObjectDeleteHook(c storage.DBContext, db orm.DB, i interface{}) error {
 		sub := c.Get(contextSubscriptionKey).(*models.Subscription)
 		c.Get(contextAdminLimitKey).(*models.AdminLimit).StorageLimit(sub)
 
-		return updateInstanceIndicatorValue(c, db, models.InstanceIndicatorTypeStorageSize, -sizeDiff)
+		return ctr.updateInstanceIndicatorValue(c, db, models.InstanceIndicatorTypeStorageSize, -sizeDiff)
 	}
 
 	return nil
 }
 
-func uploadDataObjectFile(ctx context.Context, db orm.DB, instance *models.Instance, class *models.Class, fh *multipart.FileHeader) error { // nolint - ignore that it is unused for now
+func (ctr *Controller) uploadDataObjectFile(ctx context.Context, db orm.DB, instance *models.Instance, class *models.Class, fh *multipart.FileHeader) error { // nolint - ignore that it is unused for now
 	key := fmt.Sprintf("%s/%d/%s%s",
 		instance.StoragePrefix,
 		class.ID,
@@ -205,5 +205,5 @@ func uploadDataObjectFile(ctx context.Context, db orm.DB, instance *models.Insta
 
 	defer f.Close()
 
-	return storage.SafeUpload(ctx, storage.Default(), db, settings.BucketData, key, f)
+	return storage.SafeUpload(ctx, ctr.fs.Default(), ctr.db, db, settings.BucketData, key, f)
 }

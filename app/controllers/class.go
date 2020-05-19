@@ -14,10 +14,10 @@ import (
 
 const contextClassKey = "class"
 
-func ClassContext(next echo.HandlerFunc) echo.HandlerFunc {
+func (ctr *Controller) ClassContext(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		o := &models.Class{Name: c.Param("class_name")}
-		if err := query.NewClassManager(c).OneByName(o); err != nil || !o.Visible {
+		if err := ctr.q.NewClassManager(c).OneByName(o); err != nil || !o.Visible {
 			if err == pg.ErrNoRows {
 				return api.NewNotFoundError(o)
 			}
@@ -31,15 +31,15 @@ func ClassContext(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func ClassCreate(c echo.Context) error {
+func (ctr *Controller) ClassCreate(c echo.Context) error {
 	// TODO: #13 Class create
 	return api.NewPermissionDeniedError()
 }
 
-func ClassList(c echo.Context) error {
+func (ctr *Controller) ClassList(c echo.Context) error {
 	var o []*models.Class
 
-	paginator := &PaginatorDB{Query: query.NewClassManager(c).WithAccessQ(&o)}
+	paginator := &PaginatorDB{Query: ctr.q.NewClassManager(c).WithAccessQ(&o)}
 	cursor := paginator.CreateCursor(c, true)
 
 	r, err := Paginate(c, cursor, (*models.Class)(nil), serializers.ClassSerializer{}, paginator)
@@ -54,10 +54,10 @@ func detailClass(c echo.Context) *models.Class {
 	return &models.Class{Name: c.Param("class_name")}
 }
 
-func ClassRetrieve(c echo.Context) error {
+func (ctr *Controller) ClassRetrieve(c echo.Context) error {
 	o := detailClass(c)
 
-	if err := query.NewClassManager(c).WithAccessByNameQ(o).Select(); err != nil {
+	if err := ctr.q.NewClassManager(c).WithAccessByNameQ(o).Select(); err != nil {
 		if err == pg.ErrNoRows {
 			return api.NewNotFoundError(o)
 		}
@@ -68,9 +68,9 @@ func ClassRetrieve(c echo.Context) error {
 	return api.Render(c, http.StatusOK, serializers.ClassSerializer{}.Response(o))
 }
 
-func ClassUpdate(c echo.Context) error {
+func (ctr *Controller) ClassUpdate(c echo.Context) error {
 	// TODO: #8 Class updates/deletes
-	mgr := query.NewClassManager(c)
+	mgr := ctr.q.NewClassManager(c)
 	o := detailClass(c)
 
 	if err := mgr.RunInTransaction(func(*pg.Tx) error {
@@ -87,7 +87,7 @@ func ClassUpdate(c echo.Context) error {
 	return api.NewPermissionDeniedError()
 }
 
-func ClassDelete(c echo.Context) error {
+func (ctr *Controller) ClassDelete(c echo.Context) error {
 	// TODO: #8 Class updates/deletes
 	// index cleanup, DO cascade!
 	//

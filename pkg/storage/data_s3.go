@@ -10,21 +10,20 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 
-	"github.com/Syncano/orion/pkg/settings"
 	"github.com/Syncano/orion/pkg/util"
 )
 
 type s3Storage struct {
 	uploader *s3manager.Uploader
 	client   *s3.S3
-	buckets  map[settings.BucketKey]*bucketInfo
+	buckets  map[BucketKey]*bucketInfo
 }
 
-func newS3Storage(loc string, buckets map[settings.BucketKey]*bucketInfo) DataStorage {
-	accessKeyID := settings.GetLocationEnv(loc, "S3_ACCESS_KEY_ID")
-	secretAccessKey := settings.GetLocationEnv(loc, "S3_SECRET_ACCESS_KEY")
-	region := settings.GetLocationEnv(loc, "S3_REGION")
-	endpoint := settings.GetLocationEnv(loc, "S3_ENDPOINT")
+func newS3Storage(loc string, buckets map[BucketKey]*bucketInfo) DataStorage {
+	accessKeyID := util.GetPrefixEnv(loc, "S3_ACCESS_KEY_ID")
+	secretAccessKey := util.GetPrefixEnv(loc, "S3_SECRET_ACCESS_KEY")
+	region := util.GetPrefixEnv(loc, "S3_REGION")
+	endpoint := util.GetPrefixEnv(loc, "S3_ENDPOINT")
 
 	sess := createS3Session(accessKeyID, secretAccessKey, region, endpoint)
 	client := s3.New(sess)
@@ -42,7 +41,7 @@ func (s *s3Storage) Client() interface{} {
 	return s.client
 }
 
-func (s *s3Storage) URL(bucket settings.BucketKey, key string) string {
+func (s *s3Storage) URL(bucket BucketKey, key string) string {
 	return s.buckets[bucket].URL + key
 }
 
@@ -58,7 +57,7 @@ func createS3Session(accessKeyID, secretAccessKey, region, endpoint string) *ses
 	return sess
 }
 
-func (s *s3Storage) Upload(ctx context.Context, bucket settings.BucketKey, key string, f io.Reader) error {
+func (s *s3Storage) Upload(ctx context.Context, bucket BucketKey, key string, f io.Reader) error {
 	_, err := s.uploader.UploadWithContext(ctx,
 		&s3manager.UploadInput{
 			Bucket: aws.String(s.buckets[bucket].Name),
@@ -70,7 +69,7 @@ func (s *s3Storage) Upload(ctx context.Context, bucket settings.BucketKey, key s
 	return err
 }
 
-func (s *s3Storage) Delete(ctx context.Context, bucket settings.BucketKey, key string) error {
+func (s *s3Storage) Delete(ctx context.Context, bucket BucketKey, key string) error {
 	_, err := s.client.DeleteObjectWithContext(
 		ctx,
 		&s3.DeleteObjectInput{
