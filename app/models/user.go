@@ -5,7 +5,7 @@ import (
 
 	"github.com/alexandrevicenzi/unchained"
 
-	"github.com/Syncano/orion/pkg/util"
+	"github.com/Syncano/pkg-go/util"
 )
 
 // User represents User model.

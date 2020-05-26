@@ -16,10 +16,10 @@ import (
 	"github.com/Syncano/orion/app/routers"
 	"github.com/Syncano/orion/app/settings"
 	"github.com/Syncano/orion/app/validators"
-	"github.com/Syncano/orion/pkg/cache"
-	"github.com/Syncano/orion/pkg/celery"
-	"github.com/Syncano/orion/pkg/log"
-	"github.com/Syncano/orion/pkg/storage"
+	"github.com/Syncano/pkg-go/celery"
+	"github.com/Syncano/pkg-go/log"
+	"github.com/Syncano/pkg-go/rediscache"
+	"github.com/Syncano/pkg-go/storage"
 )
 
 // Server defines a Web server wrapper.
@@ -31,8 +31,8 @@ type Server struct {
 }
 
 // NewServer initializes new Web server.
-func NewServer(db *storage.Database, fs *storage.Storage, redis *storage.Redis, c *cache.Cache, cel *celery.Celery, logger *log.Logger, debug bool) (*Server, error) {
-	ctr, err := controllers.New(db, fs, redis, c, cel, logger)
+func NewServer(db *storage.Database, fs *storage.Storage, redis *storage.Redis, rc *rediscache.Cache, cel *celery.Celery, logger *log.Logger, debug bool) (*Server, error) {
+	ctr, err := controllers.New(db, fs, redis, rc, cel, logger)
 	if err != nil {
 		return nil, err
 	}

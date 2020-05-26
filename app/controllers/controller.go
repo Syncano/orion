@@ -8,20 +8,19 @@ import (
 	"go.opencensus.io/plugin/ocgrpc"
 	"google.golang.org/grpc"
 
-	broker "github.com/Syncano/syncanoapis/gen/go/syncano/codebox/broker/v1"
-
 	"github.com/Syncano/orion/app/models"
 	"github.com/Syncano/orion/app/query"
 	"github.com/Syncano/orion/app/settings"
 	"github.com/Syncano/orion/app/tasks"
-	"github.com/Syncano/orion/pkg/cache"
-	"github.com/Syncano/orion/pkg/celery"
-	"github.com/Syncano/orion/pkg/log"
-	"github.com/Syncano/orion/pkg/storage"
+	"github.com/Syncano/pkg-go/celery"
+	"github.com/Syncano/pkg-go/log"
+	"github.com/Syncano/pkg-go/rediscache"
+	"github.com/Syncano/pkg-go/storage"
+	broker "github.com/Syncano/syncanoapis/gen/go/syncano/codebox/broker/v1"
 )
 
 type Controller struct {
-	c         *cache.Cache
+	c         *rediscache.Cache
 	db        *storage.Database
 	fs        *storage.Storage
 	redis     *storage.Redis
@@ -31,7 +30,7 @@ type Controller struct {
 	log       *log.Logger
 }
 
-func New(db *storage.Database, fs *storage.Storage, redis *storage.Redis, c *cache.Cache, cel *celery.Celery, logger *log.Logger) (*Controller, error) {
+func New(db *storage.Database, fs *storage.Storage, redis *storage.Redis, c *rediscache.Cache, cel *celery.Celery, logger *log.Logger) (*Controller, error) {
 	conn, err := grpc.Dial(settings.Socket.CodeboxAddr,
 		grpc.WithInsecure(),
 		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(settings.MaxGRPCMessageSize)),

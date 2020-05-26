@@ -1,7 +1,7 @@
 package settings
 
 import (
-	"github.com/Syncano/orion/pkg/storage"
+	"github.com/Syncano/pkg-go/storage"
 )
 
 const (

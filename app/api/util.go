@@ -10,7 +10,7 @@ import (
 
 	"github.com/Syncano/orion/app/query"
 	"github.com/Syncano/orion/app/settings"
-	"github.com/Syncano/orion/pkg/util"
+	"github.com/Syncano/pkg-go/util"
 )
 
 const validationRetries = 2

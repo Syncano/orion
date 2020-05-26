@@ -3,7 +3,7 @@ package query
 import (
 	"github.com/go-pg/pg/v9"
 
-	"github.com/Syncano/orion/pkg/storage"
+	"github.com/Syncano/pkg-go/storage"
 )
 
 const ContextSchemaKey = "schema"

@@ -22,12 +22,12 @@ import (
 	"google.golang.org/grpc/grpclog"
 
 	"github.com/Syncano/orion/app/settings"
+	"github.com/Syncano/orion/app/version"
 	"github.com/Syncano/orion/cmd/amqp"
-	"github.com/Syncano/orion/pkg/cache"
 	"github.com/Syncano/orion/pkg/jobs"
-	"github.com/Syncano/orion/pkg/log"
-	"github.com/Syncano/orion/pkg/storage"
-	"github.com/Syncano/orion/pkg/version"
+	"github.com/Syncano/pkg-go/log"
+	"github.com/Syncano/pkg-go/rediscache"
+	"github.com/Syncano/pkg-go/storage"
 )
 
 var (
@@ -42,8 +42,8 @@ var (
 	jaegerExporter *jaeger.Exporter
 	db             *storage.Database
 	fs             *storage.Storage
-	rredis         *storage.Redis
-	cach           *cache.Cache
+	storRedis      *storage.Redis
+	cache          *rediscache.Cache
 	logger         *log.Logger
 )
 
@@ -214,8 +214,8 @@ func init() {
 		fs = storage.NewStorage(settings.Common.Location, settings.Buckets, settings.API.Host, settings.API.StorageURL)
 
 		// Initialize redis client.
-		rredis = storage.NewRedis(&redisOptions)
-		cach = cache.New(rredis.Client(), db, &cache.Options{
+		storRedis = storage.NewRedis(&redisOptions)
+		cache = rediscache.New(storRedis.Client(), db, &rediscache.Options{
 			LocalCacheTimeout: settings.Common.LocalCacheTimeout,
 			CacheTimeout:      settings.Common.CacheTimeout,
 			CacheVersion:      settings.Common.CacheVersion,
@@ -231,13 +231,13 @@ func init() {
 	}
 	App.After = func(c *cli.Context) error {
 		// Redis teardown.
-		if rredis != nil {
-			rredis.Client().Close()
+		if storRedis != nil {
+			storRedis.Shutdown() // nolint: errcheck
 		}
 
 		// Database teardown.
 		if db != nil {
-			db.DB().Close()
+			db.Shutdown() // nolint: errcheck
 		}
 
 		// Sync loggers.
