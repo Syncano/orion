@@ -11,8 +11,8 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/Syncano/orion/app/api"
-	"github.com/Syncano/orion/pkg/log"
-	"github.com/Syncano/orion/pkg/util"
+	"github.com/Syncano/pkg-go/log"
+	"github.com/Syncano/pkg-go/util"
 )
 
 const (

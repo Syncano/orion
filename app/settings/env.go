@@ -1,7 +1,7 @@
 package settings
 
 import (
-	"github.com/Syncano/orion/pkg/util"
+	"github.com/Syncano/pkg-go/util"
 )
 
 func GetCurrentLocationEnv(key string) string {

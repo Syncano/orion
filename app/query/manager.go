@@ -4,7 +4,7 @@ import (
 	"github.com/go-pg/pg/v9"
 	"github.com/go-pg/pg/v9/orm"
 
-	"github.com/Syncano/orion/pkg/storage"
+	"github.com/Syncano/pkg-go/storage"
 )
 
 // Manager defines object manager.

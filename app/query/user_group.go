@@ -6,7 +6,7 @@ import (
 	"github.com/go-pg/pg/v9/orm"
 
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/orion/pkg/storage"
+	"github.com/Syncano/pkg-go/storage"
 )
 
 // UserGroupManager represents User Group manager.

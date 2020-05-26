@@ -1,7 +1,7 @@
 package tasks
 
 import (
-	"github.com/Syncano/orion/pkg/celery"
+	"github.com/Syncano/pkg-go/celery"
 )
 
 const (

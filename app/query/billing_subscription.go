@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/orion/pkg/storage"
+	"github.com/Syncano/pkg-go/storage"
 )
 
 // SubscriptionManager represents Subscription manager.
