@@ -1,4 +1,4 @@
-version: 2
+version: 2.1
 jobs:
   test:
     machine: true
@@ -75,7 +75,6 @@ jobs:
             make clean
 
 workflows:
-  version: 2
   test:
     jobs:
       - test:

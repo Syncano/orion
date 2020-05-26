@@ -7,7 +7,7 @@ import (
 	"github.com/jinzhu/now"
 
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/orion/pkg/storage"
+	"github.com/Syncano/pkg-go/storage"
 )
 
 // BillingStatus enum.

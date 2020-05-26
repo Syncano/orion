@@ -16,8 +16,8 @@ import (
 	"github.com/Syncano/orion/app/query"
 	"github.com/Syncano/orion/app/serializers"
 	"github.com/Syncano/orion/app/settings"
-	"github.com/Syncano/orion/pkg/storage"
-	"github.com/Syncano/orion/pkg/util"
+	"github.com/Syncano/pkg-go/storage"
+	"github.com/Syncano/pkg-go/util"
 )
 
 func (ctr *Controller) DataObjectCreate(c echo.Context) error {

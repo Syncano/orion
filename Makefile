@@ -13,8 +13,8 @@ BUILDTIME = $(shell date +%Y-%m-%dT%H:%M)
 GITSHA = $(shell git rev-parse --short HEAD)
 
 LDFLAGS = -s -w \
-	-X github.com/Syncano/orion/pkg/version.GitSHA=$(GITSHA) \
-	-X github.com/Syncano/orion/pkg/version.buildtimeStr=$(BUILDTIME)
+	-X github.com/Syncano/orion/app/version.GitSHA=$(GITSHA) \
+	-X github.com/Syncano/orion/app/version.buildtimeStr=$(BUILDTIME)
 
 
 .PHONY: help clean lint fmt test stest cov goconvey lint-in-docker test-in-docker build build-in-docker docker deploy-staging deploy-production encrypt decrypt start devserver run-server

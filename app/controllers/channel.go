@@ -16,7 +16,7 @@ import (
 	"github.com/Syncano/orion/app/models"
 	"github.com/Syncano/orion/app/serializers"
 	"github.com/Syncano/orion/app/settings"
-	"github.com/Syncano/orion/pkg/redisdb"
+	"github.com/Syncano/pkg-go/redisdb"
 )
 
 const (

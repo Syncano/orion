@@ -7,7 +7,7 @@ import (
 
 	"github.com/Syncano/orion/app/api"
 	"github.com/Syncano/orion/app/serializers"
-	"github.com/Syncano/orion/pkg/redisdb"
+	"github.com/Syncano/pkg-go/redisdb"
 )
 
 type PaginatorRedis struct {

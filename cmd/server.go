@@ -13,8 +13,8 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/Syncano/orion/app/server"
-	"github.com/Syncano/orion/pkg/celery"
-	"github.com/Syncano/orion/pkg/version"
+	"github.com/Syncano/orion/app/version"
+	"github.com/Syncano/pkg-go/celery"
 )
 
 var serverCmd = &cli.Command{
@@ -43,8 +43,8 @@ var serverCmd = &cli.Command{
 		}
 		srv, err := server.NewServer(db,
 			fs,
-			rredis,
-			cach,
+			storRedis,
+			cache,
 			celery.New(amqpChannel),
 			logger,
 			c.Bool("debug"))
