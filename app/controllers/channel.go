@@ -2,10 +2,12 @@ package controllers
 
 import (
 	"crypto/md5" // nolint: gosec
+	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
 	"strconv"
+	"syscall"
 	"time"
 
 	"github.com/go-pg/pg/v9"
@@ -95,12 +97,20 @@ func (ctr *Controller) changeSubscribe(c echo.Context, room *string) error {
 	if isWebSocket {
 		ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 		if err != nil {
+			if errors.Is(err, syscall.EPIPE) {
+				return nil
+			}
+
 			return err
 		}
 		defer ws.Close()
 
 		for o := range ch {
 			if err := ws.WriteMessage(websocket.TextMessage, o); err != nil {
+				if errors.Is(err, syscall.EPIPE) {
+					return nil
+				}
+
 				return err
 			}
 		}

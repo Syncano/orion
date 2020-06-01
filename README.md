@@ -13,7 +13,6 @@ Syncano Platform written in Go. Meant to completely replace it, currently used a
 
 - Run `make test` to run code checks and all tests with coverage. This will require Go installed on host.
 - During development it is very useful to run dashboard for tests through `goconvey`. Install and run through `make goconvey`.
-- Whole project sources are meant to be put in $GOPATH/src path. This is especially important during development.
 - To run tests in container run: `make test-in-docker`.
 
 ## Starting locally
