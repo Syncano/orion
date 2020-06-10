@@ -409,7 +409,7 @@ func processCodeboxResponse(stream broker.ScriptRunner_RunClient, trace *models.
 		}
 	}
 
-	trace.ExecutedAt = time.Unix(0, result.Time)
+	trace.ExecutedAt = time.Unix(result.Time.GetSeconds(), int64(result.Time.GetNanos()))
 	trace.Result = ret
 	trace.Duration = int(result.Took)
 	trace.Status = models.TraceStatusFailure
