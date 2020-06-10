@@ -21,6 +21,7 @@ require (
 	github.com/go-redis/cache/v7 v7.0.2
 	github.com/go-redis/redis/v7 v7.3.0
 	github.com/go-redis/redis_rate/v7 v7.0.1
+	github.com/golang/protobuf v1.4.2
 	github.com/gorilla/websocket v1.4.2
 	github.com/jackc/pgtype v1.3.0
 	github.com/jackc/pgx/v4 v4.6.0 // indirect
