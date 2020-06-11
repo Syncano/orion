@@ -6,7 +6,7 @@ require (
 	contrib.go.opencensus.io/exporter/jaeger v0.2.0
 	contrib.go.opencensus.io/exporter/prometheus v0.1.0
 	github.com/Syncano/pkg-go v0.1.4
-	github.com/Syncano/syncanoapis/gen v0.1.2
+	github.com/Syncano/syncanoapis/gen v1.0.0
 	github.com/alexandrevicenzi/unchained v1.3.0
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/caarlos0/env/v6 v6.2.2
@@ -21,6 +21,7 @@ require (
 	github.com/go-redis/cache/v7 v7.0.2
 	github.com/go-redis/redis/v7 v7.3.0
 	github.com/go-redis/redis_rate/v7 v7.0.1
+	github.com/golang/protobuf v1.4.2
 	github.com/gorilla/websocket v1.4.2
 	github.com/jackc/pgtype v1.3.0
 	github.com/jackc/pgx/v4 v4.6.0 // indirect
