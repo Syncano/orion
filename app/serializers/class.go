@@ -2,18 +2,19 @@ package serializers
 
 import (
 	"github.com/Syncano/orion/app/models"
+	"github.com/Syncano/pkg-go/database/fields"
 )
 
 type ClassResponse struct {
 	Name         string      `json:"name"`
 	Description  string      `json:"description"`
-	Schema       models.JSON `json:"schema"`
+	Schema       fields.JSON `json:"schema"`
 	Status       string      `json:"status"`
-	CreatedAt    models.Time `json:"created_at"`
-	UpdatedAt    models.Time `json:"updated_at"`
+	CreatedAt    fields.Time `json:"created_at"`
+	UpdatedAt    fields.Time `json:"updated_at"`
 	ObjectsCount int         `json:"objects_count"`
 	Revision     int         `json:"revision"`
-	Metadata     models.JSON `json:"metadata"`
+	Metadata     fields.JSON `json:"metadata"`
 }
 
 type ClassSerializer struct{}

@@ -7,22 +7,24 @@ import (
 	"github.com/go-pg/pg/v9/orm"
 
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/pkg-go/storage"
+	"github.com/Syncano/pkg-go/database"
+	"github.com/Syncano/pkg-go/database/manager"
 )
 
 // SocketManager represents Socket manager.
 type SocketManager struct {
-	*LiveManager
+	*Factory
+	*manager.LiveManager
 }
 
 // NewSocketManager creates and returns new Socket manager.
-func (q *Factory) NewSocketManager(c storage.DBContext) *SocketManager {
-	return &SocketManager{LiveManager: q.NewLiveTenantManager(c)}
+func (q *Factory) NewSocketManager(c database.DBContext) *SocketManager {
+	return &SocketManager{LiveManager: manager.NewLiveTenantManager(q.db, c)}
 }
 
 // OneByID outputs object filtered by ID.
 func (m *SocketManager) OneByID(o *models.Socket) error {
-	return RequireOne(
+	return manager.RequireOne(
 		m.c.SimpleModelCache(m.DB(), o, fmt.Sprintf("i=%d", o.ID), func() (interface{}, error) {
 			return o, m.Query(o).Where("id = ?", o.ID).Select()
 		}),
@@ -33,7 +35,7 @@ func (m *SocketManager) OneByID(o *models.Socket) error {
 func (m *SocketManager) OneByName(o *models.Socket) error {
 	o.Name = strings.ToLower(o.Name)
 
-	return RequireOne(
+	return manager.RequireOne(
 		m.c.SimpleModelCache(m.DB(), o, fmt.Sprintf("n=%s", o.Name), func() (interface{}, error) {
 			return o, m.Query(o).Where("name = ?", o.Name).Select()
 		}),

@@ -2,6 +2,8 @@ package models
 
 import (
 	"fmt"
+
+	"github.com/Syncano/pkg-go/database/fields"
 )
 
 // UserGroup represents User Group model.
@@ -14,7 +16,7 @@ type UserGroup struct {
 	Name        string
 	Label       string
 	Description string
-	CreatedAt   Time
+	CreatedAt   fields.Time
 
 	Users []*User `pg:"many2many:?schema.users_membership,joinFK:group_id"`
 }

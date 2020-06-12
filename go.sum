@@ -57,8 +57,8 @@ github.com/Masterminds/sprig v2.22.0+incompatible/go.mod h1:y6hNFY5UBTIWBxnzTeuN
 github.com/Microsoft/go-winio v0.4.14/go.mod h1:qXqCSQ3Xa7+6tgxaGTIe4Kpcdsi+P8jBhyzoq1bpyYA=
 github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5/go.mod h1:lmUJ/7eu/Q8D7ML55dXQrVaamCz2vxCfdQBasLZfHKk=
 github.com/Shopify/goreferrer v0.0.0-20181106222321-ec9c9a553398/go.mod h1:a1uqRtAwp2Xwc6WNPJEufxJ7fx3npB4UV/JOLmbu5I0=
-github.com/Syncano/pkg-go v0.1.4 h1:cRskCI8whmmpVH5zFOJcr6ZjPTcOYMyDX3zZX3rnboY=
-github.com/Syncano/pkg-go v0.1.4/go.mod h1:wGZLHIfNQREtVLHK5gLMR0enXEaq6FkbH0rm4ljthqU=
+github.com/Syncano/pkg-go v1.1.0 h1:vXYpFIh0Af2rTu9P/cdeP1UKA+g8XR2M4rznsNCttuo=
+github.com/Syncano/pkg-go v1.1.0/go.mod h1:7iZnhDOWTfcmks+37lfyM45fYfL1rJxMlVDrJi1aqxI=
 github.com/Syncano/syncanoapis/gen v1.0.0 h1:zJDgIpDkldJpgCAOYWzEqYo5tuz3eTO+F3st3hTURYo=
 github.com/Syncano/syncanoapis/gen v1.0.0/go.mod h1:I1+7CW9sF/sLeKhuAN83+sPVi/iveumVkxx/+oTHsGE=
 github.com/TheZeroSlave/zapsentry v1.4.0 h1:Ikoxpw3Svi+RxBFu+vGbpP/RQxZEd67W7ix13Vo3w+U=

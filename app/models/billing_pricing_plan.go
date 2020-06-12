@@ -2,6 +2,8 @@ package models
 
 import (
 	"fmt"
+
+	"github.com/Syncano/pkg-go/database/fields"
 )
 
 // PricingPlan stores information about prices for given service.
@@ -21,8 +23,8 @@ type PricingPlan struct {
 	ID               int
 	Name             string
 	Available        bool
-	Pricing          JSON
-	Options          JSON
+	Pricing          fields.JSON
+	Options          fields.JSON
 	AdjustableLimits bool
 	PaidPlan         bool
 }

@@ -7,17 +7,19 @@ import (
 
 	"github.com/Syncano/orion/app/models"
 	"github.com/Syncano/orion/app/settings"
-	"github.com/Syncano/pkg-go/storage"
+	"github.com/Syncano/pkg-go/database"
+	"github.com/Syncano/pkg-go/database/manager"
 )
 
 // UserManager represents User manager.
 type UserManager struct {
-	*LiveManager
+	*Factory
+	*manager.LiveManager
 }
 
 // NewUserManager creates and returns new User manager.
-func (q *Factory) NewUserManager(c storage.DBContext) *UserManager {
-	return &UserManager{LiveManager: q.NewLiveTenantManager(c)}
+func (q *Factory) NewUserManager(c database.DBContext) *UserManager {
+	return &UserManager{LiveManager: manager.NewLiveTenantManager(q.db, c)}
 }
 
 // Q outputs objects query.
@@ -44,7 +46,7 @@ func (m *UserManager) ForGroupByIDQ(class *models.Class, group *models.UserGroup
 
 // OneByID outputs object filtered by id.
 func (m *UserManager) OneByID(o *models.User) error {
-	return RequireOne(
+	return manager.RequireOne(
 		m.c.SimpleModelCache(m.DB(), o, fmt.Sprintf("i=%d", o.ID), func() (interface{}, error) {
 			return o, m.Query(o).Where("id = ?", o.ID).Select()
 		}),
@@ -53,7 +55,7 @@ func (m *UserManager) OneByID(o *models.User) error {
 
 // OneByName outputs object filtered by name.
 func (m *UserManager) OneByName(o *models.User) error {
-	return RequireOne(
+	return manager.RequireOne(
 		m.c.SimpleModelCache(m.DB(), o, fmt.Sprintf("u=%s", o.Username), func() (interface{}, error) {
 			return o, m.Query(o).Where("username = ?", o.Username).Select()
 		}),
@@ -62,7 +64,7 @@ func (m *UserManager) OneByName(o *models.User) error {
 
 // OneByKey outputs object filtered by key. Doesn't fetch profile nor groups.
 func (m *UserManager) OneByKey(o *models.User) error {
-	return RequireOne(
+	return manager.RequireOne(
 		m.c.SimpleModelCache(m.DB(), o, fmt.Sprintf("k=%s", o.Key), func() (interface{}, error) {
 			return o, m.Query(o).Where("key = ?", o.Key).Select()
 		}),
@@ -77,5 +79,5 @@ func (m *UserManager) FetchData(class *models.Class, o *models.User) error {
 
 // CountEstimate returns count estimate for users list.
 func (m *UserManager) CountEstimate() (int, error) {
-	return CountEstimate(m.dbCtx.Request().Context(), m.DB(), m.Query((*models.User)(nil)), settings.API.DataObjectEstimateThreshold)
+	return manager.CountEstimate(m.DBContext().Request().Context(), m.DB(), m.Query((*models.User)(nil)), settings.API.DataObjectEstimateThreshold)
 }

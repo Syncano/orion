@@ -7,6 +7,7 @@ import (
 
 	"github.com/Syncano/orion/app/api"
 	"github.com/Syncano/orion/app/models"
+	"github.com/Syncano/pkg-go/database/fields"
 )
 
 var (
@@ -21,7 +22,7 @@ var (
 type SocketTraceListResponse struct {
 	ID         int                    `json:"id"`
 	Status     string                 `json:"status"`
-	ExecutedAt models.Time            `json:"executed_at"`
+	ExecutedAt fields.Time            `json:"executed_at"`
 	Duration   *int                   `json:"duration"`
 	Meta       map[string]interface{} `json:"meta"`
 }
@@ -39,7 +40,7 @@ func (s SocketTraceListSerializer) Response(i interface{}) interface{} {
 	return &SocketTraceListResponse{
 		ID:         o.ID,
 		Status:     o.Status,
-		ExecutedAt: models.NewTime(&o.ExecutedAt),
+		ExecutedAt: fields.NewTime(&o.ExecutedAt),
 		Duration:   dur,
 		Meta:       o.Meta,
 	}
@@ -67,7 +68,7 @@ func (s SocketTraceSerializer) Response(i interface{}) interface{} {
 type SocketTraceRenderResponse struct {
 	ID         int                    `json:"id"`
 	Status     string                 `json:"status"`
-	ExecutedAt models.Time            `json:"executed_at"`
+	ExecutedAt fields.Time            `json:"executed_at"`
 	Duration   *int                   `json:"duration"`
 	Result     map[string]interface{} `json:"result"`
 }
@@ -98,7 +99,7 @@ func (s SocketTraceSerializer) Render(c echo.Context, i interface{}) error {
 	return api.Render(c, statusToHTTPCode[trace.Status], &SocketTraceRenderResponse{
 		ID:         trace.ID,
 		Status:     trace.Status,
-		ExecutedAt: models.NewTime(&trace.ExecutedAt),
+		ExecutedAt: fields.NewTime(&trace.ExecutedAt),
 		Duration:   dur,
 		Result:     trace.Result,
 	})

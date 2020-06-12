@@ -1,22 +1,22 @@
 package query
 
 import (
+	"github.com/Syncano/pkg-go/database"
 	"github.com/Syncano/pkg-go/rediscache"
-	"github.com/Syncano/pkg-go/storage"
 )
 
 type Factory struct {
-	dbase *storage.Database
-	c     *rediscache.Cache
+	db *database.DB
+	c  *rediscache.Cache
 }
 
-func NewFactory(dbase *storage.Database, c *rediscache.Cache) *Factory {
+func NewFactory(db *database.DB, c *rediscache.Cache) *Factory {
 	return &Factory{
-		dbase: dbase,
-		c:     c,
+		db: db,
+		c:  c,
 	}
 }
 
-func (q *Factory) Database() *storage.Database {
-	return q.dbase
+func (q *Factory) Database() *database.DB {
+	return q.db
 }

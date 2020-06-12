@@ -4,17 +4,19 @@ import (
 	"github.com/go-pg/pg/v9/orm"
 
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/pkg-go/storage"
+	"github.com/Syncano/pkg-go/database"
+	"github.com/Syncano/pkg-go/database/manager"
 )
 
 // InstanceIndicatorManager represents Instance Indicator manager.
 type InstanceIndicatorManager struct {
-	*Manager
+	*Factory
+	*manager.Manager
 }
 
 // NewInstanceIndicatorManager creates and returns new Instance Indicator manager.
-func (q *Factory) NewInstanceIndicatorManager(c storage.DBContext) *InstanceIndicatorManager {
-	return &InstanceIndicatorManager{Manager: q.NewTenantManager(c)}
+func (q *Factory) NewInstanceIndicatorManager(c database.DBContext) *InstanceIndicatorManager {
+	return &InstanceIndicatorManager{Manager: manager.NewTenantManager(q.db, c)}
 }
 
 // ByInstanceAndType filters object filtered by instance and type.

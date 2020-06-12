@@ -5,6 +5,7 @@ import (
 
 	"github.com/alexandrevicenzi/unchained"
 
+	"github.com/Syncano/pkg-go/database/fields"
 	"github.com/Syncano/pkg-go/util"
 )
 
@@ -24,11 +25,11 @@ type Admin struct {
 	IsStaff   bool
 	IsActive  bool
 
-	CreatedAt  Time
-	LastLogin  Time
-	LastAccess Time
-	NoticedAt  Time
-	Metadata   JSON
+	CreatedAt  fields.Time
+	LastLogin  fields.Time
+	LastAccess fields.Time
+	NoticedAt  fields.Time
+	Metadata   fields.JSON
 }
 
 func (m *Admin) String() string {

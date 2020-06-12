@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgtype"
 
 	"github.com/Syncano/orion/app/settings"
+	"github.com/Syncano/pkg-go/database/fields"
 )
 
 const freePlanName = "free"
@@ -18,7 +19,7 @@ type AdminLimit struct {
 
 	AdminID int `pg:",pk"`
 	Admin   *Admin
-	Limits  Hstore
+	Limits  fields.Hstore
 }
 
 func (m *AdminLimit) String() string {

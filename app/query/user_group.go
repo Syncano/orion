@@ -6,17 +6,19 @@ import (
 	"github.com/go-pg/pg/v9/orm"
 
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/pkg-go/storage"
+	"github.com/Syncano/pkg-go/database"
+	"github.com/Syncano/pkg-go/database/manager"
 )
 
 // UserGroupManager represents User Group manager.
 type UserGroupManager struct {
-	*LiveManager
+	*Factory
+	*manager.LiveManager
 }
 
 // NewUserGroupManager creates and returns new User Group manager.
-func (q *Factory) NewUserGroupManager(c storage.DBContext) *UserGroupManager {
-	return &UserGroupManager{LiveManager: q.NewLiveTenantManager(c)}
+func (q *Factory) NewUserGroupManager(c database.DBContext) *UserGroupManager {
+	return &UserGroupManager{LiveManager: manager.NewLiveTenantManager(q.db, c)}
 }
 
 // Q outputs objects query.
@@ -42,7 +44,7 @@ func (m *UserGroupManager) ForUserByIDQ(user *models.User, o *models.UserGroup) 
 
 // OneByID outputs object filtered by id.
 func (m *UserGroupManager) OneByID(o *models.UserGroup) error {
-	return RequireOne(
+	return manager.RequireOne(
 		m.c.SimpleModelCache(m.DB(), o, fmt.Sprintf("i=%d", o.ID), func() (interface{}, error) {
 			return o, m.Query(o).Where("id = ?", o.ID).Select()
 		}),

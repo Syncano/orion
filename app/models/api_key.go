@@ -2,6 +2,8 @@ package models
 
 import (
 	"fmt"
+
+	"github.com/Syncano/pkg-go/database/fields"
 )
 
 // APIKey represents API Key model.
@@ -15,8 +17,8 @@ type APIKey struct {
 	Key         string
 	InstanceID  int
 	Instance    *Instance
-	Options     Hstore
-	CreatedAt   Time
+	Options     fields.Hstore
+	CreatedAt   fields.Time
 	Description string
 }
 

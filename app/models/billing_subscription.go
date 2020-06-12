@@ -2,6 +2,8 @@ package models
 
 import (
 	"fmt"
+
+	"github.com/Syncano/pkg-go/database/fields"
 )
 
 // Subscription represents Pricing Plan subscription model.
@@ -9,9 +11,9 @@ type Subscription struct {
 	tableName struct{} `pg:"billing_subscription,discard_unknown_columns"` // nolint
 
 	ID           int
-	Commitment   JSON
-	ChargedUntil Date
-	Range        Daterange
+	Commitment   fields.JSON
+	ChargedUntil fields.Date
+	Range        fields.Daterange
 
 	AdminID int
 	Admin   *Admin `msgpack:"-"`

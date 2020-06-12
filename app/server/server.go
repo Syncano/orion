@@ -17,8 +17,10 @@ import (
 	"github.com/Syncano/orion/app/settings"
 	"github.com/Syncano/orion/app/validators"
 	"github.com/Syncano/pkg-go/celery"
+	"github.com/Syncano/pkg-go/database"
 	"github.com/Syncano/pkg-go/log"
 	"github.com/Syncano/pkg-go/rediscache"
+	"github.com/Syncano/pkg-go/rediscli"
 	"github.com/Syncano/pkg-go/storage"
 )
 
@@ -31,7 +33,7 @@ type Server struct {
 }
 
 // NewServer initializes new Web server.
-func NewServer(db *storage.Database, fs *storage.Storage, redis *storage.Redis, rc *rediscache.Cache, cel *celery.Celery, logger *log.Logger, debug bool) (*Server, error) {
+func NewServer(db *database.DB, fs *storage.Storage, redis *rediscli.Redis, rc *rediscache.Cache, cel *celery.Celery, logger *log.Logger, debug bool) (*Server, error) {
 	ctr, err := controllers.New(db, fs, redis, rc, cel, logger)
 	if err != nil {
 		return nil, err

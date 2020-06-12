@@ -9,6 +9,7 @@ import (
 
 	"github.com/Syncano/orion/app/models"
 	"github.com/Syncano/orion/app/settings"
+	"github.com/Syncano/pkg-go/database/fields"
 	"github.com/Syncano/pkg-go/util"
 )
 
@@ -80,10 +81,10 @@ func dataObjectFieldResponse(f *models.DataObjectField, val string) interface{} 
 		if v, err := f.FromString(val); err == nil {
 			return struct {
 				Type  string      `json:"type"`
-				Value models.Time `json:"value"`
+				Value fields.Time `json:"value"`
 			}{
 				Type:  f.FType,
-				Value: v.(models.Time),
+				Value: v.(fields.Time),
 			}
 		}
 

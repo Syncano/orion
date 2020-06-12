@@ -2,6 +2,8 @@ package models
 
 import (
 	"fmt"
+
+	"github.com/Syncano/pkg-go/database/fields"
 )
 
 // SocketHandler represents socket handler model.
@@ -9,7 +11,7 @@ type SocketHandler struct {
 	tableName struct{} `pg:"?schema.sockets_sockethandler,discard_unknown_columns"` // nolint
 
 	ID          int
-	Metadata    JSON
+	Metadata    fields.JSON
 	SocketID    int
 	Socket      *Socket
 	HandlerName string

@@ -13,9 +13,10 @@ import (
 
 	"github.com/Syncano/orion/app/api"
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/orion/app/query"
 	"github.com/Syncano/orion/app/serializers"
 	"github.com/Syncano/orion/app/settings"
+	"github.com/Syncano/pkg-go/database"
+	"github.com/Syncano/pkg-go/database/manager"
 	"github.com/Syncano/pkg-go/storage"
 	"github.com/Syncano/pkg-go/util"
 )
@@ -129,7 +130,7 @@ func (ctr *Controller) DataObjectUpdate(c echo.Context) error {
 	}
 
 	if err := mgr.RunInTransaction(func(tx *pg.Tx) error {
-		if err := query.Lock(mgr.ForClassByIDQ(class, o)); err != nil {
+		if err := manager.Lock(mgr.ForClassByIDQ(class, o)); err != nil {
 			if err == pg.ErrNoRows {
 				return api.NewNotFoundError(o)
 			}
@@ -165,7 +166,7 @@ func (ctr *Controller) DataObjectDelete(c echo.Context) error {
 	return api.SimpleDelete(c, mgr, mgr.ForClassByIDQ(class, o), o)
 }
 
-func (ctr *Controller) dataObjectDeleteHook(c storage.DBContext, db orm.DB, i interface{}) error {
+func (ctr *Controller) dataObjectDeleteHook(c database.DBContext, db orm.DB, i interface{}) error {
 	o := i.(*models.DataObject)
 	sizeDiff := 0
 
