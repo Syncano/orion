@@ -5,6 +5,7 @@ import (
 
 	"github.com/alexandrevicenzi/unchained"
 
+	"github.com/Syncano/pkg-go/database/fields"
 	"github.com/Syncano/pkg-go/util"
 )
 
@@ -20,7 +21,7 @@ type User struct {
 	Username  string
 	Password  string
 	Key       string
-	CreatedAt Time
+	CreatedAt fields.Time
 
 	Profile *DataObject  `pg:"fk:owner_id" msgpack:"-"`
 	Groups  []*UserGroup `pg:"many2many:?schema.users_membership,joinFK:group_id" msgpack:"-"`

@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"time"
+
+	"github.com/Syncano/pkg-go/database/fields"
 )
 
 // Instance represents Instance (tenant) model.
@@ -20,12 +22,12 @@ type Instance struct {
 	Version    int
 	Location   string
 
-	CreatedAt     Time
-	UpdatedAt     Time
+	CreatedAt     fields.Time
+	UpdatedAt     fields.Time
 	StoragePrefix string
-	Config        JSON
+	Config        fields.JSON
 	Description   string
-	Metadata      JSON
+	Metadata      fields.JSON
 	Domains       []string `pg:",array"`
 }
 

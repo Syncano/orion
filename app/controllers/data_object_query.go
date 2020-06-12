@@ -12,7 +12,7 @@ import (
 	"github.com/Syncano/orion/app/models"
 	"github.com/Syncano/orion/app/query"
 	"github.com/Syncano/orion/app/settings"
-	"github.com/Syncano/pkg-go/storage"
+	"github.com/Syncano/pkg-go/database"
 )
 
 func newQueryError(detail string) *api.Error {
@@ -48,7 +48,7 @@ func (doq *DataObjectQuery) Parse(qf *query.Factory, c echo.Context, q *orm.Quer
 	return doq.ParseMap(qf, c, q, m)
 }
 
-func (doq *DataObjectQuery) ParseMap(qf *query.Factory, c storage.DBContext, q *orm.Query, m map[string]interface{}) (*orm.Query, error) {
+func (doq *DataObjectQuery) ParseMap(qf *query.Factory, c database.DBContext, q *orm.Query, m map[string]interface{}) (*orm.Query, error) {
 	var (
 		f   models.FilterField
 		ok  bool
@@ -102,7 +102,7 @@ func (doq *DataObjectQuery) Validate(m map[string]interface{}, top bool) error {
 	return nil
 }
 
-func (doq *DataObjectQuery) fieldQuery(qf *query.Factory, c storage.DBContext, q *orm.Query, f models.FilterField, lookup string, data interface{}) (*orm.Query, error) {
+func (doq *DataObjectQuery) fieldQuery(qf *query.Factory, c database.DBContext, q *orm.Query, f models.FilterField, lookup string, data interface{}) (*orm.Query, error) {
 	// Find supported filter.
 	if filts, ok := filters[lookup]; ok {
 		for _, filt := range filts {

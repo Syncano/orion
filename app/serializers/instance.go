@@ -2,15 +2,16 @@ package serializers
 
 import (
 	"github.com/Syncano/orion/app/models"
+	"github.com/Syncano/pkg-go/database/fields"
 )
 
 type InstanceResponse struct {
 	Name        string      `json:"name"`
 	Description string      `json:"description"`
-	CreatedAt   models.Time `json:"created_at"`
-	UpdatedAt   models.Time `json:"updated_at"`
+	CreatedAt   fields.Time `json:"created_at"`
+	UpdatedAt   fields.Time `json:"updated_at"`
 	Location    string      `json:"location"`
-	Metadata    models.JSON `json:"metadata"`
+	Metadata    fields.JSON `json:"metadata"`
 	Owner       interface{} `json:"owner"`
 }
 

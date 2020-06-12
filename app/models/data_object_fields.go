@@ -15,6 +15,7 @@ import (
 	geom "github.com/twpayne/go-geom"
 	"github.com/twpayne/go-geom/encoding/ewkbhex"
 
+	"github.com/Syncano/pkg-go/database/fields"
 	"github.com/Syncano/pkg-go/util"
 )
 
@@ -82,7 +83,7 @@ func ValueFromString(typ, s string) (interface{}, error) {
 
 	case FieldDatetimeType:
 		t, err := time.Parse(pgTimestamptzMinuteFormat, s)
-		return NewTime(&t), err
+		return fields.NewTime(&t), err
 
 	case FieldReferenceType:
 		return strconv.Atoi(s)
@@ -131,7 +132,7 @@ func ValueToString(typ string, val interface{}) (string, error) {
 		return "false", nil
 
 	case FieldDatetimeType:
-		return val.(Time).Time.UTC().Format(pgTimestamptzMinuteFormat), nil
+		return val.(fields.Time).Time.UTC().Format(pgTimestamptzMinuteFormat), nil
 
 	case FieldFileType:
 		// TODO: #16 Object updates - file support
@@ -290,7 +291,7 @@ func (f *DataObjectField) Get(o interface{}) interface{} {
 }
 
 // Set formats field's internal type object to string and sets it to hstore.
-func (f *DataObjectField) Set(data Hstore, val interface{}) error {
+func (f *DataObjectField) Set(data fields.Hstore, val interface{}) error {
 	if val == nil {
 		data.Map[f.Mapping] = pgtype.Text{Status: pgtype.Null}
 		return nil

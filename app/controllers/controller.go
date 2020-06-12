@@ -13,24 +13,27 @@ import (
 	"github.com/Syncano/orion/app/settings"
 	"github.com/Syncano/orion/app/tasks"
 	"github.com/Syncano/pkg-go/celery"
+	"github.com/Syncano/pkg-go/database"
+	"github.com/Syncano/pkg-go/database/fields"
 	"github.com/Syncano/pkg-go/log"
 	"github.com/Syncano/pkg-go/rediscache"
+	"github.com/Syncano/pkg-go/rediscli"
 	"github.com/Syncano/pkg-go/storage"
 	broker "github.com/Syncano/syncanoapis/gen/go/syncano/codebox/broker/v1"
 )
 
 type Controller struct {
 	c         *rediscache.Cache
-	db        *storage.Database
+	db        *database.DB
 	fs        *storage.Storage
-	redis     *storage.Redis
+	redis     *rediscli.Redis
 	q         *query.Factory
 	cel       *celery.Celery
 	brokerCli broker.ScriptRunnerClient
 	log       *log.Logger
 }
 
-func New(db *storage.Database, fs *storage.Storage, redis *storage.Redis, c *rediscache.Cache, cel *celery.Celery, logger *log.Logger) (*Controller, error) {
+func New(db *database.DB, fs *storage.Storage, redis *rediscli.Redis, c *rediscache.Cache, cel *celery.Celery, logger *log.Logger) (*Controller, error) {
 	conn, err := grpc.Dial(settings.Socket.CodeboxAddr,
 		grpc.WithInsecure(),
 		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(settings.MaxGRPCMessageSize)),
@@ -59,7 +62,7 @@ func New(db *storage.Database, fs *storage.Storage, redis *storage.Redis, c *red
 
 	// LiveObject cleanup.
 	// TODO: InstanceIndicator post save hook after live obj delete is done.
-	db.AddModelSoftDeleteHook(storage.AnyModel, ctr.liveObjectSoftDeleteHook)
+	db.AddModelSoftDeleteHook(database.AnyModel, ctr.liveObjectSoftDeleteHook)
 
 	// Cache invalidate hooks.
 	for _, model := range []interface{}{
@@ -82,14 +85,16 @@ func New(db *storage.Database, fs *storage.Storage, redis *storage.Redis, c *red
 		db.AddModelSaveHook(model, ctr.cacheSaveHook)
 	}
 
+	fields.DateTimeFormat = settings.Common.DateTimeFormat
+
 	return ctr, nil
 }
 
-func (ctr *Controller) Redis() *storage.Redis {
+func (ctr *Controller) Redis() *rediscli.Redis {
 	return ctr.redis
 }
 
-func (ctr *Controller) cacheSaveHook(c storage.DBContext, db orm.DB, created bool, m interface{}) error {
+func (ctr *Controller) cacheSaveHook(c database.DBContext, db orm.DB, created bool, m interface{}) error {
 	if created {
 		return nil
 	}
@@ -99,12 +104,12 @@ func (ctr *Controller) cacheSaveHook(c storage.DBContext, db orm.DB, created boo
 	return nil
 }
 
-func (ctr *Controller) cacheDeleteHook(c storage.DBContext, db orm.DB, m interface{}) error {
+func (ctr *Controller) cacheDeleteHook(c database.DBContext, db orm.DB, m interface{}) error {
 	ctr.c.ModelCacheInvalidate(db, m)
 	return nil
 }
 
-func (ctr *Controller) liveObjectSoftDeleteHook(c storage.DBContext, db orm.DB, m interface{}) error {
+func (ctr *Controller) liveObjectSoftDeleteHook(c database.DBContext, db orm.DB, m interface{}) error {
 	table := orm.GetTable(reflect.TypeOf(m).Elem())
 	n := strings.Split(string(table.FullName), ".")
 	modelName := strings.ReplaceAll(n[len(n)-1], "_", ".")

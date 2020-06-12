@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"time"
+
+	"github.com/Syncano/pkg-go/database/fields"
 )
 
 // TriggerSignal enum.
@@ -20,9 +22,9 @@ type Trigger struct {
 	ID          int
 	Description string
 	Label       string
-	CreatedAt   Time
-	UpdatedAt   Time
-	Event       Hstore
+	CreatedAt   fields.Time
+	UpdatedAt   fields.Time
+	Event       fields.Hstore
 	Signals     []string
 
 	CodeboxID int

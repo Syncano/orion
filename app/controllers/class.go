@@ -8,8 +8,8 @@ import (
 
 	"github.com/Syncano/orion/app/api"
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/orion/app/query"
 	"github.com/Syncano/orion/app/serializers"
+	"github.com/Syncano/pkg-go/database/manager"
 )
 
 const contextClassKey = "class"
@@ -74,7 +74,7 @@ func (ctr *Controller) ClassUpdate(c echo.Context) error {
 	o := detailClass(c)
 
 	if err := mgr.RunInTransaction(func(*pg.Tx) error {
-		err := query.Lock(mgr.WithAccessByNameQ(o))
+		err := manager.Lock(mgr.WithAccessByNameQ(o))
 		if err == pg.ErrNoRows {
 			return api.NewNotFoundError(o)
 		}

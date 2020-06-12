@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"time"
+
+	"github.com/Syncano/pkg-go/database/fields"
 )
 
 // DataObject represents DataObject model.
@@ -15,11 +17,11 @@ type DataObject struct {
 	IsLive bool `pg:"_is_live"`
 
 	ID        int
-	Data      Hstore `pg:"_data" state:"virtual"`
-	Files     Hstore `pg:"_files"`
+	Data      fields.Hstore `pg:"_data" state:"virtual"`
+	Files     fields.Hstore `pg:"_files"`
 	Revision  int
-	CreatedAt Time
-	UpdatedAt Time
+	CreatedAt fields.Time
+	UpdatedAt fields.Time
 
 	OwnerID int
 	Owner   *User
@@ -34,11 +36,11 @@ func NewDataObject(class *Class) *DataObject {
 		IsLive:    true,
 		Class:     class,
 		ClassID:   class.ID,
-		Data:      NewHstore(),
-		Files:     NewHstore(),
+		Data:      fields.NewHstore(),
+		Files:     fields.NewHstore(),
 		Revision:  1,
-		CreatedAt: NewTime(&now),
-		UpdatedAt: NewTime(&now),
+		CreatedAt: fields.NewTime(&now),
+		UpdatedAt: fields.NewTime(&now),
 	}
 }
 

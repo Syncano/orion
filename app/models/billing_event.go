@@ -3,6 +3,8 @@ package models
 import (
 	"database/sql"
 	"fmt"
+
+	"github.com/Syncano/pkg-go/database/fields"
 )
 
 // Event represents billing event model.
@@ -13,9 +15,9 @@ type Event struct {
 	ExternalID string
 	Type       string
 	Livemode   bool
-	Message    JSON
+	Message    fields.JSON
 	Valid      sql.NullBool
-	CreatedAt  Time
+	CreatedAt  fields.Time
 }
 
 func (m *Event) String() string {

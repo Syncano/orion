@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Syncano/orion/app/settings"
+	"github.com/Syncano/pkg-go/database/fields"
 	"github.com/Syncano/pkg-go/storage"
 )
 
@@ -37,23 +38,23 @@ type Socket struct {
 
 	ID          int
 	Name        string
-	Metadata    JSON
+	Metadata    fields.JSON
 	Description string
 	Status      int
 	StatusInfo  string
-	CreatedAt   Time
-	UpdatedAt   Time
+	CreatedAt   fields.Time
+	UpdatedAt   fields.Time
 	Key         string
 	Checksum    string
 
-	Config        JSON
-	InstallConfig JSON
+	Config        fields.JSON
+	InstallConfig fields.JSON
 	ZipFile       string
-	ZipFileList   JSON
+	ZipFileList   fields.JSON
 	Version       string
 	Size          int
-	Installed     JSON
-	FileList      JSON
+	Installed     fields.JSON
+	FileList      fields.JSON
 
 	EnvironmentID int
 	Environment   *SocketEnvironment

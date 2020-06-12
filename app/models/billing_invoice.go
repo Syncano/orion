@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
+
+	"github.com/Syncano/pkg-go/database/fields"
 )
 
 // InvoiceStatus enum.
@@ -42,12 +44,12 @@ type Invoice struct {
 	Status        int
 	PlanFee       decimal.Decimal
 	OverageAmount decimal.Decimal
-	Period        Date
+	Period        fields.Date
 	IsProrated    bool
-	DueDate       Date
+	DueDate       fields.Date
 	ExternalID    string
-	CreatedAt     Time
-	UpdatedAt     Time
+	CreatedAt     fields.Time
+	UpdatedAt     fields.Time
 	Reference     string
 	StatusSent    bool
 }
@@ -99,8 +101,8 @@ type InvoiceItem struct {
 	Source    string
 	Quantity  int
 	Price     decimal.Decimal
-	CreatedAt Time
-	UpdatedAt Time
+	CreatedAt fields.Time
+	UpdatedAt fields.Time
 }
 
 func (m *InvoiceItem) String() string {

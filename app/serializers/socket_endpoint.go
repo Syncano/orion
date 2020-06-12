@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/Syncano/orion/app/models"
+	"github.com/Syncano/pkg-go/database/fields"
 )
 
 var httpAllMethods = []string{http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodGet, http.MethodDelete}
@@ -11,7 +12,7 @@ var httpAllMethods = []string{http.MethodPost, http.MethodPut, http.MethodPatch,
 type SocketEndpointResponse struct {
 	Name           string      `json:"name"`
 	AllowedMethods []string    `json:"allowed_methods"`
-	Metadata       models.JSON `json:"metadata"`
+	Metadata       fields.JSON `json:"metadata"`
 }
 
 type SocketEndpointSerializer struct{}

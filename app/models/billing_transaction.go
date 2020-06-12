@@ -2,6 +2,8 @@ package models
 
 import (
 	"fmt"
+
+	"github.com/Syncano/pkg-go/database/fields"
 )
 
 // Transaction represents billing transaction model.
@@ -15,9 +17,9 @@ type Transaction struct {
 	InstanceName string
 	Source       string
 	Quantity     int
-	Period       Time
+	Period       fields.Time
 	Aggregated   bool
-	CreatedAt    Time
+	CreatedAt    fields.Time
 }
 
 func (m *Transaction) String() string {
