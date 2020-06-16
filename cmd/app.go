@@ -67,7 +67,7 @@ func init() {
 			EnvVars: []string{"DEBUG"},
 		},
 		&cli.IntFlag{
-			Name: "port", Aliases: []string{"p"}, Usage: "port for expvar server",
+			Name: "metric-port", Aliases: []string{"mp"}, Usage: "port for expvar server",
 			EnvVars: []string{"METRIC_PORT"}, Value: 9080,
 		},
 
@@ -164,10 +164,10 @@ func init() {
 
 		// Serve expvar and checks.
 		logg := logger.Logger()
-		logg.With(zap.Int("port", c.Int("port"))).Info("Serving http for expvar and checks")
+		logg.With(zap.Int("metric-port", c.Int("metric-port"))).Info("Serving http for expvar and checks")
 
 		go func() {
-			if err := http.ListenAndServe(fmt.Sprintf(":%d", c.Int("port")), nil); err != nil && err != http.ErrServerClosed {
+			if err := http.ListenAndServe(fmt.Sprintf(":%d", c.Int("metric-port")), nil); err != nil && err != http.ErrServerClosed {
 				logg.With(zap.Error(err)).Fatal("Serve error")
 			}
 		}()
