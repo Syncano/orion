@@ -5,28 +5,30 @@ import (
 
 	"github.com/Syncano/orion/app/models"
 	"github.com/Syncano/orion/app/settings"
-	"github.com/Syncano/pkg-go/storage"
+	"github.com/Syncano/pkg-go/database"
+	"github.com/Syncano/pkg-go/database/manager"
 )
 
 // DataObjectManager represents DataObject manager.
 type DataObjectManager struct {
-	*LiveManager
+	*Factory
+	*manager.LiveManager
 }
 
 // NewDataObjectManager creates and returns new DataObject manager.
-func (q *Factory) NewDataObjectManager(c storage.DBContext) *DataObjectManager {
-	return &DataObjectManager{LiveManager: q.NewLiveTenantManager(c)}
+func (q *Factory) NewDataObjectManager(c database.DBContext) *DataObjectManager {
+	return &DataObjectManager{Factory: q, LiveManager: manager.NewLiveTenantManager(q.db, c)}
 }
 
 // Create creates new object.
 func (m *DataObjectManager) Create(o interface{}) error {
-	_, e := m.DB().ModelContext(m.dbCtx.Request().Context(), o).Returning("*").Insert()
+	_, e := m.DB().ModelContext(m.DBContext().Request().Context(), o).Returning("*").Insert()
 	return e
 }
 
 // CountEstimate returns count estimate for current data objects list.
 func (m *DataObjectManager) CountEstimate(q orm.QueryAppender) (int, error) {
-	return CountEstimate(m.dbCtx.Request().Context(), m.DB(), q, settings.API.DataObjectEstimateThreshold)
+	return manager.CountEstimate(m.DBContext().Request().Context(), m.DB(), q, settings.API.DataObjectEstimateThreshold)
 }
 
 // ForClassQ outputs objects within specific class.

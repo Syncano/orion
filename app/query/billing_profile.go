@@ -7,7 +7,8 @@ import (
 	"github.com/jinzhu/now"
 
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/pkg-go/storage"
+	"github.com/Syncano/pkg-go/database"
+	"github.com/Syncano/pkg-go/database/manager"
 )
 
 // BillingStatus enum.
@@ -20,12 +21,13 @@ const (
 
 // ProfileManager represents Profile manager.
 type ProfileManager struct {
-	*Manager
+	*Factory
+	*manager.Manager
 }
 
 // NewProfileManager creates and returns new Subscription manager.
-func (q *Factory) NewProfileManager(c storage.DBContext) *ProfileManager {
-	return &ProfileManager{Manager: q.NewManager(c)}
+func (q *Factory) NewProfileManager(c database.DBContext) *ProfileManager {
+	return &ProfileManager{Factory: q, Manager: manager.NewManager(q.db, c)}
 }
 
 // GetBillingStatus returns status string for subscription.

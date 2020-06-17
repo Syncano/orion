@@ -2,6 +2,7 @@ package serializers
 
 import (
 	"github.com/Syncano/orion/app/models"
+	"github.com/Syncano/pkg-go/database/fields"
 )
 
 type AdminResponse struct {
@@ -11,7 +12,7 @@ type AdminResponse struct {
 	LastName    string      `json:"last_name"`
 	IsActive    bool        `json:"is_active"`
 	HasPassword bool        `json:"has_password"`
-	Metadata    models.JSON `json:"metadata"`
+	Metadata    fields.JSON `json:"metadata"`
 }
 
 type AdminSerializer struct{}

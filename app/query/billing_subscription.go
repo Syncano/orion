@@ -5,17 +5,19 @@ import (
 	"time"
 
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/pkg-go/storage"
+	"github.com/Syncano/pkg-go/database"
+	"github.com/Syncano/pkg-go/database/manager"
 )
 
 // SubscriptionManager represents Subscription manager.
 type SubscriptionManager struct {
-	*Manager
+	*Factory
+	*manager.Manager
 }
 
 // NewSubscriptionManager creates and returns new Subscription manager.
-func (q *Factory) NewSubscriptionManager(c storage.DBContext) *SubscriptionManager {
-	return &SubscriptionManager{Manager: q.NewManager(c)}
+func (q *Factory) NewSubscriptionManager(c database.DBContext) *SubscriptionManager {
+	return &SubscriptionManager{Factory: q, Manager: manager.NewManager(q.db, c)}
 }
 
 // OneActiveForAdmin returns subscription active at time for specified o.AdminID.

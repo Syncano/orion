@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"time"
+
+	"github.com/Syncano/pkg-go/database/fields"
 )
 
 // Codebox represents codebox model.
@@ -18,9 +20,9 @@ type Codebox struct {
 	RuntimeName string
 	Checksum    string
 	Path        string
-	Config      JSON
-	CreatedAt   Time
-	UpdatedAt   Time
+	Config      fields.JSON
+	CreatedAt   fields.Time
+	UpdatedAt   fields.Time
 
 	SocketID int
 	Socket   *Socket

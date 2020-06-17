@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -59,7 +60,9 @@ func HTTPErrorHandler(err error, c echo.Context) {
 			message = m
 		}
 
-		Render(c, he.Code, map[string]interface{}{"detail": fmt.Sprintf("%s.", message)}) // nolint: errcheck
+		detail := fmt.Sprintf("%s", message)
+
+		Render(c, he.Code, map[string]interface{}{"detail": fmt.Sprintf("%s.", strings.TrimRight(detail, "."))}) // nolint: errcheck
 
 		return
 	}

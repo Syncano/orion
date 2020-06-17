@@ -4,17 +4,19 @@ import (
 	"github.com/go-pg/pg/v9/orm"
 
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/pkg-go/storage"
+	"github.com/Syncano/pkg-go/database"
+	"github.com/Syncano/pkg-go/database/manager"
 )
 
 // UserMembershipManager represents User Membership manager.
 type UserMembershipManager struct {
-	*Manager
+	*Factory
+	*manager.Manager
 }
 
 // NewUserMembershipManager creates and returns new User Membership manager.
-func (q *Factory) NewUserMembershipManager(c storage.DBContext) *UserMembershipManager {
-	return &UserMembershipManager{Manager: q.NewTenantManager(c)}
+func (q *Factory) NewUserMembershipManager(c database.DBContext) *UserMembershipManager {
+	return &UserMembershipManager{Factory: q, Manager: manager.NewTenantManager(q.db, c)}
 }
 
 // Q outputs objects query.

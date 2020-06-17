@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/shopspring/decimal"
+
+	"github.com/Syncano/pkg-go/database/fields"
 )
 
 // Profile represents billing profile model.
@@ -15,9 +17,9 @@ type Profile struct {
 	Admin            *Admin
 	CustomerID       string
 	SoftLimit        decimal.Decimal
-	SoftLimitReached Date
+	SoftLimitReached fields.Date
 	HardLimit        decimal.Decimal
-	HardLimitReached Date
+	HardLimitReached fields.Date
 
 	CompanyName    string
 	FirstName      string

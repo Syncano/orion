@@ -7,6 +7,8 @@ import (
 
 	"github.com/jackc/pgtype"
 	"github.com/mitchellh/mapstructure"
+
+	"github.com/Syncano/pkg-go/database/fields"
 )
 
 const UserClassName = "user_profile"
@@ -21,15 +23,15 @@ type Class struct {
 	ID              int
 	Name            string
 	Revision        int
-	Schema          JSON
-	Mapping         Hstore
-	ExistingIndexes JSON
-	IndexChanges    JSON
-	Refs            JSON
+	Schema          fields.JSON
+	Mapping         fields.Hstore
+	ExistingIndexes fields.JSON
+	IndexChanges    fields.JSON
+	Refs            fields.JSON
 	Visible         bool
-	CreatedAt       Time
-	UpdatedAt       Time
-	Metadata        JSON
+	CreatedAt       fields.Time
+	UpdatedAt       fields.Time
+	Metadata        fields.JSON
 	Description     string
 
 	computedSchema map[string]*DataObjectField

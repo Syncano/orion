@@ -25,8 +25,10 @@ import (
 	"github.com/Syncano/orion/app/version"
 	"github.com/Syncano/orion/cmd/amqp"
 	"github.com/Syncano/orion/pkg/jobs"
+	"github.com/Syncano/pkg-go/database"
 	"github.com/Syncano/pkg-go/log"
 	"github.com/Syncano/pkg-go/rediscache"
+	"github.com/Syncano/pkg-go/rediscli"
 	"github.com/Syncano/pkg-go/storage"
 )
 
@@ -34,15 +36,15 @@ var (
 	// App is the main structure of a cli application.
 	App = cli.NewApp()
 
-	dbOptions          = storage.DefaultDBOptions()
-	dbInstancesOptions = storage.DefaultDBOptions()
+	dbOptions          = database.DefaultDBOptions()
+	dbInstancesOptions = database.DefaultDBOptions()
 	redisOptions       = redis.Options{}
 	amqpChannel        *amqp.Channel
 
 	jaegerExporter *jaeger.Exporter
-	db             *storage.Database
+	db             *database.DB
 	fs             *storage.Storage
-	storRedis      *storage.Redis
+	storRedis      *rediscli.Redis
 	cache          *rediscache.Cache
 	logger         *log.Logger
 )
@@ -58,14 +60,14 @@ func init() {
 			Email: "rk@23doors.com",
 		},
 	}
-	App.Copyright = "(c) 2018 Syncano"
+	App.Copyright = "Syncano"
 	App.Flags = []cli.Flag{
 		&cli.BoolFlag{
 			Name: "debug", Usage: "enable debug mode",
 			EnvVars: []string{"DEBUG"},
 		},
 		&cli.IntFlag{
-			Name: "port", Aliases: []string{"p"}, Usage: "port for expvar server",
+			Name: "metric-port", Aliases: []string{"mp"}, Usage: "port for expvar server",
 			EnvVars: []string{"METRIC_PORT"}, Value: 9080,
 		},
 
@@ -162,10 +164,10 @@ func init() {
 
 		// Serve expvar and checks.
 		logg := logger.Logger()
-		logg.With(zap.Int("port", c.Int("port"))).Info("Serving http for expvar and checks")
+		logg.With(zap.Int("metric-port", c.Int("metric-port"))).Info("Serving http for expvar and checks")
 
 		go func() {
-			if err := http.ListenAndServe(fmt.Sprintf(":%d", c.Int("port")), nil); err != nil && err != http.ErrServerClosed {
+			if err := http.ListenAndServe(fmt.Sprintf(":%d", c.Int("metric-port")), nil); err != nil && err != http.ErrServerClosed {
 				logg.With(zap.Error(err)).Fatal("Serve error")
 			}
 		}()
@@ -209,12 +211,12 @@ func init() {
 		})
 
 		// Initialize database client.
-		db = storage.NewDatabase(dbOptions, dbInstancesOptions, logger, c.Bool("debug"))
+		db = database.NewDB(dbOptions, dbInstancesOptions, logger, c.Bool("debug"))
 
 		fs = storage.NewStorage(settings.Common.Location, settings.Buckets, settings.API.Host, settings.API.StorageURL)
 
 		// Initialize redis client.
-		storRedis = storage.NewRedis(&redisOptions)
+		storRedis = rediscli.NewRedis(&redisOptions)
 		cache = rediscache.New(storRedis.Client(), db, &rediscache.Options{
 			LocalCacheTimeout: settings.Common.LocalCacheTimeout,
 			CacheTimeout:      settings.Common.CacheTimeout,

@@ -7,18 +7,21 @@ import (
 	json "github.com/json-iterator/go"
 
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/pkg-go/storage"
+	"github.com/Syncano/pkg-go/database"
+	"github.com/Syncano/pkg-go/database/fields"
+	"github.com/Syncano/pkg-go/database/manager"
 	"github.com/Syncano/pkg-go/util"
 )
 
 // TriggerManager represents Trigger manager.
 type TriggerManager struct {
-	*Manager
+	*Factory
+	*manager.Manager
 }
 
 // NewTriggerManager creates and returns new Trigger manager.
-func (q *Factory) NewTriggerManager(c storage.DBContext) *TriggerManager {
-	return &TriggerManager{Manager: q.NewTenantManager(c)}
+func (q *Factory) NewTriggerManager(c database.DBContext) *TriggerManager {
+	return &TriggerManager{Factory: q, Manager: manager.NewTenantManager(q.db, c)}
 }
 
 // Match outputs one object within specific class filtered by id.
@@ -32,7 +35,7 @@ func (m *TriggerManager) Match(instance *models.Instance, event map[string]strin
 	lookup := fmt.Sprintf("s=%s", signal)
 
 	err := m.c.SimpleFuncCache("Trigger.Match", versionKey, o, lookup, func() (interface{}, error) {
-		ehstore := new(models.Hstore)
+		ehstore := new(fields.Hstore)
 		ehstore.Set(event) // nolint: errcheck
 
 		err := m.Query(&o).Where("event @> ?", ehstore).Where("signals @> ?", pg.Array([]string{signal})).Select()

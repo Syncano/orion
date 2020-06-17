@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-pg/pg/v9"
 	redis_cache "github.com/go-redis/cache/v7"
+	"github.com/golang/protobuf/ptypes"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/labstack/echo/v4"
 	"google.golang.org/grpc"
@@ -409,7 +410,7 @@ func processCodeboxResponse(stream broker.ScriptRunner_RunClient, trace *models.
 		}
 	}
 
-	trace.ExecutedAt = time.Unix(0, result.Time)
+	trace.ExecutedAt, err = ptypes.Timestamp(result.Time)
 	trace.Result = ret
 	trace.Duration = int(result.Took)
 	trace.Status = models.TraceStatusFailure
@@ -418,7 +419,7 @@ func processCodeboxResponse(stream broker.ScriptRunner_RunClient, trace *models.
 		trace.Status = s
 	}
 
-	return nil
+	return err
 }
 
 func (ctr *Controller) SocketEndpointCodeboxRun(c echo.Context) error {

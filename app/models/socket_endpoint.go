@@ -2,6 +2,8 @@ package models
 
 import (
 	"fmt"
+
+	"github.com/Syncano/pkg-go/database/fields"
 )
 
 // SocketEndpoint represents socket endpoint model.
@@ -10,10 +12,10 @@ type SocketEndpoint struct {
 
 	ID       int
 	Name     string
-	Metadata JSON
+	Metadata fields.JSON
 	SocketID int
 	Socket   *Socket
-	Calls    JSON
+	Calls    fields.JSON
 }
 
 func (m *SocketEndpoint) String() string {

@@ -8,8 +8,8 @@ import (
 	"github.com/go-pg/pg/v9/orm"
 	"github.com/labstack/echo/v4"
 
-	"github.com/Syncano/orion/app/query"
 	"github.com/Syncano/orion/app/settings"
+	"github.com/Syncano/pkg-go/database/manager"
 	"github.com/Syncano/pkg-go/util"
 )
 
@@ -61,7 +61,7 @@ func BindValidateAndExec(c echo.Context, i interface{}, fn func() error) error {
 // SimpleDelete selects for update and deletes object, returning 201 if everything went fine.
 func SimpleDelete(c echo.Context, mgr Deleter, q *orm.Query, v Verboser) error {
 	if err := mgr.RunInTransaction(func(tx *pg.Tx) error {
-		if err := query.Lock(q); err != nil {
+		if err := manager.Lock(q); err != nil {
 			if err == pg.ErrNoRows {
 				return NewNotFoundError(v)
 			}

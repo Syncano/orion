@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -9,21 +10,26 @@ import (
 
 	"github.com/Syncano/orion/app/api"
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/orion/app/query"
 	"github.com/Syncano/orion/app/serializers"
 	"github.com/Syncano/orion/app/settings"
+	"github.com/Syncano/pkg-go/database"
+	"github.com/Syncano/pkg-go/database/manager"
 )
 
 func (ctr *Controller) InstanceContext(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		o := &models.Instance{Name: c.Param("instance_name")}
+		fmt.Println("HERE!!!", ctr.q.NewInstanceManager(c))
 		if err := ctr.q.NewInstanceManager(c).OneByName(o); err != nil {
+			fmt.Println("OMGZ")
 			if err == pg.ErrNoRows {
 				return api.NewNotFoundError(o)
 			}
 
 			return err
 		}
+
+		fmt.Println("NOES")
 
 		if o.Location != settings.Common.Location {
 			return api.NewBadRequestError("Instance was created in different location. Use relevant API endpoint.")
@@ -60,7 +66,7 @@ func (ctr *Controller) InstanceContext(next echo.HandlerFunc) echo.HandlerFunc {
 
 		c.Set(settings.ContextInstanceKey, o)
 		c.Set(settings.ContextInstanceOwnerKey, owner)
-		c.Set(query.ContextSchemaKey, o.SchemaName)
+		c.Set(database.ContextSchemaKey, o.SchemaName)
 
 		return next(c)
 	}
@@ -133,7 +139,7 @@ func (ctr *Controller) InstanceUpdate(c echo.Context) error {
 	o := detailInstance(c)
 
 	if err := mgr.RunInTransaction(func(*pg.Tx) error {
-		err := query.Lock(mgr.WithAccessByNameQ(o))
+		err := manager.Lock(mgr.WithAccessByNameQ(o))
 		if err == pg.ErrNoRows {
 			return api.NewNotFoundError(o)
 		}

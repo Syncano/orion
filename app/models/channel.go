@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"time"
+
+	"github.com/Syncano/pkg-go/database/fields"
 )
 
 // Channel constants.
@@ -35,8 +37,8 @@ type Channel struct {
 	Type        int
 	Description string
 
-	CreatedAt Time
-	UpdatedAt Time
+	CreatedAt fields.Time
+	UpdatedAt fields.Time
 }
 
 func (m *Channel) String() string {
