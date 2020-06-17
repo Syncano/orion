@@ -21,7 +21,7 @@ type TriggerManager struct {
 
 // NewTriggerManager creates and returns new Trigger manager.
 func (q *Factory) NewTriggerManager(c database.DBContext) *TriggerManager {
-	return &TriggerManager{Manager: manager.NewTenantManager(q.db, c)}
+	return &TriggerManager{Factory: q, Manager: manager.NewTenantManager(q.db, c)}
 }
 
 // Match outputs one object within specific class filtered by id.

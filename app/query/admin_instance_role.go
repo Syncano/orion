@@ -16,7 +16,7 @@ type AdminInstanceRoleManager struct {
 
 // NewAdminInstanceRoleManager creates and returns new AdminInstanceRole manager.
 func (q *Factory) NewAdminInstanceRoleManager(c database.DBContext) *AdminInstanceRoleManager {
-	return &AdminInstanceRoleManager{Manager: manager.NewManager(q.db, c)}
+	return &AdminInstanceRoleManager{Factory: q, Manager: manager.NewManager(q.db, c)}
 }
 
 // OneByInstanceAndAdmin outputs object filtered by instance and admin.

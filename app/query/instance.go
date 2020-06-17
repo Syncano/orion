@@ -19,7 +19,7 @@ type InstanceManager struct {
 
 // NewInstanceManager creates and returns new Instance manager.
 func (q *Factory) NewInstanceManager(c database.DBContext) *InstanceManager {
-	return &InstanceManager{LiveManager: manager.NewLiveManager(q.db, c)}
+	return &InstanceManager{Factory: q, LiveManager: manager.NewLiveManager(q.db, c)}
 }
 
 // WithAccessQ outputs objects that entity has access to.

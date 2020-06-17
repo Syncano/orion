@@ -27,7 +27,7 @@ type ProfileManager struct {
 
 // NewProfileManager creates and returns new Subscription manager.
 func (q *Factory) NewProfileManager(c database.DBContext) *ProfileManager {
-	return &ProfileManager{Manager: manager.NewManager(q.db, c)}
+	return &ProfileManager{Factory: q, Manager: manager.NewManager(q.db, c)}
 }
 
 // GetBillingStatus returns status string for subscription.

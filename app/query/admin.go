@@ -16,7 +16,7 @@ type AdminManager struct {
 
 // NewAdminManager creates and returns new Admin manager.
 func (q *Factory) NewAdminManager(c database.DBContext) *AdminManager {
-	return &AdminManager{LiveManager: manager.NewLiveManager(q.db, c)}
+	return &AdminManager{Factory: q, LiveManager: manager.NewLiveManager(q.db, c)}
 }
 
 // OneByID outputs object filtered by name.

@@ -16,7 +16,7 @@ type UserMembershipManager struct {
 
 // NewUserMembershipManager creates and returns new User Membership manager.
 func (q *Factory) NewUserMembershipManager(c database.DBContext) *UserMembershipManager {
-	return &UserMembershipManager{Manager: manager.NewTenantManager(q.db, c)}
+	return &UserMembershipManager{Factory: q, Manager: manager.NewTenantManager(q.db, c)}
 }
 
 // Q outputs objects query.

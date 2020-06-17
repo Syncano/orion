@@ -17,7 +17,7 @@ type DataObjectManager struct {
 
 // NewDataObjectManager creates and returns new DataObject manager.
 func (q *Factory) NewDataObjectManager(c database.DBContext) *DataObjectManager {
-	return &DataObjectManager{LiveManager: manager.NewLiveTenantManager(q.db, c)}
+	return &DataObjectManager{Factory: q, LiveManager: manager.NewLiveTenantManager(q.db, c)}
 }
 
 // Create creates new object.

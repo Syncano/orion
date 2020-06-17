@@ -18,7 +18,7 @@ type UserGroupManager struct {
 
 // NewUserGroupManager creates and returns new User Group manager.
 func (q *Factory) NewUserGroupManager(c database.DBContext) *UserGroupManager {
-	return &UserGroupManager{LiveManager: manager.NewLiveTenantManager(q.db, c)}
+	return &UserGroupManager{Factory: q, LiveManager: manager.NewLiveTenantManager(q.db, c)}
 }
 
 // Q outputs objects query.

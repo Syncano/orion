@@ -16,7 +16,7 @@ type AdminLimitManager struct {
 
 // NewAdminLimitManager creates and returns new Admin Limit manager.
 func (q *Factory) NewAdminLimitManager(c database.DBContext) *AdminLimitManager {
-	return &AdminLimitManager{Manager: manager.NewManager(q.db, c)}
+	return &AdminLimitManager{Factory: q, Manager: manager.NewManager(q.db, c)}
 }
 
 // OneForAdmin returns admin limit for specified o.AdminID.

@@ -16,7 +16,7 @@ type APIKeyManager struct {
 
 // NewAPIKeyManager creates and returns new APIKey manager.
 func (q *Factory) NewAPIKeyManager(c database.DBContext) *APIKeyManager {
-	return &APIKeyManager{LiveManager: manager.NewLiveManager(q.db, c)}
+	return &APIKeyManager{Factory: q, LiveManager: manager.NewLiveManager(q.db, c)}
 }
 
 // OneByKey outputs object filtered by key.

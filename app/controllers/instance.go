@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -18,13 +19,17 @@ import (
 func (ctr *Controller) InstanceContext(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		o := &models.Instance{Name: c.Param("instance_name")}
+		fmt.Println("HERE!!!", ctr.q.NewInstanceManager(c))
 		if err := ctr.q.NewInstanceManager(c).OneByName(o); err != nil {
+			fmt.Println("OMGZ")
 			if err == pg.ErrNoRows {
 				return api.NewNotFoundError(o)
 			}
 
 			return err
 		}
+
+		fmt.Println("NOES")
 
 		if o.Location != settings.Common.Location {
 			return api.NewBadRequestError("Instance was created in different location. Use relevant API endpoint.")

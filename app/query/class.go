@@ -20,7 +20,7 @@ type ClassManager struct {
 
 // NewClassManager creates and returns new Class manager.
 func (q *Factory) NewClassManager(c database.DBContext) *ClassManager {
-	return &ClassManager{LiveManager: manager.NewLiveTenantManager(q.db, c)}
+	return &ClassManager{Factory: q, LiveManager: manager.NewLiveTenantManager(q.db, c)}
 }
 
 // OneByName outputs object filtered by name.

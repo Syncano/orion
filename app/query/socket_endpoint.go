@@ -19,7 +19,7 @@ type SocketEndpointManager struct {
 
 // NewSocketEndpointManager creates and returns new Socket Endpoint manager.
 func (q *Factory) NewSocketEndpointManager(c database.DBContext) *SocketEndpointManager {
-	return &SocketEndpointManager{Manager: manager.NewTenantManager(q.db, c)}
+	return &SocketEndpointManager{Factory: q, Manager: manager.NewTenantManager(q.db, c)}
 }
 
 // ForSocketQ outputs object filtered by name.

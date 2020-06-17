@@ -16,7 +16,7 @@ type InstanceIndicatorManager struct {
 
 // NewInstanceIndicatorManager creates and returns new Instance Indicator manager.
 func (q *Factory) NewInstanceIndicatorManager(c database.DBContext) *InstanceIndicatorManager {
-	return &InstanceIndicatorManager{Manager: manager.NewTenantManager(q.db, c)}
+	return &InstanceIndicatorManager{Factory: q, Manager: manager.NewTenantManager(q.db, c)}
 }
 
 // ByInstanceAndType filters object filtered by instance and type.

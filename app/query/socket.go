@@ -19,7 +19,7 @@ type SocketManager struct {
 
 // NewSocketManager creates and returns new Socket manager.
 func (q *Factory) NewSocketManager(c database.DBContext) *SocketManager {
-	return &SocketManager{LiveManager: manager.NewLiveTenantManager(q.db, c)}
+	return &SocketManager{Factory: q, LiveManager: manager.NewLiveTenantManager(q.db, c)}
 }
 
 // OneByID outputs object filtered by ID.

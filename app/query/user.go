@@ -19,7 +19,7 @@ type UserManager struct {
 
 // NewUserManager creates and returns new User manager.
 func (q *Factory) NewUserManager(c database.DBContext) *UserManager {
-	return &UserManager{LiveManager: manager.NewLiveTenantManager(q.db, c)}
+	return &UserManager{Factory: q, LiveManager: manager.NewLiveTenantManager(q.db, c)}
 }
 
 // Q outputs objects query.

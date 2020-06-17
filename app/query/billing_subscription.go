@@ -17,7 +17,7 @@ type SubscriptionManager struct {
 
 // NewSubscriptionManager creates and returns new Subscription manager.
 func (q *Factory) NewSubscriptionManager(c database.DBContext) *SubscriptionManager {
-	return &SubscriptionManager{Manager: manager.NewManager(q.db, c)}
+	return &SubscriptionManager{Factory: q, Manager: manager.NewManager(q.db, c)}
 }
 
 // OneActiveForAdmin returns subscription active at time for specified o.AdminID.

@@ -19,7 +19,7 @@ type ChannelManager struct {
 
 // NewChannelManager creates and returns new Channel manager.
 func (q *Factory) NewChannelManager(c database.DBContext) *ChannelManager {
-	return &ChannelManager{LiveManager: manager.NewLiveTenantManager(q.db, c)}
+	return &ChannelManager{Factory: q, LiveManager: manager.NewLiveTenantManager(q.db, c)}
 }
 
 // OneByName outputs object filtered by name.

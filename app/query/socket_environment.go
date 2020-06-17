@@ -18,7 +18,7 @@ type SocketEnvironmentManager struct {
 
 // NewSocketEnvironmentManager creates and returns new Socket Environment manager.
 func (q *Factory) NewSocketEnvironmentManager(c database.DBContext) *SocketEnvironmentManager {
-	return &SocketEnvironmentManager{LiveManager: manager.NewLiveTenantManager(q.db, c)}
+	return &SocketEnvironmentManager{Factory: q, LiveManager: manager.NewLiveTenantManager(q.db, c)}
 }
 
 // OneByID outputs object filtered by ID.
