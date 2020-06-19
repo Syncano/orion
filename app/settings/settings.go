@@ -147,7 +147,7 @@ var Socket = &socket{
 	DefaultTimeout: 30 * time.Second / 1e6,
 	DefaultAsync:   0,
 	DefaultMCPU:    0,
-	MaxPayloadSize: 6 << 20,
+	MaxPayloadSize: 15 << 20,
 	MaxResultSize:  6 << 20,
 	YAML:           "socket.yml",
 }
