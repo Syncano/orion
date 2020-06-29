@@ -83,7 +83,7 @@ docker: require-docker ## Builds docker image for application (requires static v
 
 deploy-staging: require-kubectl ## Deploy application to staging
 	echo "=== deploying staging ==="
-	kubectl config use-context k8s.syncano.rocks
+	kubectl config use-context gke_syncano-staging_europe-west1_syncano-stg
 	./deploy.sh staging $(GITSHA) $(ARGS)
 
 deploy-production: require-kubectl ## Deploy application to production
