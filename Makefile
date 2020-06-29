@@ -87,10 +87,6 @@ deploy-staging: require-kubectl ## Deploy application to staging
 	./deploy.sh staging $(GITSHA) $(ARGS)
 
 deploy-production: require-kubectl ## Deploy application to production
-	echo "=== deploying us1 ==="
-	kubectl config use-context k8s.syncano.io
-	./deploy.sh us1 $(GITSHA) $(ARGS)
-
 	echo "=== deploying eu1 ==="
 	kubectl config use-context gke_pioner-syncano-prod-9cfb_europe-west1_syncano-eu1
 	./deploy.sh eu1 $(GITSHA) --skip-push
