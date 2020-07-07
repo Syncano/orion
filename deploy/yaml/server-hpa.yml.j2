@@ -1,12 +1,18 @@
+apiVersion: autoscaling/v2beta2
 kind: HorizontalPodAutoscaler
-apiVersion: autoscaling/v1
 metadata:
   name: orion-server
 spec:
-  minReplicas: {{ SERVER_MIN }}
-  maxReplicas: {{ SERVER_MAX }}
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
     name: orion-server
-  targetCPUUtilizationPercentage: 80
+  minReplicas: {{ SERVER_MIN }}
+  maxReplicas: {{ SERVER_MAX }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80
