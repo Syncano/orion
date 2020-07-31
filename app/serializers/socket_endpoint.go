@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/pkg-go/database/fields"
+	"github.com/Syncano/pkg-go/v2/database/fields"
 )
 
 var httpAllMethods = []string{http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodGet, http.MethodDelete}

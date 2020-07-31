@@ -18,7 +18,7 @@ import (
 	"github.com/Syncano/orion/app/models"
 	"github.com/Syncano/orion/app/query"
 	"github.com/Syncano/orion/app/settings"
-	"github.com/Syncano/pkg-go/database"
+	"github.com/Syncano/pkg-go/v2/database"
 )
 
 var filters = map[string][]*filterOp{}

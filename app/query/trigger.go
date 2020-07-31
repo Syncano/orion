@@ -7,10 +7,10 @@ import (
 	json "github.com/json-iterator/go"
 
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/pkg-go/database"
-	"github.com/Syncano/pkg-go/database/fields"
-	"github.com/Syncano/pkg-go/database/manager"
-	"github.com/Syncano/pkg-go/util"
+	"github.com/Syncano/pkg-go/v2/database"
+	"github.com/Syncano/pkg-go/v2/database/fields"
+	"github.com/Syncano/pkg-go/v2/database/manager"
+	"github.com/Syncano/pkg-go/v2/util"
 )
 
 // TriggerManager represents Trigger manager.

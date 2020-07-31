@@ -18,6 +18,7 @@ import (
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/trace"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zapgrpc"
 	"google.golang.org/grpc/grpclog"
 
@@ -25,11 +26,11 @@ import (
 	"github.com/Syncano/orion/app/version"
 	"github.com/Syncano/orion/cmd/amqp"
 	"github.com/Syncano/orion/pkg/jobs"
-	"github.com/Syncano/pkg-go/database"
-	"github.com/Syncano/pkg-go/log"
-	"github.com/Syncano/pkg-go/rediscache"
-	"github.com/Syncano/pkg-go/rediscli"
-	"github.com/Syncano/pkg-go/storage"
+	"github.com/Syncano/pkg-go/v2/database"
+	"github.com/Syncano/pkg-go/v2/log"
+	"github.com/Syncano/pkg-go/v2/rediscache"
+	"github.com/Syncano/pkg-go/v2/rediscli"
+	"github.com/Syncano/pkg-go/v2/storage"
 )
 
 var (
@@ -62,6 +63,10 @@ func init() {
 	}
 	App.Copyright = "Syncano"
 	App.Flags = []cli.Flag{
+		&cli.StringFlag{
+			Name: "log-level", Usage: "logging level",
+			EnvVars: []string{"LOGLEVEL"}, Value: zapcore.InfoLevel.String(),
+		},
 		&cli.BoolFlag{
 			Name: "debug", Usage: "enable debug mode",
 			EnvVars: []string{"DEBUG"},
@@ -146,7 +151,10 @@ func init() {
 		}
 
 		var err error
-		if logger, err = log.New(c.Bool("debug"), sentry.CurrentHub().Client()); err != nil {
+		if logger, err = log.New(sentry.CurrentHub().Client(),
+			log.WithLogLevel(c.String("log_level")),
+			log.WithDebug(c.Bool("debug")),
+		); err != nil {
 			return err
 		}
 
@@ -217,11 +225,10 @@ func init() {
 
 		// Initialize redis client.
 		storRedis = rediscli.NewRedis(&redisOptions)
-		cache = rediscache.New(storRedis.Client(), db, &rediscache.Options{
-			LocalCacheTimeout: settings.Common.LocalCacheTimeout,
-			CacheTimeout:      settings.Common.CacheTimeout,
-			CacheVersion:      settings.Common.CacheVersion,
-		})
+		cache = rediscache.New(storRedis.Client(), db,
+			rediscache.WithTimeout(settings.Common.LocalCacheTimeout, settings.Common.CacheTimeout),
+			rediscache.WithVersion(settings.Common.CacheVersion),
+		)
 
 		// Initialize AMQP client and celery wrapper.
 		amqpChannel, err = amqp.New(c.String("broker-url"), logger.Logger())

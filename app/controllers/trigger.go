@@ -7,7 +7,7 @@ import (
 	"github.com/Syncano/orion/app/serializers"
 	"github.com/Syncano/orion/app/settings"
 	"github.com/Syncano/orion/app/tasks"
-	"github.com/Syncano/pkg-go/database"
+	"github.com/Syncano/pkg-go/v2/database"
 )
 
 func (ctr *Controller) dataObjectSoftDeleteTriggerHook(c database.DBContext, db orm.DB, i interface{}) error {

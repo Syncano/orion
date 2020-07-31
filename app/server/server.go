@@ -6,6 +6,9 @@ import (
 	"net/http"
 	"time"
 
+	// using pprof when debug is true
+	_ "net/http/pprof" // nolint:gosec
+
 	sentryecho "github.com/getsentry/sentry-go/echo"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -16,13 +19,13 @@ import (
 	"github.com/Syncano/orion/app/routers"
 	"github.com/Syncano/orion/app/settings"
 	"github.com/Syncano/orion/app/validators"
-	"github.com/Syncano/pkg-go/celery"
-	"github.com/Syncano/pkg-go/database"
-	echo_middleware "github.com/Syncano/pkg-go/echo_middleware"
-	"github.com/Syncano/pkg-go/log"
-	"github.com/Syncano/pkg-go/rediscache"
-	"github.com/Syncano/pkg-go/rediscli"
-	"github.com/Syncano/pkg-go/storage"
+	"github.com/Syncano/pkg-go/v2/celery"
+	"github.com/Syncano/pkg-go/v2/database"
+	echo_middleware "github.com/Syncano/pkg-go/v2/echo_middleware"
+	"github.com/Syncano/pkg-go/v2/log"
+	"github.com/Syncano/pkg-go/v2/rediscache"
+	"github.com/Syncano/pkg-go/v2/rediscli"
+	"github.com/Syncano/pkg-go/v2/storage"
 )
 
 // Server defines a Web server wrapper.
@@ -43,8 +46,9 @@ func NewServer(db *database.DB, fs *storage.Storage, redis *rediscli.Redis, rc *
 	stdlog, _ := zap.NewStdLogAt(logger.Logger(), zap.WarnLevel)
 	s := &Server{
 		srv: &http.Server{
-			ReadTimeout:  6 * time.Minute,
+			ReadTimeout:  1 * time.Minute,
 			WriteTimeout: 6 * time.Minute,
+			IdleTimeout:  2 * time.Minute,
 			ErrorLog:     stdlog,
 		},
 		debug: debug,

@@ -9,8 +9,8 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/Syncano/orion/app/settings"
-	"github.com/Syncano/pkg-go/database/manager"
-	"github.com/Syncano/pkg-go/util"
+	"github.com/Syncano/pkg-go/v2/database/manager"
+	"github.com/Syncano/pkg-go/v2/util"
 )
 
 const validationRetries = 2

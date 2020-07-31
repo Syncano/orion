@@ -2,7 +2,7 @@ package serializers
 
 import (
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/pkg-go/database/fields"
+	"github.com/Syncano/pkg-go/v2/database/fields"
 )
 
 type UserClassResponse struct {

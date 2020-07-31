@@ -8,7 +8,7 @@ import (
 	"github.com/jackc/pgtype"
 
 	"github.com/Syncano/orion/app/settings"
-	"github.com/Syncano/pkg-go/database/fields"
+	"github.com/Syncano/pkg-go/v2/database/fields"
 )
 
 const freePlanName = "free"

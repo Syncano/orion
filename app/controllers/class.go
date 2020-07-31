@@ -9,7 +9,7 @@ import (
 	"github.com/Syncano/orion/app/api"
 	"github.com/Syncano/orion/app/models"
 	"github.com/Syncano/orion/app/serializers"
-	"github.com/Syncano/pkg-go/database/manager"
+	"github.com/Syncano/pkg-go/v2/database/manager"
 )
 
 const contextClassKey = "class"

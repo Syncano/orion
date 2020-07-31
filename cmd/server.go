@@ -14,7 +14,7 @@ import (
 
 	"github.com/Syncano/orion/app/server"
 	"github.com/Syncano/orion/app/version"
-	"github.com/Syncano/pkg-go/celery"
+	"github.com/Syncano/pkg-go/v2/celery"
 )
 
 var serverCmd = &cli.Command{

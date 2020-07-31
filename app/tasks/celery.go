@@ -1,7 +1,7 @@
 package tasks
 
 import (
-	"github.com/Syncano/pkg-go/celery"
+	"github.com/Syncano/pkg-go/v2/celery"
 )
 
 const (

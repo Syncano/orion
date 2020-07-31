@@ -3,7 +3,7 @@ package models
 import (
 	"fmt"
 
-	"github.com/Syncano/pkg-go/database/fields"
+	"github.com/Syncano/pkg-go/v2/database/fields"
 )
 
 // Subscription represents Pricing Plan subscription model.

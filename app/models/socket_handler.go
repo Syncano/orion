@@ -3,7 +3,7 @@ package models
 import (
 	"fmt"
 
-	"github.com/Syncano/pkg-go/database/fields"
+	"github.com/Syncano/pkg-go/v2/database/fields"
 )
 
 // SocketHandler represents socket handler model.
