@@ -5,8 +5,8 @@ import (
 
 	"github.com/alexandrevicenzi/unchained"
 
-	"github.com/Syncano/pkg-go/database/fields"
-	"github.com/Syncano/pkg-go/util"
+	"github.com/Syncano/pkg-go/v2/database/fields"
+	"github.com/Syncano/pkg-go/v2/util"
 )
 
 // User represents User model.

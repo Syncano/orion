@@ -1,7 +1,7 @@
 package settings
 
 import (
-	"github.com/Syncano/pkg-go/storage"
+	"github.com/Syncano/pkg-go/v2/storage"
 )
 
 const (

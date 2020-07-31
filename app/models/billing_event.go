@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/Syncano/pkg-go/database/fields"
+	"github.com/Syncano/pkg-go/v2/database/fields"
 )
 
 // Event represents billing event model.

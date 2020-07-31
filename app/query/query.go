@@ -1,8 +1,8 @@
 package query
 
 import (
-	"github.com/Syncano/pkg-go/database"
-	"github.com/Syncano/pkg-go/rediscache"
+	"github.com/Syncano/pkg-go/v2/database"
+	"github.com/Syncano/pkg-go/v2/rediscache"
 )
 
 type Factory struct {

@@ -1,7 +1,7 @@
 package settings
 
 import (
-	"github.com/Syncano/pkg-go/util"
+	"github.com/Syncano/pkg-go/v2/util"
 )
 
 func GetCurrentLocationEnv(key string) string {

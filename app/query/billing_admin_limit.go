@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/pkg-go/database"
-	"github.com/Syncano/pkg-go/database/manager"
+	"github.com/Syncano/pkg-go/v2/database"
+	"github.com/Syncano/pkg-go/v2/database/manager"
 )
 
 // AdminLimitManager represents Admin Limit manager.

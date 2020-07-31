@@ -6,7 +6,7 @@ import (
 	"github.com/caarlos0/env/v6"
 	"github.com/jinzhu/now"
 
-	"github.com/Syncano/pkg-go/util"
+	"github.com/Syncano/pkg-go/v2/util"
 )
 
 type common struct {

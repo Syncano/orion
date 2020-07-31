@@ -8,7 +8,7 @@ import (
 	"github.com/jackc/pgtype"
 	"github.com/mitchellh/mapstructure"
 
-	"github.com/Syncano/pkg-go/database/fields"
+	"github.com/Syncano/pkg-go/v2/database/fields"
 )
 
 const UserClassName = "user_profile"

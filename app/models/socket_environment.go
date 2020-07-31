@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/Syncano/orion/app/settings"
-	"github.com/Syncano/pkg-go/database/fields"
-	"github.com/Syncano/pkg-go/storage"
+	"github.com/Syncano/pkg-go/v2/database/fields"
+	"github.com/Syncano/pkg-go/v2/storage"
 )
 
 // SocketEnvironmentStatus enum.

@@ -16,7 +16,7 @@ import (
 	"github.com/Syncano/orion/app/models"
 	"github.com/Syncano/orion/app/settings"
 	"github.com/Syncano/orion/app/validators"
-	"github.com/Syncano/pkg-go/util"
+	"github.com/Syncano/pkg-go/v2/util"
 )
 
 var keyRegex = regexp.MustCompile(`^[a-f0-9]{40}$`)
