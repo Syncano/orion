@@ -34,7 +34,7 @@ func (m *TriggerManager) Match(instance *models.Instance, event map[string]strin
 	versionKey := fmt.Sprintf("i=%d;e=%s", instance.ID, eventSerialized)
 	lookup := fmt.Sprintf("s=%s", signal)
 
-	err := m.c.SimpleFuncCache("Trigger.Match", versionKey, o, lookup, func() (interface{}, error) {
+	err := m.c.SimpleFuncCache("Trigger.Match", lookup, versionKey, o, func() (interface{}, error) {
 		ehstore := new(fields.Hstore)
 		ehstore.Set(event) // nolint: errcheck
 

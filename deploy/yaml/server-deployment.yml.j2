@@ -54,6 +54,8 @@ spec:
                 name: orion
             - secretRef:
                 name: orion
+            - secretRef:
+                name: syncano-db-credentials
           livenessProbe:
             httpGet:
               path: /health

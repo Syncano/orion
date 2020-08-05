@@ -79,37 +79,45 @@ func init() {
 		// Database options.
 		&cli.StringFlag{
 			Name: "db-name", Usage: "database name",
-			EnvVars: []string{"DB_NAME"}, Value: "syncano", Destination: &dbOptions.Database,
+			EnvVars: []string{"DB_NAME", "PGDATABASE"}, Value: "syncano", Destination: &dbOptions.Database,
 		},
 		&cli.StringFlag{
 			Name: "db-user", Usage: "database user",
-			EnvVars: []string{"DB_USER"}, Value: "syncano", Destination: &dbOptions.User,
+			EnvVars: []string{"DB_USER", "PGUSER"}, Value: "syncano", Destination: &dbOptions.User,
 		},
 		&cli.StringFlag{
 			Name: "db-pass", Usage: "database password",
-			EnvVars: []string{"DB_PASS"}, Value: "syncano", Destination: &dbOptions.Password,
+			EnvVars: []string{"DB_PASS", "PGPASSWORD"}, Value: "syncano", Destination: &dbOptions.Password,
 		},
 		&cli.StringFlag{
-			Name: "db-addr", Usage: "database address",
-			EnvVars: []string{"DB_ADDR"}, Value: "postgresql:5432", Destination: &dbOptions.Addr,
+			Name: "db-host", Usage: "database host",
+			EnvVars: []string{"DB_HOST", "PGHOST"}, Value: "postgresql",
+		},
+		&cli.StringFlag{
+			Name: "db-port", Usage: "database port",
+			EnvVars: []string{"DB_PORT", "PGPORT"}, Value: "5432",
 		},
 
 		// Database instances options.
 		&cli.StringFlag{
-			Name: "db-instances-name", Usage: "database name",
-			EnvVars: []string{"DB_INSTANCES_NAME", "DB_NAME"}, Value: "syncano", Destination: &dbInstancesOptions.Database,
+			Name: "db-instances-name", Usage: "instances database name",
+			EnvVars: []string{"DB_INSTANCES_NAME", "DB_NAME", "PGDATABASE"}, Value: "syncano", Destination: &dbInstancesOptions.Database,
 		},
 		&cli.StringFlag{
-			Name: "db-instances-user", Usage: "database user",
-			EnvVars: []string{"DB_INSTANCES_USER", "DB_USER"}, Value: "syncano", Destination: &dbInstancesOptions.User,
+			Name: "db-instances-user", Usage: "instances database user",
+			EnvVars: []string{"DB_INSTANCES_USER", "DB_USER", "PGUSER"}, Value: "syncano", Destination: &dbInstancesOptions.User,
 		},
 		&cli.StringFlag{
-			Name: "db-instances-pass", Usage: "database password",
-			EnvVars: []string{"DB_INSTANCES_PASS", "DB_PASS"}, Value: "syncano", Destination: &dbInstancesOptions.Password,
+			Name: "db-instances-pass", Usage: "instances database password",
+			EnvVars: []string{"DB_INSTANCES_PASS", "DB_PASS", "PGPASSWORD"}, Value: "syncano", Destination: &dbInstancesOptions.Password,
 		},
 		&cli.StringFlag{
-			Name: "db-instances-host", Usage: "database address",
-			EnvVars: []string{"DB_INSTANCES_ADDR", "DB_ADDR"}, Value: "postgresql:5432", Destination: &dbInstancesOptions.Addr,
+			Name: "db-instances-host", Usage: "instances database host",
+			EnvVars: []string{"DB_INSTANCES_HOST", "DB_HOST", "PGHOST"}, Value: "postgresql",
+		},
+		&cli.StringFlag{
+			Name: "db-instances-port", Usage: "instances database port",
+			EnvVars: []string{"DB_INSTANCES_PORT", "DB_PORT", "PGPORT"}, Value: "5432",
 		},
 
 		// Tracing options.
@@ -219,6 +227,8 @@ func init() {
 		})
 
 		// Initialize database client.
+		dbOptions.Addr = fmt.Sprintf("%s:%s", c.String("db-host"), c.String("db-port"))
+		dbInstancesOptions.Addr = fmt.Sprintf("%s:%s", c.String("db-instances-host"), c.String("db-instances-port"))
 		db = database.NewDB(dbOptions, dbInstancesOptions, logger, c.Bool("debug"))
 
 		fs = storage.NewStorage(settings.Common.Location, settings.Buckets, settings.API.Host, settings.API.StorageURL)
