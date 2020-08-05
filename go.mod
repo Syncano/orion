@@ -5,7 +5,7 @@ go 1.14
 require (
 	contrib.go.opencensus.io/exporter/jaeger v0.2.1
 	contrib.go.opencensus.io/exporter/prometheus v0.2.0
-	github.com/Syncano/pkg-go/v2 v2.1.0
+	github.com/Syncano/pkg-go/v2 v2.2.0
 	github.com/Syncano/syncanoapis/gen v1.0.1
 	github.com/alexandrevicenzi/unchained v1.3.0
 	github.com/blang/semver v3.5.1+incompatible
@@ -41,7 +41,7 @@ require (
 	github.com/vektra/mockery v1.1.2
 	go.opencensus.io v0.22.4
 	go.uber.org/zap v1.15.0
-	golang.org/x/tools v0.0.0-20200730183239-644d416712ac
+	golang.org/x/tools v0.0.0-20200804011535-6c149bb5ef0d
 	google.golang.org/grpc v1.31.0
 	kkn.fi/base62 v0.1.0
 )
