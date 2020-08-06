@@ -1,8 +1,6 @@
 package server
 
 import (
-	"context"
-	"net"
 	"net/http"
 	"time"
 
@@ -30,14 +28,13 @@ import (
 
 // Server defines a Web server wrapper.
 type Server struct {
-	srv   *http.Server
 	ctr   *controllers.Controller
 	log   *log.Logger
 	debug bool
 }
 
 // NewServer initializes new Web server.
-func NewServer(db *database.DB, fs *storage.Storage, redis *rediscli.Redis, rc *rediscache.Cache, cel *celery.Celery, logger *log.Logger, debug bool) (*Server, error) {
+func NewServer(db *database.DB, fs *storage.Storage, redis *rediscli.Redis, rc *rediscache.Cache, cel *celery.Celery, logger *log.Logger, debug bool) (*http.Server, error) {
 	ctr, err := controllers.New(db, fs, redis, rc, cel, logger)
 	if err != nil {
 		return nil, err
@@ -45,19 +42,18 @@ func NewServer(db *database.DB, fs *storage.Storage, redis *rediscli.Redis, rc *
 
 	stdlog, _ := zap.NewStdLogAt(logger.Logger(), zap.WarnLevel)
 	s := &Server{
-		srv: &http.Server{
-			ReadTimeout:  1 * time.Minute,
-			WriteTimeout: 6 * time.Minute,
-			IdleTimeout:  2 * time.Minute,
-			ErrorLog:     stdlog,
-		},
 		debug: debug,
 		ctr:   ctr,
 		log:   logger,
 	}
-	s.srv.Handler = s.setupRouter()
 
-	return s, nil
+	return &http.Server{
+		ReadTimeout:  1 * time.Minute,
+		WriteTimeout: 6 * time.Minute,
+		IdleTimeout:  2 * time.Minute,
+		ErrorLog:     stdlog,
+		Handler:      s.setupRouter(),
+	}, nil
 }
 
 func (s *Server) setupRouter() *echo.Echo {
@@ -93,14 +89,4 @@ func (s *Server) setupRouter() *echo.Echo {
 	routers.Register(s.ctr, e)
 
 	return e
-}
-
-// Serve handles requests on incoming connections.
-func (s *Server) Serve(lis net.Listener) error {
-	return s.srv.Serve(lis)
-}
-
-// Shutdown stops gracefully server.
-func (s *Server) Shutdown(ctx context.Context) error {
-	return s.srv.Shutdown(ctx)
 }
