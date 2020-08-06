@@ -72,8 +72,8 @@ func init() {
 			EnvVars: []string{"DEBUG"},
 		},
 		&cli.IntFlag{
-			Name: "metric-port", Aliases: []string{"mp"}, Usage: "port for expvar server",
-			EnvVars: []string{"METRIC_PORT"}, Value: 9080,
+			Name: "metrics-port", Aliases: []string{"mp"}, Usage: "port for metrics",
+			EnvVars: []string{"METRICS_PORT"}, Value: 9080,
 		},
 
 		// Database options.
@@ -147,6 +147,8 @@ func init() {
 		},
 	}
 	App.Before = func(c *cli.Context) error {
+		logg := logger.Logger()
+
 		// Initialize random seed.
 		rand.Seed(time.Now().UnixNano())
 
@@ -177,16 +179,6 @@ func init() {
 		if c.Bool("debug") {
 			settings.Common.Debug = true
 		}
-
-		// Serve expvar and checks.
-		logg := logger.Logger()
-		logg.With(zap.Int("metric-port", c.Int("metric-port"))).Info("Serving http for expvar and checks")
-
-		go func() {
-			if err := http.ListenAndServe(fmt.Sprintf(":%d", c.Int("metric-port")), nil); err != nil && err != http.ErrServerClosed {
-				logg.With(zap.Error(err)).Fatal("Serve error")
-			}
-		}()
 
 		// Setup prometheus handler.
 		exporter, err := prometheus.NewExporter(prometheus.Options{})
