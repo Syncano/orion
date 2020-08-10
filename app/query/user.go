@@ -24,7 +24,7 @@ func (q *Factory) NewUserManager(c echo.Context) *UserManager {
 
 // Q outputs objects query.
 func (m *UserManager) Q(class *models.Class, o interface{}) *orm.Query {
-	return m.Query(o).Column("user.*").Relation("Profile").
+	return m.QueryContext(DBToStdContext(m), o).Column("user.*").Relation("Profile").
 		Where("profile._klass_id = ?", class.ID)
 }
 
@@ -48,7 +48,7 @@ func (m *UserManager) ForGroupByIDQ(class *models.Class, group *models.UserGroup
 func (m *UserManager) OneByID(o *models.User) error {
 	return manager.RequireOne(
 		m.c.SimpleModelCache(m.DB(), o, fmt.Sprintf("i=%d", o.ID), func() (interface{}, error) {
-			return o, m.Query(o).Where("id = ?", o.ID).Select()
+			return o, m.QueryContext(DBToStdContext(m), o).Where("id = ?", o.ID).Select()
 		}),
 	)
 }
@@ -57,7 +57,7 @@ func (m *UserManager) OneByID(o *models.User) error {
 func (m *UserManager) OneByName(o *models.User) error {
 	return manager.RequireOne(
 		m.c.SimpleModelCache(m.DB(), o, fmt.Sprintf("u=%s", o.Username), func() (interface{}, error) {
-			return o, m.Query(o).Where("username = ?", o.Username).Select()
+			return o, m.QueryContext(DBToStdContext(m), o).Where("username = ?", o.Username).Select()
 		}),
 	)
 }
@@ -66,18 +66,18 @@ func (m *UserManager) OneByName(o *models.User) error {
 func (m *UserManager) OneByKey(o *models.User) error {
 	return manager.RequireOne(
 		m.c.SimpleModelCache(m.DB(), o, fmt.Sprintf("k=%s", o.Key), func() (interface{}, error) {
-			return o, m.Query(o).Where("key = ?", o.Key).Select()
+			return o, m.QueryContext(DBToStdContext(m), o).Where("key = ?", o.Key).Select()
 		}),
 	)
 }
 
 // FetchData outputs object filtered by name.
 func (m *UserManager) FetchData(class *models.Class, o *models.User) error {
-	return m.Query(o).Column("_").Relation("Profile").Relation("Groups").
+	return m.QueryContext(DBToStdContext(m), o).Column("_").Relation("Profile").Relation("Groups").
 		Where("profile._klass_id = ?", class.ID).WherePK().Select()
 }
 
 // CountEstimate returns count estimate for users list.
 func (m *UserManager) CountEstimate() (int, error) {
-	return manager.CountEstimate(m.DBContext().(echo.Context).Request().Context(), m.DB(), m.Query((*models.User)(nil)), settings.API.DataObjectEstimateThreshold)
+	return manager.CountEstimate(DBToStdContext(m), m.DB(), m.QueryContext(DBToStdContext(m), (*models.User)(nil)), settings.API.DataObjectEstimateThreshold)
 }

@@ -28,12 +28,12 @@ func (m *ChannelManager) OneByName(o *models.Channel) error {
 
 	return manager.RequireOne(
 		m.c.SimpleModelCache(m.DB(), o, fmt.Sprintf("n=%s", o.Name), func() (interface{}, error) {
-			return o, m.Query(o).Where("name = ?", o.Name).Select()
+			return o, m.QueryContext(DBToStdContext(m), o).Where("name = ?", o.Name).Select()
 		}),
 	)
 }
 
 // WithAccessQ outputs objects that entity has access to.
 func (m *ChannelManager) WithAccessQ(o interface{}) *orm.Query {
-	return m.Query(o)
+	return m.QueryContext(DBToStdContext(m), o)
 }

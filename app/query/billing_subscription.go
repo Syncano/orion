@@ -24,7 +24,7 @@ func (q *Factory) NewSubscriptionManager(c echo.Context) *SubscriptionManager {
 // OneActiveForAdmin returns subscription active at time for specified o.AdminID.
 func (m *SubscriptionManager) OneActiveForAdmin(o *models.Subscription, t time.Time) error {
 	return m.c.ModelCache(m.DB(), &models.Profile{AdminID: o.AdminID}, o, fmt.Sprintf("sub;a=%d;t=%s", o.AdminID, t.Format("06-01")), func() (interface{}, error) {
-		return o, m.Query(o).Column("subscription.*").Relation("Plan").
+		return o, m.QueryContext(DBToStdContext(m), o).Column("subscription.*").Relation("Plan").
 			Where("admin_id = ? AND range @> ?::date", o.AdminID, t).Select()
 	}, nil)
 }

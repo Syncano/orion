@@ -25,12 +25,12 @@ func (q *Factory) NewSocketEnvironmentManager(c echo.Context) *SocketEnvironment
 func (m *SocketEnvironmentManager) OneByID(o *models.SocketEnvironment) error {
 	return manager.RequireOne(
 		m.c.SimpleModelCache(m.DB(), o, fmt.Sprintf("i=%d", o.ID), func() (interface{}, error) {
-			return o, m.Query(o).Where("id = ?", o.ID).Select()
+			return o, m.QueryContext(DBToStdContext(m), o).Where("id = ?", o.ID).Select()
 		}),
 	)
 }
 
 // WithAccessQ outputs objects that entity has access to.
 func (m *SocketEnvironmentManager) WithAccessQ(o interface{}) *orm.Query {
-	return m.Query(o)
+	return m.QueryContext(DBToStdContext(m), o)
 }

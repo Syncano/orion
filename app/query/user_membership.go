@@ -21,7 +21,7 @@ func (q *Factory) NewUserMembershipManager(c echo.Context) *UserMembershipManage
 
 // Q outputs objects query.
 func (m *UserMembershipManager) Q(o interface{}) *orm.Query {
-	return m.Query(o)
+	return m.QueryContext(DBToStdContext(m), o)
 }
 
 // ForUserQ outputs objects query filtered by user.

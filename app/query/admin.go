@@ -24,7 +24,7 @@ func (q *Factory) NewAdminManager(c echo.Context) *AdminManager {
 func (m *AdminManager) OneByID(o *models.Admin) error {
 	return manager.RequireOne(
 		m.c.SimpleModelCache(m.DB(), o, fmt.Sprintf("id=%d", o.ID), func() (interface{}, error) {
-			return o, m.Query(o).Where("id = ?", o.ID).Select()
+			return o, m.QueryContext(DBToStdContext(m), o).Where("id = ?", o.ID).Select()
 		}),
 	)
 }
@@ -33,7 +33,7 @@ func (m *AdminManager) OneByID(o *models.Admin) error {
 func (m *AdminManager) OneByKey(o *models.Admin) error {
 	return manager.RequireOne(
 		m.c.SimpleModelCache(m.DB(), o, fmt.Sprintf("k=%s", o.Key), func() (interface{}, error) {
-			return o, m.Query(o).Where("key = ?", o.Key).Select()
+			return o, m.QueryContext(DBToStdContext(m), o).Where("key = ?", o.Key).Select()
 		}),
 	)
 }

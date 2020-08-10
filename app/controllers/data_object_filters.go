@@ -347,7 +347,7 @@ func init() {
 			var q *orm.Query
 			switch cls.Name {
 			case models.UserClassName:
-				q = qf.NewUserManager(c).Query((*models.User)(nil)).
+				q = qf.NewUserManager(c).QueryContext(c.Request().Context(), (*models.User)(nil)).
 					Join(`JOIN ?schema.data_dataobject AS "profile" ON "profile"."owner_id" = "user"."id"`).
 					Where("profile._klass_id = ?", cls.ID).Column(col)
 			default:
@@ -367,7 +367,7 @@ func init() {
 		},
 
 		query: func(c echo.Context, qf *query.Factory, q *orm.Query, f models.FilterField, op string, data interface{}) *orm.Query {
-			quer, err := data.(*orm.Query).AppendQuery(qf.Database().TenantDB(c.Get(settings.ContextSchemaKey).(string)).Formatter(), nil)
+			quer, err := data.(*orm.Query).AppendQuery(query.TenantDB(c, qf.Database()).Formatter(), nil)
 			if err != nil {
 				panic(err)
 			}

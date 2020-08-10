@@ -8,13 +8,12 @@ import (
 	"github.com/Syncano/orion/app/api"
 	"github.com/Syncano/orion/app/models"
 	"github.com/Syncano/orion/app/settings"
-	"github.com/Syncano/pkg-go/v2/database"
 	"github.com/Syncano/pkg-go/v2/database/manager"
 )
 
-func (ctr *Controller) updateInstanceIndicatorValue(c database.DBContext, db orm.DB, typ, diff int) error {
-	instance := c.(echo.Context).Get(settings.ContextInstanceKey).(*models.Instance)
-	mgr := ctr.q.NewInstanceIndicatorManager(c.(echo.Context))
+func (ctr *Controller) updateInstanceIndicatorValue(c echo.Context, db orm.DB, typ, diff int) error {
+	instance := c.Get(settings.ContextInstanceKey).(*models.Instance)
+	mgr := ctr.q.NewInstanceIndicatorManager(c)
 	mgr.SetDB(db)
 
 	o := &models.InstanceIndicator{InstanceID: instance.ID, Type: typ}
@@ -28,5 +27,5 @@ func (ctr *Controller) updateInstanceIndicatorValue(c database.DBContext, db orm
 
 	o.Value += diff
 
-	return mgr.Update(o)
+	return mgr.UpdateContext(c.Request().Context(), o)
 }

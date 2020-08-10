@@ -68,7 +68,7 @@ func SimpleDelete(c echo.Context, mgr Deleter, q *orm.Query, v Verboser) error {
 
 			return err
 		}
-		return mgr.Delete(v)
+		return mgr.DeleteContext(c.Request().Context(), v)
 	}); err != nil {
 		return err
 	}

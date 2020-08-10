@@ -24,7 +24,7 @@ func (q *Factory) NewInstanceManager(c echo.Context) *InstanceManager {
 
 // WithAccessQ outputs objects that entity has access to.
 func (m *InstanceManager) WithAccessQ(o interface{}) *orm.Query {
-	q := m.Query(o).Column("instance.*").Relation("Owner")
+	q := m.QueryContext(DBToStdContext(m), o).Column("instance.*").Relation("Owner")
 	if a := m.DBContext().(echo.Context).Get(settings.ContextAdminKey); a != nil {
 		q = q.Join("JOIN admins_admininstancerole AS air ON air.instance_id = instance.id AND air.admin_id = ?", a.(*models.Admin).ID)
 	} else if a := m.DBContext().(echo.Context).Get(settings.ContextAPIKeyKey); a != nil {
@@ -44,7 +44,7 @@ func (m *InstanceManager) WithAccessByNameQ(o *models.Instance) *orm.Query {
 func (m *InstanceManager) OneByName(o *models.Instance) error {
 	return manager.RequireOne(
 		m.c.SimpleModelCache(m.DB(), o, fmt.Sprintf("n=%s", o.Name), func() (interface{}, error) {
-			return o, m.Query(o).
+			return o, m.QueryContext(DBToStdContext(m), o).
 				Where("name = ?", o.Name).Select()
 		}),
 	)

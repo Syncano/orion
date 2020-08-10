@@ -21,6 +21,6 @@ func (q *Factory) NewInstanceIndicatorManager(c echo.Context) *InstanceIndicator
 
 // ByInstanceAndType filters object filtered by instance and type.
 func (m *InstanceIndicatorManager) ByInstanceAndType(o *models.InstanceIndicator) *orm.Query {
-	return m.Query(o).Where("instance_id = ?", o.InstanceID).
+	return m.QueryContext(DBToStdContext(m), o).Where("instance_id = ?", o.InstanceID).
 		Where("type = ?", o.Type)
 }
