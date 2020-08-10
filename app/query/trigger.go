@@ -5,9 +5,9 @@ import (
 
 	"github.com/go-pg/pg/v9"
 	json "github.com/json-iterator/go"
+	"github.com/labstack/echo/v4"
 
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/pkg-go/v2/database"
 	"github.com/Syncano/pkg-go/v2/database/fields"
 	"github.com/Syncano/pkg-go/v2/database/manager"
 	"github.com/Syncano/pkg-go/v2/util"
@@ -20,8 +20,8 @@ type TriggerManager struct {
 }
 
 // NewTriggerManager creates and returns new Trigger manager.
-func (q *Factory) NewTriggerManager(c database.DBContext) *TriggerManager {
-	return &TriggerManager{Factory: q, Manager: manager.NewTenantManager(q.db, c)}
+func (q *Factory) NewTriggerManager(c echo.Context) *TriggerManager {
+	return &TriggerManager{Factory: q, Manager: manager.NewTenantManager(WrapContext(c), q.db)}
 }
 
 // Match outputs one object within specific class filtered by id.

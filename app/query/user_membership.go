@@ -2,9 +2,9 @@ package query
 
 import (
 	"github.com/go-pg/pg/v9/orm"
+	"github.com/labstack/echo/v4"
 
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/pkg-go/v2/database"
 	"github.com/Syncano/pkg-go/v2/database/manager"
 )
 
@@ -15,8 +15,8 @@ type UserMembershipManager struct {
 }
 
 // NewUserMembershipManager creates and returns new User Membership manager.
-func (q *Factory) NewUserMembershipManager(c database.DBContext) *UserMembershipManager {
-	return &UserMembershipManager{Factory: q, Manager: manager.NewTenantManager(q.db, c)}
+func (q *Factory) NewUserMembershipManager(c echo.Context) *UserMembershipManager {
+	return &UserMembershipManager{Factory: q, Manager: manager.NewTenantManager(WrapContext(c), q.db)}
 }
 
 // Q outputs objects query.

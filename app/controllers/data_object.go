@@ -182,8 +182,8 @@ func (ctr *Controller) dataObjectDeleteHook(c database.DBContext, db orm.DB, i i
 	}
 
 	if sizeDiff != 0 {
-		sub := c.Get(contextSubscriptionKey).(*models.Subscription)
-		c.Get(contextAdminLimitKey).(*models.AdminLimit).StorageLimit(sub)
+		sub := c.(echo.Context).Get(contextSubscriptionKey).(*models.Subscription)
+		c.(echo.Context).Get(contextAdminLimitKey).(*models.AdminLimit).StorageLimit(sub)
 
 		return ctr.updateInstanceIndicatorValue(c, db, models.InstanceIndicatorTypeStorageSize, -sizeDiff)
 	}

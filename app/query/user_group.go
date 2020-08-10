@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/go-pg/pg/v9/orm"
+	"github.com/labstack/echo/v4"
 
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/pkg-go/v2/database"
 	"github.com/Syncano/pkg-go/v2/database/manager"
 )
 
@@ -17,8 +17,8 @@ type UserGroupManager struct {
 }
 
 // NewUserGroupManager creates and returns new User Group manager.
-func (q *Factory) NewUserGroupManager(c database.DBContext) *UserGroupManager {
-	return &UserGroupManager{Factory: q, LiveManager: manager.NewLiveTenantManager(q.db, c)}
+func (q *Factory) NewUserGroupManager(c echo.Context) *UserGroupManager {
+	return &UserGroupManager{Factory: q, LiveManager: manager.NewLiveTenantManager(WrapContext(c), q.db)}
 }
 
 // Q outputs objects query.

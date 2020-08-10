@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"github.com/go-pg/pg/v9/orm"
+	"github.com/labstack/echo/v4"
 
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/pkg-go/v2/database"
 	"github.com/Syncano/pkg-go/v2/database/manager"
 )
 
@@ -18,8 +18,8 @@ type SocketEndpointManager struct {
 }
 
 // NewSocketEndpointManager creates and returns new Socket Endpoint manager.
-func (q *Factory) NewSocketEndpointManager(c database.DBContext) *SocketEndpointManager {
-	return &SocketEndpointManager{Factory: q, Manager: manager.NewTenantManager(q.db, c)}
+func (q *Factory) NewSocketEndpointManager(c echo.Context) *SocketEndpointManager {
+	return &SocketEndpointManager{Factory: q, Manager: manager.NewTenantManager(WrapContext(c), q.db)}
 }
 
 // ForSocketQ outputs object filtered by name.

@@ -147,8 +147,6 @@ func init() {
 		},
 	}
 	App.Before = func(c *cli.Context) error {
-		logg := logger.Logger()
-
 		// Initialize random seed.
 		rand.Seed(time.Now().UnixNano())
 
@@ -168,13 +166,15 @@ func init() {
 			return err
 		}
 
+		logg := logger.Logger()
+
 		// Set grpc logger.
 		var zapgrpcOpts []zapgrpc.Option
 		if c.Bool("debug") {
 			zapgrpcOpts = append(zapgrpcOpts, zapgrpc.WithDebug())
 		}
 
-		grpclog.SetLogger(zapgrpc.NewLogger(logger.Logger(), zapgrpcOpts...)) // nolint: staticcheck
+		grpclog.SetLogger(zapgrpc.NewLogger(logg, zapgrpcOpts...)) // nolint: staticcheck
 
 		if c.Bool("debug") {
 			settings.Common.Debug = true
@@ -233,7 +233,7 @@ func init() {
 		)
 
 		// Initialize AMQP client and celery wrapper.
-		amqpChannel, err = amqp.New(c.String("broker-url"), logger.Logger())
+		amqpChannel, err = amqp.New(c.String("broker-url"), logg)
 		if err != nil {
 			return err
 		}
@@ -265,7 +265,9 @@ func init() {
 		jobs.Shutdown()
 
 		// Close tracing reporter.
-		jaegerExporter.Flush()
+		if jaegerExporter != nil {
+			jaegerExporter.Flush()
+		}
 
 		// Flush remaining sentry events.
 		sentry.Flush(5 * time.Second)

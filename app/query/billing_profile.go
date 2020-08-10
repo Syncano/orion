@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/jinzhu/now"
+	"github.com/labstack/echo/v4"
 
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/pkg-go/v2/database"
 	"github.com/Syncano/pkg-go/v2/database/manager"
 )
 
@@ -26,8 +26,8 @@ type ProfileManager struct {
 }
 
 // NewProfileManager creates and returns new Subscription manager.
-func (q *Factory) NewProfileManager(c database.DBContext) *ProfileManager {
-	return &ProfileManager{Factory: q, Manager: manager.NewManager(q.db, c)}
+func (q *Factory) NewProfileManager(c echo.Context) *ProfileManager {
+	return &ProfileManager{Factory: q, Manager: manager.NewManager(WrapContext(c), q.db)}
 }
 
 // GetBillingStatus returns status string for subscription.

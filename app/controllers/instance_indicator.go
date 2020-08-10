@@ -3,6 +3,7 @@ package controllers
 import (
 	"github.com/go-pg/pg/v9"
 	"github.com/go-pg/pg/v9/orm"
+	"github.com/labstack/echo/v4"
 
 	"github.com/Syncano/orion/app/api"
 	"github.com/Syncano/orion/app/models"
@@ -12,8 +13,8 @@ import (
 )
 
 func (ctr *Controller) updateInstanceIndicatorValue(c database.DBContext, db orm.DB, typ, diff int) error {
-	instance := c.Get(settings.ContextInstanceKey).(*models.Instance)
-	mgr := ctr.q.NewInstanceIndicatorManager(c)
+	instance := c.(echo.Context).Get(settings.ContextInstanceKey).(*models.Instance)
+	mgr := ctr.q.NewInstanceIndicatorManager(c.(echo.Context))
 	mgr.SetDB(db)
 
 	o := &models.InstanceIndicator{InstanceID: instance.ID, Type: typ}

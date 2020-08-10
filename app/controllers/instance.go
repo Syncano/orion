@@ -11,7 +11,6 @@ import (
 	"github.com/Syncano/orion/app/models"
 	"github.com/Syncano/orion/app/serializers"
 	"github.com/Syncano/orion/app/settings"
-	"github.com/Syncano/pkg-go/v2/database"
 	"github.com/Syncano/pkg-go/v2/database/manager"
 )
 
@@ -61,7 +60,7 @@ func (ctr *Controller) InstanceContext(next echo.HandlerFunc) echo.HandlerFunc {
 
 		c.Set(settings.ContextInstanceKey, o)
 		c.Set(settings.ContextInstanceOwnerKey, owner)
-		c.Set(database.ContextSchemaKey, o.SchemaName)
+		c.Set(settings.ContextSchemaKey, o.SchemaName)
 
 		return next(c)
 	}

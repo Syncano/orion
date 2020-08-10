@@ -3,8 +3,9 @@ package query
 import (
 	"fmt"
 
+	"github.com/labstack/echo/v4"
+
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/pkg-go/v2/database"
 	"github.com/Syncano/pkg-go/v2/database/manager"
 )
 
@@ -15,8 +16,8 @@ type APIKeyManager struct {
 }
 
 // NewAPIKeyManager creates and returns new APIKey manager.
-func (q *Factory) NewAPIKeyManager(c database.DBContext) *APIKeyManager {
-	return &APIKeyManager{Factory: q, LiveManager: manager.NewLiveManager(q.db, c)}
+func (q *Factory) NewAPIKeyManager(c echo.Context) *APIKeyManager {
+	return &APIKeyManager{Factory: q, LiveManager: manager.NewLiveManager(WrapContext(c), q.db)}
 }
 
 // OneByKey outputs object filtered by key.

@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"github.com/go-pg/pg/v9/orm"
+	"github.com/labstack/echo/v4"
 
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/pkg-go/v2/database"
 	"github.com/Syncano/pkg-go/v2/database/manager"
 )
 
@@ -18,8 +18,8 @@ type ChannelManager struct {
 }
 
 // NewChannelManager creates and returns new Channel manager.
-func (q *Factory) NewChannelManager(c database.DBContext) *ChannelManager {
-	return &ChannelManager{Factory: q, LiveManager: manager.NewLiveTenantManager(q.db, c)}
+func (q *Factory) NewChannelManager(c echo.Context) *ChannelManager {
+	return &ChannelManager{Factory: q, LiveManager: manager.NewLiveTenantManager(WrapContext(c), q.db)}
 }
 
 // OneByName outputs object filtered by name.

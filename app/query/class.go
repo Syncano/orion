@@ -5,10 +5,10 @@ import (
 	"strings"
 
 	"github.com/go-pg/pg/v9/orm"
+	"github.com/labstack/echo/v4"
 
 	"github.com/Syncano/orion/app/models"
 	"github.com/Syncano/orion/app/settings"
-	"github.com/Syncano/pkg-go/v2/database"
 	"github.com/Syncano/pkg-go/v2/database/manager"
 )
 
@@ -19,8 +19,8 @@ type ClassManager struct {
 }
 
 // NewClassManager creates and returns new Class manager.
-func (q *Factory) NewClassManager(c database.DBContext) *ClassManager {
-	return &ClassManager{Factory: q, LiveManager: manager.NewLiveTenantManager(q.db, c)}
+func (q *Factory) NewClassManager(c echo.Context) *ClassManager {
+	return &ClassManager{Factory: q, LiveManager: manager.NewLiveTenantManager(WrapContext(c), q.db)}
 }
 
 // OneByName outputs object filtered by name.

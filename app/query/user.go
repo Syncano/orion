@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	"github.com/go-pg/pg/v9/orm"
+	"github.com/labstack/echo/v4"
 
 	"github.com/Syncano/orion/app/models"
 	"github.com/Syncano/orion/app/settings"
-	"github.com/Syncano/pkg-go/v2/database"
 	"github.com/Syncano/pkg-go/v2/database/manager"
 )
 
@@ -18,8 +18,8 @@ type UserManager struct {
 }
 
 // NewUserManager creates and returns new User manager.
-func (q *Factory) NewUserManager(c database.DBContext) *UserManager {
-	return &UserManager{Factory: q, LiveManager: manager.NewLiveTenantManager(q.db, c)}
+func (q *Factory) NewUserManager(c echo.Context) *UserManager {
+	return &UserManager{Factory: q, LiveManager: manager.NewLiveTenantManager(WrapContext(c), q.db)}
 }
 
 // Q outputs objects query.
@@ -79,5 +79,5 @@ func (m *UserManager) FetchData(class *models.Class, o *models.User) error {
 
 // CountEstimate returns count estimate for users list.
 func (m *UserManager) CountEstimate() (int, error) {
-	return manager.CountEstimate(m.DBContext().Request().Context(), m.DB(), m.Query((*models.User)(nil)), settings.API.DataObjectEstimateThreshold)
+	return manager.CountEstimate(m.DBContext().(echo.Context).Request().Context(), m.DB(), m.Query((*models.User)(nil)), settings.API.DataObjectEstimateThreshold)
 }

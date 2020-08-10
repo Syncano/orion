@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	"github.com/go-pg/pg/v9/orm"
+	"github.com/labstack/echo/v4"
 
 	"github.com/Syncano/orion/app/models"
 	"github.com/Syncano/orion/app/settings"
-	"github.com/Syncano/pkg-go/v2/database"
 	"github.com/Syncano/pkg-go/v2/database/manager"
 )
 
@@ -18,16 +18,16 @@ type InstanceManager struct {
 }
 
 // NewInstanceManager creates and returns new Instance manager.
-func (q *Factory) NewInstanceManager(c database.DBContext) *InstanceManager {
-	return &InstanceManager{Factory: q, LiveManager: manager.NewLiveManager(q.db, c)}
+func (q *Factory) NewInstanceManager(c echo.Context) *InstanceManager {
+	return &InstanceManager{Factory: q, LiveManager: manager.NewLiveManager(WrapContext(c), q.db)}
 }
 
 // WithAccessQ outputs objects that entity has access to.
 func (m *InstanceManager) WithAccessQ(o interface{}) *orm.Query {
 	q := m.Query(o).Column("instance.*").Relation("Owner")
-	if a := m.DBContext().Get(settings.ContextAdminKey); a != nil {
+	if a := m.DBContext().(echo.Context).Get(settings.ContextAdminKey); a != nil {
 		q = q.Join("JOIN admins_admininstancerole AS air ON air.instance_id = instance.id AND air.admin_id = ?", a.(*models.Admin).ID)
-	} else if a := m.DBContext().Get(settings.ContextAPIKeyKey); a != nil {
+	} else if a := m.DBContext().(echo.Context).Get(settings.ContextAPIKeyKey); a != nil {
 		q = q.Where("id = ?", a.(*models.APIKey).InstanceID)
 	}
 
