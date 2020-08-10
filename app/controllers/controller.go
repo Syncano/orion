@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/go-pg/pg/v9/orm"
+	"github.com/labstack/echo/v4"
 	"go.opencensus.io/plugin/ocgrpc"
 	"google.golang.org/grpc"
 
@@ -118,7 +119,7 @@ func (ctr *Controller) liveObjectSoftDeleteHook(c database.DBContext, db orm.DB,
 
 	ctr.db.AddDBCommitHook(db, func() error {
 		return tasks.NewDeleteLiveObjectTask(
-			c.Get(settings.ContextInstanceKey).(*models.Instance).ID,
+			c.(echo.Context).Get(settings.ContextInstanceKey).(*models.Instance).ID,
 			modelName, objectPK,
 		).Publish(ctr.cel)
 	})

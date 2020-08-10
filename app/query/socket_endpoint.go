@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"github.com/go-pg/pg/v9/orm"
+	"github.com/labstack/echo/v4"
 
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/pkg-go/v2/database"
 	"github.com/Syncano/pkg-go/v2/database/manager"
 )
 
@@ -18,13 +18,13 @@ type SocketEndpointManager struct {
 }
 
 // NewSocketEndpointManager creates and returns new Socket Endpoint manager.
-func (q *Factory) NewSocketEndpointManager(c database.DBContext) *SocketEndpointManager {
-	return &SocketEndpointManager{Factory: q, Manager: manager.NewTenantManager(q.db, c)}
+func (q *Factory) NewSocketEndpointManager(c echo.Context) *SocketEndpointManager {
+	return &SocketEndpointManager{Factory: q, Manager: manager.NewTenantManager(WrapContext(c), q.db)}
 }
 
 // ForSocketQ outputs object filtered by name.
 func (m *SocketEndpointManager) ForSocketQ(socket *models.Socket, o interface{}) *orm.Query {
-	return m.Query(o).Where("socket_id = ?", socket.ID)
+	return m.QueryContext(DBToStdContext(m), o).Where("socket_id = ?", socket.ID)
 }
 
 // OneByName outputs object filtered by name.
@@ -33,12 +33,12 @@ func (m *SocketEndpointManager) OneByName(o *models.SocketEndpoint) error {
 
 	return manager.RequireOne(
 		m.c.SimpleModelCache(m.DB(), o, fmt.Sprintf("n=%s", o.Name), func() (interface{}, error) {
-			return o, m.Query(o).Where("name = ?", o.Name).Select()
+			return o, m.QueryContext(DBToStdContext(m), o).Where("name = ?", o.Name).Select()
 		}),
 	)
 }
 
 // WithAccessQ outputs objects that entity has access to.
 func (m *SocketEndpointManager) WithAccessQ(o interface{}) *orm.Query {
-	return m.Query(o)
+	return m.QueryContext(DBToStdContext(m), o)
 }

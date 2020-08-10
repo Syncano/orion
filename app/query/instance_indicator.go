@@ -2,9 +2,9 @@ package query
 
 import (
 	"github.com/go-pg/pg/v9/orm"
+	"github.com/labstack/echo/v4"
 
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/pkg-go/v2/database"
 	"github.com/Syncano/pkg-go/v2/database/manager"
 )
 
@@ -15,12 +15,12 @@ type InstanceIndicatorManager struct {
 }
 
 // NewInstanceIndicatorManager creates and returns new Instance Indicator manager.
-func (q *Factory) NewInstanceIndicatorManager(c database.DBContext) *InstanceIndicatorManager {
-	return &InstanceIndicatorManager{Factory: q, Manager: manager.NewTenantManager(q.db, c)}
+func (q *Factory) NewInstanceIndicatorManager(c echo.Context) *InstanceIndicatorManager {
+	return &InstanceIndicatorManager{Factory: q, Manager: manager.NewTenantManager(WrapContext(c), q.db)}
 }
 
 // ByInstanceAndType filters object filtered by instance and type.
 func (m *InstanceIndicatorManager) ByInstanceAndType(o *models.InstanceIndicator) *orm.Query {
-	return m.Query(o).Where("instance_id = ?", o.InstanceID).
+	return m.QueryContext(DBToStdContext(m), o).Where("instance_id = ?", o.InstanceID).
 		Where("type = ?", o.Type)
 }
