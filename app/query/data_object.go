@@ -20,12 +20,6 @@ func (q *Factory) NewDataObjectManager(c echo.Context) *DataObjectManager {
 	return &DataObjectManager{Factory: q, LiveManager: manager.NewLiveTenantManager(WrapContext(c), q.db)}
 }
 
-// Create creates new object.
-func (m *DataObjectManager) Create(o interface{}) error {
-	_, e := m.DB().ModelContext(DBToStdContext(m), o).Returning("*").Insert()
-	return e
-}
-
 // CountEstimate returns count estimate for current data objects list.
 func (m *DataObjectManager) CountEstimate(q orm.QueryAppender) (int, error) {
 	return manager.CountEstimate(DBToStdContext(m), m.DB(), q, settings.API.DataObjectEstimateThreshold)

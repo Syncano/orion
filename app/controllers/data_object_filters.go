@@ -252,6 +252,7 @@ func init() {
 			if op == "_nin" {
 				sqlOp = "NOT IN"
 			}
+
 			return q.Where(fmt.Sprintf("%s %s (?)", f.SQLName(), sqlOp), pg.In(data))
 		}},
 		"_in", "_nin",
@@ -371,9 +372,11 @@ func init() {
 			if err != nil {
 				panic(err)
 			}
+
 			if f.Type() == models.FieldReferenceType {
 				return q.Where(fmt.Sprintf("%s IN (%s)", f.SQLName(), string(quer)))
 			}
+
 			return q.Where(fmt.Sprintf("%s && ARRAY(%s)", f.SQLName(), string(quer)))
 		}},
 		"_is",

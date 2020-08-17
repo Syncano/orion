@@ -1,6 +1,6 @@
 module github.com/Syncano/orion
 
-go 1.14
+go 1.15
 
 require (
 	contrib.go.opencensus.io/exporter/jaeger v0.2.1
