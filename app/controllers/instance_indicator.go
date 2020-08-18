@@ -17,7 +17,7 @@ func (ctr *Controller) updateInstanceIndicatorValue(c echo.Context, db orm.DB, t
 	mgr.SetDB(db)
 
 	o := &models.InstanceIndicator{InstanceID: instance.ID, Type: typ}
-	if err := manager.Lock(mgr.ByInstanceAndType(o)); err != nil {
+	if err := manager.Lock(mgr.ByInstanceAndTypeQ(o)); err != nil {
 		if err == pg.ErrNoRows {
 			return api.NewNotFoundError(o)
 		}

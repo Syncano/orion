@@ -19,8 +19,8 @@ func (q *Factory) NewInstanceIndicatorManager(c echo.Context) *InstanceIndicator
 	return &InstanceIndicatorManager{Factory: q, Manager: manager.NewTenantManager(WrapContext(c), q.db)}
 }
 
-// ByInstanceAndType filters object filtered by instance and type.
-func (m *InstanceIndicatorManager) ByInstanceAndType(o *models.InstanceIndicator) *orm.Query {
+// ByInstanceAndTypeQ filters object filtered by instance and type.
+func (m *InstanceIndicatorManager) ByInstanceAndTypeQ(o *models.InstanceIndicator) *orm.Query {
 	return m.QueryContext(DBToStdContext(m), o).Where("instance_id = ?", o.InstanceID).
 		Where("type = ?", o.Type)
 }
