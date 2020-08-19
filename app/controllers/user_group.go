@@ -118,7 +118,7 @@ func (ctr *Controller) GroupsInUserCreate(c echo.Context) error {
 
 	if err := api.BindValidateAndExec(c, v, func() error {
 		v.Bind(o)
-		return mgr.InsertContext(c.Request().Context(), o)
+		return mgr.Insert(o)
 	}); err != nil {
 		return err
 	}

@@ -27,5 +27,5 @@ func (ctr *Controller) updateInstanceIndicatorValue(c echo.Context, db orm.DB, t
 
 	o.Value += diff
 
-	return mgr.UpdateContext(c.Request().Context(), o)
+	return mgr.Update(o)
 }

@@ -38,7 +38,7 @@ func (m *TriggerManager) Match(instance *models.Instance, event map[string]strin
 		ehstore := new(fields.Hstore)
 		ehstore.Set(event) // nolint: errcheck
 
-		err := m.QueryContext(DBToStdContext(m), &o).Where("event @> ?", ehstore).Where("signals @> ?", pg.Array([]string{signal})).Select()
+		err := m.Query(&o).Where("event @> ?", ehstore).Where("signals @> ?", pg.Array([]string{signal})).Select()
 		return o, err
 	})
 

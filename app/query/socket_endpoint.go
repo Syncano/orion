@@ -24,7 +24,7 @@ func (q *Factory) NewSocketEndpointManager(c echo.Context) *SocketEndpointManage
 
 // ForSocketQ outputs object filtered by name.
 func (m *SocketEndpointManager) ForSocketQ(socket *models.Socket, o interface{}) *orm.Query {
-	return m.QueryContext(DBToStdContext(m), o).Where("socket_id = ?", socket.ID)
+	return m.Query(o).Where("socket_id = ?", socket.ID)
 }
 
 // OneByName outputs object filtered by name.
@@ -33,12 +33,12 @@ func (m *SocketEndpointManager) OneByName(o *models.SocketEndpoint) error {
 
 	return manager.RequireOne(
 		m.c.SimpleModelCache(m.DB(), o, fmt.Sprintf("n=%s", o.Name), func() (interface{}, error) {
-			return o, m.QueryContext(DBToStdContext(m), o).Where("name = ?", o.Name).Select()
+			return o, m.Query(o).Where("name = ?", o.Name).Select()
 		}),
 	)
 }
 
 // WithAccessQ outputs objects that entity has access to.
 func (m *SocketEndpointManager) WithAccessQ(o interface{}) *orm.Query {
-	return m.QueryContext(DBToStdContext(m), o)
+	return m.Query(o)
 }

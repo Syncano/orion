@@ -348,7 +348,7 @@ func init() {
 			var q *orm.Query
 			switch cls.Name {
 			case models.UserClassName:
-				q = qf.NewUserManager(c).QueryContext(c.Request().Context(), (*models.User)(nil)).
+				q = qf.NewUserManager(c).Query((*models.User)(nil)).
 					Join(`JOIN ?schema.data_dataobject AS "profile" ON "profile"."owner_id" = "user"."id"`).
 					Where("profile._klass_id = ?", cls.ID).Column(col)
 			default:

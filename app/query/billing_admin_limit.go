@@ -23,6 +23,6 @@ func (q *Factory) NewAdminLimitManager(c echo.Context) *AdminLimitManager {
 // OneForAdmin returns admin limit for specified o.AdminID.
 func (m *AdminLimitManager) OneForAdmin(o *models.AdminLimit) error {
 	return m.c.SimpleModelCache(m.DB(), o, fmt.Sprintf("a=%d", o.AdminID), func() (interface{}, error) {
-		return o, m.QueryContext(DBToStdContext(m), o).Where("admin_id = ?", o.AdminID).Select()
+		return o, m.Query(o).Where("admin_id = ?", o.AdminID).Select()
 	})
 }

@@ -22,12 +22,12 @@ func (q *Factory) NewDataObjectManager(c echo.Context) *DataObjectManager {
 
 // CountEstimate returns count estimate for current data objects list.
 func (m *DataObjectManager) CountEstimate(q orm.QueryAppender) (int, error) {
-	return manager.CountEstimate(DBToStdContext(m), m.DB(), q, settings.API.DataObjectEstimateThreshold)
+	return manager.CountEstimate(m.DBContext().Context(), m.DB(), q, settings.API.DataObjectEstimateThreshold)
 }
 
 // ForClassQ outputs objects within specific class.
 func (m *DataObjectManager) ForClassQ(class *models.Class, o interface{}) *orm.Query {
-	q := m.QueryContext(DBToStdContext(m), o).Where("_klass_id = ?", class.ID)
+	q := m.Query(o).Where("_klass_id = ?", class.ID)
 	return q
 }
 
