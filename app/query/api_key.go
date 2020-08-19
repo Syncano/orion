@@ -24,7 +24,7 @@ func (q *Factory) NewAPIKeyManager(c echo.Context) *APIKeyManager {
 func (m *APIKeyManager) OneByKey(o *models.APIKey) error {
 	return manager.RequireOne(
 		m.c.SimpleModelCache(m.DB(), o, fmt.Sprintf("k=%s", o.Key), func() (interface{}, error) {
-			return o, m.QueryContext(DBToStdContext(m), o).Where("key = ?", o.Key).Select()
+			return o, m.Query(o).Where("key = ?", o.Key).Select()
 		}),
 	)
 }

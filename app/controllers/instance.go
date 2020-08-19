@@ -55,7 +55,7 @@ func (ctr *Controller) InstanceContext(next echo.HandlerFunc) echo.HandlerFunc {
 		if owner.LastAccess.IsNull() || time.Since(owner.LastAccess.Time) > 12*time.Hour {
 			owner.LastAccess.Set(time.Now())                                                  // nolint: errcheck
 			owner.NoticedAt.Set(nil)                                                          // nolint: errcheck
-			adminMgr.UpdateContext(c.Request().Context(), owner, "last_access", "noticed_at") // nolint: errcheck
+			adminMgr.Update(owner, "last_access", "noticed_at") // nolint: errcheck
 		}
 
 		c.Set(settings.ContextInstanceKey, o)

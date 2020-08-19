@@ -26,7 +26,7 @@ func (q *Factory) NewSocketManager(c echo.Context) *SocketManager {
 func (m *SocketManager) OneByID(o *models.Socket) error {
 	return manager.RequireOne(
 		m.c.SimpleModelCache(m.DB(), o, fmt.Sprintf("i=%d", o.ID), func() (interface{}, error) {
-			return o, m.QueryContext(DBToStdContext(m), o).Where("id = ?", o.ID).Select()
+			return o, m.Query(o).Where("id = ?", o.ID).Select()
 		}),
 	)
 }
@@ -37,12 +37,12 @@ func (m *SocketManager) OneByName(o *models.Socket) error {
 
 	return manager.RequireOne(
 		m.c.SimpleModelCache(m.DB(), o, fmt.Sprintf("n=%s", o.Name), func() (interface{}, error) {
-			return o, m.QueryContext(DBToStdContext(m), o).Where("name = ?", o.Name).Select()
+			return o, m.Query(o).Where("name = ?", o.Name).Select()
 		}),
 	)
 }
 
 // WithAccessQ outputs objects that entity has access to.
 func (m *SocketManager) WithAccessQ(o interface{}) *orm.Query {
-	return m.QueryContext(DBToStdContext(m), o)
+	return m.Query(o)
 }

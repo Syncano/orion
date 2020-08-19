@@ -24,7 +24,7 @@ func (q *Factory) NewAdminInstanceRoleManager(c echo.Context) *AdminInstanceRole
 func (m *AdminInstanceRoleManager) OneByInstanceAndAdmin(o *models.AdminInstanceRole) error {
 	return manager.RequireOne(
 		m.c.SimpleModelCache(m.DB(), o, fmt.Sprintf("i=%d;a=%d", o.InstanceID, o.AdminID), func() (interface{}, error) {
-			return o, m.QueryContext(DBToStdContext(m), o).Where("instance_id = ?", o.InstanceID).Where("admin_id = ?", o.AdminID).Select()
+			return o, m.Query(o).Where("instance_id = ?", o.InstanceID).Where("admin_id = ?", o.AdminID).Select()
 		}),
 	)
 }
