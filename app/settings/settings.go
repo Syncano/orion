@@ -143,7 +143,7 @@ type socket struct {
 }
 
 var Socket = &socket{
-	CodeboxAddr:    "codebox-broker:80",
+	CodeboxAddr:    "codebox-broker:9000",
 	DefaultTimeout: 30 * time.Second / 1e6,
 	DefaultAsync:   0,
 	DefaultMCPU:    0,
