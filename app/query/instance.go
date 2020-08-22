@@ -24,10 +24,12 @@ func (q *Factory) NewInstanceManager(c echo.Context) *InstanceManager {
 
 // WithAccessQ outputs objects that entity has access to.
 func (m *InstanceManager) WithAccessQ(o interface{}) *orm.Query {
+	c := m.DBContext().Unwrap().(echo.Context)
 	q := m.Query(o).Column("instance.*").Relation("Owner")
-	if a := m.DBContext().(echo.Context).Get(settings.ContextAdminKey); a != nil {
+
+	if a := c.Get(settings.ContextAdminKey); a != nil {
 		q = q.Join("JOIN admins_admininstancerole AS air ON air.instance_id = instance.id AND air.admin_id = ?", a.(*models.Admin).ID)
-	} else if a := m.DBContext().(echo.Context).Get(settings.ContextAPIKeyKey); a != nil {
+	} else if a := c.Get(settings.ContextAPIKeyKey); a != nil {
 		q = q.Where("id = ?", a.(*models.APIKey).InstanceID)
 	}
 
