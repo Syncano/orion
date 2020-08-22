@@ -12,7 +12,7 @@ import (
 )
 
 func (ctr *Controller) dataObjectSoftDeleteTriggerHook(c database.DBContext, db orm.DB, i interface{}) error {
-	ctr.launchDataObjectTrigger(c.(echo.Context), db, i.(*models.DataObject), models.TriggerSignalDelete)
+	ctr.launchDataObjectTrigger(c.Unwrap().(echo.Context), db, i.(*models.DataObject), models.TriggerSignalDelete)
 	return nil
 }
 

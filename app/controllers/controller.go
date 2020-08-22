@@ -119,7 +119,7 @@ func (ctr *Controller) liveObjectSoftDeleteHook(c database.DBContext, db orm.DB,
 
 	ctr.db.AddDBCommitHook(db, func() error {
 		return tasks.NewDeleteLiveObjectTask(
-			c.(echo.Context).Get(settings.ContextInstanceKey).(*models.Instance).ID,
+			c.Unwrap().(echo.Context).Get(settings.ContextInstanceKey).(*models.Instance).ID,
 			modelName, objectPK,
 		).Publish(ctr.cel)
 	})
