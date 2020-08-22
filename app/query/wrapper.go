@@ -10,7 +10,14 @@ import (
 )
 
 func WrapContext(c echo.Context) database.DBContext {
-	return database.WrapContext(c.Request().Context(), c)
+	return database.WrapContextWithSchemaGetter(c.Request().Context(), func() string {
+		schema := c.Get(settings.ContextSchemaKey)
+		if schema == nil {
+			return "public"
+		}
+
+		return schema.(string)
+	}, c)
 }
 
 func TenantDB(c echo.Context, db *database.DB) *pg.DB {

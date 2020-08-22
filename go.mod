@@ -5,7 +5,7 @@ go 1.15
 require (
 	contrib.go.opencensus.io/exporter/jaeger v0.2.1
 	contrib.go.opencensus.io/exporter/prometheus v0.2.0
-	github.com/Syncano/pkg-go/v2 v2.5.0
+	github.com/Syncano/pkg-go/v2 v2.5.1
 	github.com/Syncano/syncanoapis/gen v1.1.0
 	github.com/alexandrevicenzi/unchained v1.3.0
 	github.com/blang/semver v3.5.1+incompatible

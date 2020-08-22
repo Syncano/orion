@@ -65,6 +65,8 @@ github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5/go.mod h1:lmUJ/7eu/Q8
 github.com/Shopify/goreferrer v0.0.0-20181106222321-ec9c9a553398/go.mod h1:a1uqRtAwp2Xwc6WNPJEufxJ7fx3npB4UV/JOLmbu5I0=
 github.com/Syncano/pkg-go/v2 v2.5.0 h1:Kaj9DQupbOilRlETDopjoQuJSu7PdKdNN+DmWGJvSBQ=
 github.com/Syncano/pkg-go/v2 v2.5.0/go.mod h1:/ssrSVW3RehtRo3YgHfE4ybuCpeM/G2V9xyeH1SSVKE=
+github.com/Syncano/pkg-go/v2 v2.5.1 h1:Cqb1qpUEjwBGNZakDeSX7+48/V23wJyDaCOin/rmWVc=
+github.com/Syncano/pkg-go/v2 v2.5.1/go.mod h1:/ssrSVW3RehtRo3YgHfE4ybuCpeM/G2V9xyeH1SSVKE=
 github.com/Syncano/syncanoapis/gen v1.1.0 h1:CIKg+EIOh/ZKp56ROtzeDkAdShuZOYODg0+emektZw8=
 github.com/Syncano/syncanoapis/gen v1.1.0/go.mod h1:I1+7CW9sF/sLeKhuAN83+sPVi/iveumVkxx/+oTHsGE=
 github.com/TheZeroSlave/zapsentry v1.5.0 h1:TpZcIE2Ie9L96WU08w49TfaDKgiaq2rGAwLT8NIkPlk=
