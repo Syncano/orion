@@ -14,7 +14,7 @@ import (
 
 	"github.com/Syncano/orion/app/server"
 	"github.com/Syncano/orion/app/version"
-	"github.com/Syncano/pkg-go/celery"
+	"github.com/Syncano/pkg-go/v2/celery"
 )
 
 var serverCmd = &cli.Command{
@@ -63,6 +63,16 @@ var serverCmd = &cli.Command{
 			w.WriteHeader(200)
 		})
 
+		// Serve metrics
+		logg.With(zap.Int("metrics-port", c.Int("metrics-port"))).Info("Serving http for metrics")
+		metricsServer := http.Server{Addr: fmt.Sprintf(":%d", c.Int("metrics-port"))}
+
+		go func() {
+			if err := metricsServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				logg.With(zap.Error(err)).Fatal("Serve error")
+			}
+		}()
+
 		// Handle SIGINT and SIGTERM.
 		ch := make(chan os.Signal, 1)
 		signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
@@ -70,7 +80,8 @@ var serverCmd = &cli.Command{
 
 		// Graceful shutdown.
 		logg.Info("Shutting down")
-		srv.Shutdown(context.Background()) // nolint: errcheck
+		metricsServer.Shutdown(context.Background()) // nolint: errcheck
+		srv.Shutdown(context.Background())           // nolint: errcheck
 		return nil
 	},
 }

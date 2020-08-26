@@ -3,9 +3,10 @@ package query
 import (
 	"fmt"
 
+	"github.com/labstack/echo/v4"
+
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/pkg-go/database"
-	"github.com/Syncano/pkg-go/database/manager"
+	"github.com/Syncano/pkg-go/v2/database/manager"
 )
 
 // AdminLimitManager represents Admin Limit manager.
@@ -15,8 +16,8 @@ type AdminLimitManager struct {
 }
 
 // NewAdminLimitManager creates and returns new Admin Limit manager.
-func (q *Factory) NewAdminLimitManager(c database.DBContext) *AdminLimitManager {
-	return &AdminLimitManager{Factory: q, Manager: manager.NewManager(q.db, c)}
+func (q *Factory) NewAdminLimitManager(c echo.Context) *AdminLimitManager {
+	return &AdminLimitManager{Factory: q, Manager: manager.NewManager(WrapContext(c), q.db)}
 }
 
 // OneForAdmin returns admin limit for specified o.AdminID.

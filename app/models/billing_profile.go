@@ -5,7 +5,7 @@ import (
 
 	"github.com/shopspring/decimal"
 
-	"github.com/Syncano/pkg-go/database/fields"
+	"github.com/Syncano/pkg-go/v2/database/fields"
 )
 
 // Profile represents billing profile model.

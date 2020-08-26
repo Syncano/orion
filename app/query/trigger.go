@@ -5,12 +5,12 @@ import (
 
 	"github.com/go-pg/pg/v9"
 	json "github.com/json-iterator/go"
+	"github.com/labstack/echo/v4"
 
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/pkg-go/database"
-	"github.com/Syncano/pkg-go/database/fields"
-	"github.com/Syncano/pkg-go/database/manager"
-	"github.com/Syncano/pkg-go/util"
+	"github.com/Syncano/pkg-go/v2/database/fields"
+	"github.com/Syncano/pkg-go/v2/database/manager"
+	"github.com/Syncano/pkg-go/v2/util"
 )
 
 // TriggerManager represents Trigger manager.
@@ -20,8 +20,8 @@ type TriggerManager struct {
 }
 
 // NewTriggerManager creates and returns new Trigger manager.
-func (q *Factory) NewTriggerManager(c database.DBContext) *TriggerManager {
-	return &TriggerManager{Factory: q, Manager: manager.NewTenantManager(q.db, c)}
+func (q *Factory) NewTriggerManager(c echo.Context) *TriggerManager {
+	return &TriggerManager{Factory: q, Manager: manager.NewTenantManager(WrapContext(c), q.db)}
 }
 
 // Match outputs one object within specific class filtered by id.
@@ -34,7 +34,7 @@ func (m *TriggerManager) Match(instance *models.Instance, event map[string]strin
 	versionKey := fmt.Sprintf("i=%d;e=%s", instance.ID, eventSerialized)
 	lookup := fmt.Sprintf("s=%s", signal)
 
-	err := m.c.SimpleFuncCache("Trigger.Match", versionKey, o, lookup, func() (interface{}, error) {
+	err := m.c.SimpleFuncCache("Trigger.Match", lookup, versionKey, o, func() (interface{}, error) {
 		ehstore := new(fields.Hstore)
 		ehstore.Set(event) // nolint: errcheck
 

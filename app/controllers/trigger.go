@@ -2,20 +2,21 @@ package controllers
 
 import (
 	"github.com/go-pg/pg/v9/orm"
+	"github.com/labstack/echo/v4"
 
 	"github.com/Syncano/orion/app/models"
 	"github.com/Syncano/orion/app/serializers"
 	"github.com/Syncano/orion/app/settings"
 	"github.com/Syncano/orion/app/tasks"
-	"github.com/Syncano/pkg-go/database"
+	"github.com/Syncano/pkg-go/v2/database"
 )
 
 func (ctr *Controller) dataObjectSoftDeleteTriggerHook(c database.DBContext, db orm.DB, i interface{}) error {
-	ctr.launchDataObjectTrigger(c, db, i.(*models.DataObject), models.TriggerSignalDelete)
+	ctr.launchDataObjectTrigger(c.Unwrap().(echo.Context), db, i.(*models.DataObject), models.TriggerSignalDelete)
 	return nil
 }
 
-func (ctr *Controller) launchDataObjectTrigger(c database.DBContext, db orm.DB, o *models.DataObject, signal string) {
+func (ctr *Controller) launchDataObjectTrigger(c echo.Context, db orm.DB, o *models.DataObject, signal string) {
 	var (
 		changes []string
 	)
@@ -29,7 +30,7 @@ func (ctr *Controller) launchDataObjectTrigger(c database.DBContext, db orm.DB, 
 	ctr.launchTrigger(c, db, o, map[string]string{"source": "dataobject", "class": class.Name}, signal, serializers.DataObjectSerializer{Class: class}, changes)
 }
 
-func (ctr *Controller) launchTrigger(c database.DBContext, db orm.DB, o interface{}, event map[string]string, signal string, serializer serializers.Serializer, changes []string) {
+func (ctr *Controller) launchTrigger(c echo.Context, db orm.DB, o interface{}, event map[string]string, signal string, serializer serializers.Serializer, changes []string) {
 	var (
 		data map[string]interface{}
 	)

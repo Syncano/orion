@@ -6,7 +6,7 @@ import (
 	"github.com/caarlos0/env/v6"
 	"github.com/jinzhu/now"
 
-	"github.com/Syncano/pkg-go/util"
+	"github.com/Syncano/pkg-go/v2/util"
 )
 
 type common struct {
@@ -143,7 +143,7 @@ type socket struct {
 }
 
 var Socket = &socket{
-	CodeboxAddr:    "codebox-broker:80",
+	CodeboxAddr:    "codebox-broker:9000",
 	DefaultTimeout: 30 * time.Second / 1e6,
 	DefaultAsync:   0,
 	DefaultMCPU:    0,

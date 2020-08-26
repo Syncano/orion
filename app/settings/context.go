@@ -1,6 +1,6 @@
 package settings
 
-// Context keys for auth.
+// Context keys.
 const (
 	ContextAdminKey         = "auth_admin"
 	ContextAPIKeyKey        = "auth_api_key"
@@ -8,4 +8,5 @@ const (
 	ContextInstanceOwnerKey = "instance_owner"
 	ContextUserKey          = "auth_user"
 	ContextRequestID        = "req_id"
+	ContextSchemaKey        = "schema"
 )

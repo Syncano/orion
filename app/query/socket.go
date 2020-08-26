@@ -5,10 +5,10 @@ import (
 	"strings"
 
 	"github.com/go-pg/pg/v9/orm"
+	"github.com/labstack/echo/v4"
 
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/pkg-go/database"
-	"github.com/Syncano/pkg-go/database/manager"
+	"github.com/Syncano/pkg-go/v2/database/manager"
 )
 
 // SocketManager represents Socket manager.
@@ -18,8 +18,8 @@ type SocketManager struct {
 }
 
 // NewSocketManager creates and returns new Socket manager.
-func (q *Factory) NewSocketManager(c database.DBContext) *SocketManager {
-	return &SocketManager{Factory: q, LiveManager: manager.NewLiveTenantManager(q.db, c)}
+func (q *Factory) NewSocketManager(c echo.Context) *SocketManager {
+	return &SocketManager{Factory: q, LiveManager: manager.NewLiveTenantManager(WrapContext(c), q.db)}
 }
 
 // OneByID outputs object filtered by ID.

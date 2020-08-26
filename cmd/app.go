@@ -18,6 +18,7 @@ import (
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/trace"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zapgrpc"
 	"google.golang.org/grpc/grpclog"
 
@@ -25,11 +26,11 @@ import (
 	"github.com/Syncano/orion/app/version"
 	"github.com/Syncano/orion/cmd/amqp"
 	"github.com/Syncano/orion/pkg/jobs"
-	"github.com/Syncano/pkg-go/database"
-	"github.com/Syncano/pkg-go/log"
-	"github.com/Syncano/pkg-go/rediscache"
-	"github.com/Syncano/pkg-go/rediscli"
-	"github.com/Syncano/pkg-go/storage"
+	"github.com/Syncano/pkg-go/v2/database"
+	"github.com/Syncano/pkg-go/v2/log"
+	"github.com/Syncano/pkg-go/v2/rediscache"
+	"github.com/Syncano/pkg-go/v2/rediscli"
+	"github.com/Syncano/pkg-go/v2/storage"
 )
 
 var (
@@ -62,49 +63,61 @@ func init() {
 	}
 	App.Copyright = "Syncano"
 	App.Flags = []cli.Flag{
+		&cli.StringFlag{
+			Name: "log-level", Usage: "logging level",
+			EnvVars: []string{"LOGLEVEL"}, Value: zapcore.InfoLevel.String(),
+		},
 		&cli.BoolFlag{
 			Name: "debug", Usage: "enable debug mode",
 			EnvVars: []string{"DEBUG"},
 		},
 		&cli.IntFlag{
-			Name: "metric-port", Aliases: []string{"mp"}, Usage: "port for expvar server",
-			EnvVars: []string{"METRIC_PORT"}, Value: 9080,
+			Name: "metrics-port", Aliases: []string{"mp"}, Usage: "port for metrics",
+			EnvVars: []string{"METRICS_PORT"}, Value: 9080,
 		},
 
 		// Database options.
 		&cli.StringFlag{
 			Name: "db-name", Usage: "database name",
-			EnvVars: []string{"DB_NAME"}, Value: "syncano", Destination: &dbOptions.Database,
+			EnvVars: []string{"DB_NAME", "PGDATABASE"}, Value: "syncano", Destination: &dbOptions.Database,
 		},
 		&cli.StringFlag{
 			Name: "db-user", Usage: "database user",
-			EnvVars: []string{"DB_USER"}, Value: "syncano", Destination: &dbOptions.User,
+			EnvVars: []string{"DB_USER", "PGUSER"}, Value: "syncano", Destination: &dbOptions.User,
 		},
 		&cli.StringFlag{
 			Name: "db-pass", Usage: "database password",
-			EnvVars: []string{"DB_PASS"}, Value: "syncano", Destination: &dbOptions.Password,
+			EnvVars: []string{"DB_PASS", "PGPASSWORD"}, Value: "syncano", Destination: &dbOptions.Password,
 		},
 		&cli.StringFlag{
-			Name: "db-addr", Usage: "database address",
-			EnvVars: []string{"DB_ADDR"}, Value: "postgresql:5432", Destination: &dbOptions.Addr,
+			Name: "db-host", Usage: "database host",
+			EnvVars: []string{"DB_HOST", "PGHOST"}, Value: "postgresql",
+		},
+		&cli.StringFlag{
+			Name: "db-port", Usage: "database port",
+			EnvVars: []string{"DB_PORT", "PGPORT"}, Value: "5432",
 		},
 
 		// Database instances options.
 		&cli.StringFlag{
-			Name: "db-instances-name", Usage: "database name",
-			EnvVars: []string{"DB_INSTANCES_NAME", "DB_NAME"}, Value: "syncano", Destination: &dbInstancesOptions.Database,
+			Name: "db-instances-name", Usage: "instances database name",
+			EnvVars: []string{"DB_INSTANCES_NAME", "DB_NAME", "PGDATABASE"}, Value: "syncano", Destination: &dbInstancesOptions.Database,
 		},
 		&cli.StringFlag{
-			Name: "db-instances-user", Usage: "database user",
-			EnvVars: []string{"DB_INSTANCES_USER", "DB_USER"}, Value: "syncano", Destination: &dbInstancesOptions.User,
+			Name: "db-instances-user", Usage: "instances database user",
+			EnvVars: []string{"DB_INSTANCES_USER", "DB_USER", "PGUSER"}, Value: "syncano", Destination: &dbInstancesOptions.User,
 		},
 		&cli.StringFlag{
-			Name: "db-instances-pass", Usage: "database password",
-			EnvVars: []string{"DB_INSTANCES_PASS", "DB_PASS"}, Value: "syncano", Destination: &dbInstancesOptions.Password,
+			Name: "db-instances-pass", Usage: "instances database password",
+			EnvVars: []string{"DB_INSTANCES_PASS", "DB_PASS", "PGPASSWORD"}, Value: "syncano", Destination: &dbInstancesOptions.Password,
 		},
 		&cli.StringFlag{
-			Name: "db-instances-host", Usage: "database address",
-			EnvVars: []string{"DB_INSTANCES_ADDR", "DB_ADDR"}, Value: "postgresql:5432", Destination: &dbInstancesOptions.Addr,
+			Name: "db-instances-host", Usage: "instances database host",
+			EnvVars: []string{"DB_INSTANCES_HOST", "DB_HOST", "PGHOST"}, Value: "postgresql",
+		},
+		&cli.StringFlag{
+			Name: "db-instances-port", Usage: "instances database port",
+			EnvVars: []string{"DB_INSTANCES_PORT", "DB_PORT", "PGPORT"}, Value: "5432",
 		},
 
 		// Tracing options.
@@ -146,9 +159,14 @@ func init() {
 		}
 
 		var err error
-		if logger, err = log.New(c.Bool("debug"), sentry.CurrentHub().Client()); err != nil {
+		if logger, err = log.New(sentry.CurrentHub().Client(),
+			log.WithLogLevel(c.String("log_level")),
+			log.WithDebug(c.Bool("debug")),
+		); err != nil {
 			return err
 		}
+
+		logg := logger.Logger()
 
 		// Set grpc logger.
 		var zapgrpcOpts []zapgrpc.Option
@@ -156,21 +174,11 @@ func init() {
 			zapgrpcOpts = append(zapgrpcOpts, zapgrpc.WithDebug())
 		}
 
-		grpclog.SetLogger(zapgrpc.NewLogger(logger.Logger(), zapgrpcOpts...)) // nolint: staticcheck
+		grpclog.SetLogger(zapgrpc.NewLogger(logg, zapgrpcOpts...)) // nolint: staticcheck
 
 		if c.Bool("debug") {
 			settings.Common.Debug = true
 		}
-
-		// Serve expvar and checks.
-		logg := logger.Logger()
-		logg.With(zap.Int("metric-port", c.Int("metric-port"))).Info("Serving http for expvar and checks")
-
-		go func() {
-			if err := http.ListenAndServe(fmt.Sprintf(":%d", c.Int("metric-port")), nil); err != nil && err != http.ErrServerClosed {
-				logg.With(zap.Error(err)).Fatal("Serve error")
-			}
-		}()
 
 		// Setup prometheus handler.
 		exporter, err := prometheus.NewExporter(prometheus.Options{})
@@ -211,20 +219,21 @@ func init() {
 		})
 
 		// Initialize database client.
+		dbOptions.Addr = fmt.Sprintf("%s:%s", c.String("db-host"), c.String("db-port"))
+		dbInstancesOptions.Addr = fmt.Sprintf("%s:%s", c.String("db-instances-host"), c.String("db-instances-port"))
 		db = database.NewDB(dbOptions, dbInstancesOptions, logger, c.Bool("debug"))
 
 		fs = storage.NewStorage(settings.Common.Location, settings.Buckets, settings.API.Host, settings.API.StorageURL)
 
 		// Initialize redis client.
 		storRedis = rediscli.NewRedis(&redisOptions)
-		cache = rediscache.New(storRedis.Client(), db, &rediscache.Options{
-			LocalCacheTimeout: settings.Common.LocalCacheTimeout,
-			CacheTimeout:      settings.Common.CacheTimeout,
-			CacheVersion:      settings.Common.CacheVersion,
-		})
+		cache = rediscache.New(storRedis.Client(), db,
+			rediscache.WithTimeout(settings.Common.LocalCacheTimeout, settings.Common.CacheTimeout),
+			rediscache.WithVersion(settings.Common.CacheVersion),
+		)
 
 		// Initialize AMQP client and celery wrapper.
-		amqpChannel, err = amqp.New(c.String("broker-url"), logger.Logger())
+		amqpChannel, err = amqp.New(c.String("broker-url"), logg)
 		if err != nil {
 			return err
 		}
@@ -256,7 +265,9 @@ func init() {
 		jobs.Shutdown()
 
 		// Close tracing reporter.
-		jaegerExporter.Flush()
+		if jaegerExporter != nil {
+			jaegerExporter.Flush()
+		}
 
 		// Flush remaining sentry events.
 		sentry.Flush(5 * time.Second)

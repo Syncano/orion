@@ -15,10 +15,10 @@ import (
 	"github.com/Syncano/orion/app/models"
 	"github.com/Syncano/orion/app/serializers"
 	"github.com/Syncano/orion/app/settings"
-	"github.com/Syncano/pkg-go/database"
-	"github.com/Syncano/pkg-go/database/manager"
-	"github.com/Syncano/pkg-go/storage"
-	"github.com/Syncano/pkg-go/util"
+	"github.com/Syncano/pkg-go/v2/database"
+	"github.com/Syncano/pkg-go/v2/database/manager"
+	"github.com/Syncano/pkg-go/v2/storage"
+	"github.com/Syncano/pkg-go/v2/util"
 )
 
 func (ctr *Controller) DataObjectCreate(c echo.Context) error {
@@ -182,10 +182,10 @@ func (ctr *Controller) dataObjectDeleteHook(c database.DBContext, db orm.DB, i i
 	}
 
 	if sizeDiff != 0 {
-		sub := c.Get(contextSubscriptionKey).(*models.Subscription)
-		c.Get(contextAdminLimitKey).(*models.AdminLimit).StorageLimit(sub)
+		sub := c.Unwrap().(echo.Context).Get(contextSubscriptionKey).(*models.Subscription)
+		c.Unwrap().(echo.Context).Get(contextAdminLimitKey).(*models.AdminLimit).StorageLimit(sub)
 
-		return ctr.updateInstanceIndicatorValue(c, db, models.InstanceIndicatorTypeStorageSize, -sizeDiff)
+		return ctr.updateInstanceIndicatorValue(c.Unwrap().(echo.Context), db, models.InstanceIndicatorTypeStorageSize, -sizeDiff)
 	}
 
 	return nil

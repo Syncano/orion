@@ -108,12 +108,13 @@ func (ctr *Controller) UserGroupDelete(c echo.Context) error {
 func (ctr *Controller) GroupsInUserCreate(c echo.Context) error {
 	user := c.Get(contextUserKey).(*models.User)
 	group := &models.UserGroup{}
-	o := &models.UserMembership{UserID: user.ID}
 	mgr := ctr.q.NewUserMembershipManager(c)
+
 	v := &validators.GroupInUserForm{
 		GroupQ:      ctr.q.NewUserGroupManager(c).Q(group),
 		MembershipQ: mgr.ForUserQ(user, (*models.UserMembership)(nil)),
 	}
+	o := &models.UserMembership{UserID: user.ID}
 
 	if err := api.BindValidateAndExec(c, v, func() error {
 		v.Bind(o)

@@ -3,9 +3,10 @@ package query
 import (
 	"fmt"
 
+	"github.com/labstack/echo/v4"
+
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/pkg-go/database"
-	"github.com/Syncano/pkg-go/database/manager"
+	"github.com/Syncano/pkg-go/v2/database/manager"
 )
 
 // AdminManager represents Admin manager.
@@ -15,8 +16,8 @@ type AdminManager struct {
 }
 
 // NewAdminManager creates and returns new Admin manager.
-func (q *Factory) NewAdminManager(c database.DBContext) *AdminManager {
-	return &AdminManager{Factory: q, LiveManager: manager.NewLiveManager(q.db, c)}
+func (q *Factory) NewAdminManager(c echo.Context) *AdminManager {
+	return &AdminManager{Factory: q, LiveManager: manager.NewLiveManager(WrapContext(c), q.db)}
 }
 
 // OneByID outputs object filtered by name.

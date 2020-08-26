@@ -15,8 +15,8 @@ import (
 	geom "github.com/twpayne/go-geom"
 	"github.com/twpayne/go-geom/encoding/ewkbhex"
 
-	"github.com/Syncano/pkg-go/database/fields"
-	"github.com/Syncano/pkg-go/util"
+	"github.com/Syncano/pkg-go/v2/database/fields"
+	"github.com/Syncano/pkg-go/v2/util"
 )
 
 var defaultObjectOrderFields = map[string]OrderField{

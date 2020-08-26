@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/labstack/echo/v4"
+
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/pkg-go/database"
-	"github.com/Syncano/pkg-go/database/manager"
+	"github.com/Syncano/pkg-go/v2/database/manager"
 )
 
 // SubscriptionManager represents Subscription manager.
@@ -16,8 +17,8 @@ type SubscriptionManager struct {
 }
 
 // NewSubscriptionManager creates and returns new Subscription manager.
-func (q *Factory) NewSubscriptionManager(c database.DBContext) *SubscriptionManager {
-	return &SubscriptionManager{Factory: q, Manager: manager.NewManager(q.db, c)}
+func (q *Factory) NewSubscriptionManager(c echo.Context) *SubscriptionManager {
+	return &SubscriptionManager{Factory: q, Manager: manager.NewManager(WrapContext(c), q.db)}
 }
 
 // OneActiveForAdmin returns subscription active at time for specified o.AdminID.

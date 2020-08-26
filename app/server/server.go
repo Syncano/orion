@@ -1,10 +1,11 @@
 package server
 
 import (
-	"context"
-	"net"
 	"net/http"
 	"time"
+
+	// using pprof when debug is true
+	_ "net/http/pprof" // nolint:gosec
 
 	sentryecho "github.com/getsentry/sentry-go/echo"
 	"github.com/labstack/echo/v4"
@@ -16,25 +17,24 @@ import (
 	"github.com/Syncano/orion/app/routers"
 	"github.com/Syncano/orion/app/settings"
 	"github.com/Syncano/orion/app/validators"
-	"github.com/Syncano/pkg-go/celery"
-	"github.com/Syncano/pkg-go/database"
-	echo_middleware "github.com/Syncano/pkg-go/echo_middleware"
-	"github.com/Syncano/pkg-go/log"
-	"github.com/Syncano/pkg-go/rediscache"
-	"github.com/Syncano/pkg-go/rediscli"
-	"github.com/Syncano/pkg-go/storage"
+	"github.com/Syncano/pkg-go/v2/celery"
+	"github.com/Syncano/pkg-go/v2/database"
+	echo_middleware "github.com/Syncano/pkg-go/v2/echo_middleware"
+	"github.com/Syncano/pkg-go/v2/log"
+	"github.com/Syncano/pkg-go/v2/rediscache"
+	"github.com/Syncano/pkg-go/v2/rediscli"
+	"github.com/Syncano/pkg-go/v2/storage"
 )
 
 // Server defines a Web server wrapper.
 type Server struct {
-	srv   *http.Server
 	ctr   *controllers.Controller
 	log   *log.Logger
 	debug bool
 }
 
 // NewServer initializes new Web server.
-func NewServer(db *database.DB, fs *storage.Storage, redis *rediscli.Redis, rc *rediscache.Cache, cel *celery.Celery, logger *log.Logger, debug bool) (*Server, error) {
+func NewServer(db *database.DB, fs *storage.Storage, redis *rediscli.Redis, rc *rediscache.Cache, cel *celery.Celery, logger *log.Logger, debug bool) (*http.Server, error) {
 	ctr, err := controllers.New(db, fs, redis, rc, cel, logger)
 	if err != nil {
 		return nil, err
@@ -42,18 +42,18 @@ func NewServer(db *database.DB, fs *storage.Storage, redis *rediscli.Redis, rc *
 
 	stdlog, _ := zap.NewStdLogAt(logger.Logger(), zap.WarnLevel)
 	s := &Server{
-		srv: &http.Server{
-			ReadTimeout:  6 * time.Minute,
-			WriteTimeout: 6 * time.Minute,
-			ErrorLog:     stdlog,
-		},
 		debug: debug,
 		ctr:   ctr,
 		log:   logger,
 	}
-	s.srv.Handler = s.setupRouter()
 
-	return s, nil
+	return &http.Server{
+		ReadTimeout:  1 * time.Minute,
+		WriteTimeout: 6 * time.Minute,
+		IdleTimeout:  2 * time.Minute,
+		ErrorLog:     stdlog,
+		Handler:      s.setupRouter(),
+	}, nil
 }
 
 func (s *Server) setupRouter() *echo.Echo {
@@ -89,14 +89,4 @@ func (s *Server) setupRouter() *echo.Echo {
 	routers.Register(s.ctr, e)
 
 	return e
-}
-
-// Serve handles requests on incoming connections.
-func (s *Server) Serve(lis net.Listener) error {
-	return s.srv.Serve(lis)
-}
-
-// Shutdown stops gracefully server.
-func (s *Server) Shutdown(ctx context.Context) error {
-	return s.srv.Shutdown(ctx)
 }

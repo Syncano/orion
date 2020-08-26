@@ -3,9 +3,10 @@ package query
 import (
 	"fmt"
 
+	"github.com/labstack/echo/v4"
+
 	"github.com/Syncano/orion/app/models"
-	"github.com/Syncano/pkg-go/database"
-	"github.com/Syncano/pkg-go/database/manager"
+	"github.com/Syncano/pkg-go/v2/database/manager"
 )
 
 // AdminInstanceRoleManager represents AdminInstanceRole manager.
@@ -15,8 +16,8 @@ type AdminInstanceRoleManager struct {
 }
 
 // NewAdminInstanceRoleManager creates and returns new AdminInstanceRole manager.
-func (q *Factory) NewAdminInstanceRoleManager(c database.DBContext) *AdminInstanceRoleManager {
-	return &AdminInstanceRoleManager{Factory: q, Manager: manager.NewManager(q.db, c)}
+func (q *Factory) NewAdminInstanceRoleManager(c echo.Context) *AdminInstanceRoleManager {
+	return &AdminInstanceRoleManager{Factory: q, Manager: manager.NewManager(WrapContext(c), q.db)}
 }
 
 // OneByInstanceAndAdmin outputs object filtered by instance and admin.
