@@ -5,8 +5,8 @@ go 1.15
 require (
 	contrib.go.opencensus.io/exporter/jaeger v0.2.1
 	contrib.go.opencensus.io/exporter/prometheus v0.2.0
-	github.com/Syncano/pkg-go/v2 v2.5.1
-	github.com/Syncano/syncanoapis/gen v1.1.0
+	github.com/Syncano/pkg-go/v2 v2.7.4
+	github.com/Syncano/syncanoapis/gen v1.2.0
 	github.com/alexandrevicenzi/unchained v1.3.0
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/caarlos0/env/v6 v6.3.0
@@ -26,7 +26,7 @@ require (
 	github.com/jackc/pgtype v1.4.2
 	github.com/jinzhu/now v1.1.1
 	github.com/json-iterator/go v1.1.10
-	github.com/labstack/echo/v4 v4.1.16
+	github.com/labstack/echo/v4 v4.1.17
 	github.com/labstack/gommon v0.3.0
 	github.com/mitchellh/hashstructure v1.0.0
 	github.com/mitchellh/mapstructure v1.3.3
@@ -39,7 +39,7 @@ require (
 	github.com/vektra/mockery v1.1.2
 	go.opencensus.io v0.22.4
 	go.uber.org/zap v1.15.0
-	golang.org/x/tools v0.0.0-20200819140908-cf83efe03cf8
-	google.golang.org/grpc v1.31.0
+	golang.org/x/tools v0.0.0-20200827163409-021d7c6f1ec3
+	google.golang.org/grpc v1.31.1
 	kkn.fi/base62 v0.1.0
 )

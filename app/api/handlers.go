@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-pg/pg/v9"
 	"github.com/go-playground/validator/v10"
 	"github.com/go-redis/redis_rate/v7"
 	"github.com/labstack/echo/v4"
@@ -46,7 +47,6 @@ func HTTPErrorHandler(err error, c echo.Context) {
 
 	if errors.As(err, &e) {
 		Render(c, e.Code, e.Data) // nolint: errcheck
-
 		return
 	}
 
@@ -72,8 +72,17 @@ func HTTPErrorHandler(err error, c echo.Context) {
 
 	if errors.As(err, &ve) {
 		Render(c, http.StatusBadRequest, validators.TranslateErrors(ve)) // nolint: errcheck
-
 		return
+	}
+
+	// Process statement_timeout error.
+	var pgerr pg.Error
+
+	if errors.As(err, &pgerr) {
+		if pgerr.Field('C') == "57014" {
+			Render(c, http.StatusRequestTimeout, map[string]string{"detail": "Requested query took too long. Timeout was reached."}) // nolint: errcheck
+			return
+		}
 	}
 
 	Render(c, http.StatusInternalServerError, map[string]string{"detail": "Internal server error."}) // nolint: errcheck
