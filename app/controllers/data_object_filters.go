@@ -24,7 +24,7 @@ import (
 var filters = map[string][]*filterOp{}
 
 const (
-	maxListLength = 128
+	maxListLength = 16
 )
 
 func registerFilter(op *filterOp, lookups ...string) {

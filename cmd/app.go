@@ -2,7 +2,6 @@ package cmd
 
 import (
 	_ "expvar" // Register expvar default http handler.
-	"fmt"
 	"math/rand"
 	"net/http"
 	"runtime"
@@ -37,8 +36,8 @@ var (
 	// App is the main structure of a cli application.
 	App = cli.NewApp()
 
-	dbOptions          = database.DefaultDBOptions()
-	dbInstancesOptions = database.DefaultDBOptions()
+	dbOptions          = database.DefaultOptions
+	dbInstancesOptions = database.DefaultOptions
 	redisOptions       = redis.Options{}
 	amqpChannel        *amqp.Channel
 
@@ -91,11 +90,11 @@ func init() {
 		},
 		&cli.StringFlag{
 			Name: "db-host", Usage: "database host",
-			EnvVars: []string{"DB_HOST", "PGHOST"}, Value: "postgresql",
+			EnvVars: []string{"DB_HOST", "PGHOST"}, Value: "postgresql", Destination: &dbOptions.Host,
 		},
 		&cli.StringFlag{
 			Name: "db-port", Usage: "database port",
-			EnvVars: []string{"DB_PORT", "PGPORT"}, Value: "5432",
+			EnvVars: []string{"DB_PORT", "PGPORT"}, Value: "5432", Destination: &dbOptions.Port,
 		},
 
 		// Database instances options.
@@ -113,11 +112,15 @@ func init() {
 		},
 		&cli.StringFlag{
 			Name: "db-instances-host", Usage: "instances database host",
-			EnvVars: []string{"DB_INSTANCES_HOST", "DB_HOST", "PGHOST"}, Value: "postgresql",
+			EnvVars: []string{"DB_INSTANCES_HOST", "DB_HOST", "PGHOST"}, Value: "postgresql", Destination: &dbInstancesOptions.Host,
 		},
 		&cli.StringFlag{
 			Name: "db-instances-port", Usage: "instances database port",
-			EnvVars: []string{"DB_INSTANCES_PORT", "DB_PORT", "PGPORT"}, Value: "5432",
+			EnvVars: []string{"DB_INSTANCES_PORT", "DB_PORT", "PGPORT"}, Value: "5432", Destination: &dbInstancesOptions.Port,
+		},
+		&cli.DurationFlag{
+			Name: "db-instances-statement-timeout", Usage: "instances statement timeout",
+			EnvVars: []string{"DB_INSTANCES_STATEMENT_TIMEOUT"}, Value: 2 * time.Second, Destination: &dbInstancesOptions.StatementTimeout,
 		},
 
 		// Tracing options.
@@ -219,9 +222,7 @@ func init() {
 		})
 
 		// Initialize database client.
-		dbOptions.Addr = fmt.Sprintf("%s:%s", c.String("db-host"), c.String("db-port"))
-		dbInstancesOptions.Addr = fmt.Sprintf("%s:%s", c.String("db-instances-host"), c.String("db-instances-port"))
-		db = database.NewDB(dbOptions, dbInstancesOptions, logger, c.Bool("debug"))
+		db = database.NewDB(&dbOptions, &dbInstancesOptions, logger, c.Bool("debug"))
 
 		fs = storage.NewStorage(settings.Common.Location, settings.Buckets, settings.API.Host, settings.API.StorageURL)
 
